@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Itens da CAT')}"></head>
+<body class="bg-body-tertiary">
+<nav th:replace="~{fragments/layout :: topo}"></nav>
+
+<main class="container pb-5">
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="h3 mb-1" th:text="'Itens da CAT: ' + ${cat.nome}">Itens da CAT</h1>
+            <p class="text-body-secondary mb-1">
+                Engenheiro:
+                <strong th:text="${cat.engenheiro.nome}">Engenheiro</strong>
+            </p>
+            <p class="text-body-secondary mb-0">
+                Número:
+                <span th:text="${cat.numeroCat}">000</span>
+                |
+                Município:
+                <span th:text="${cat.municipio}">Município</span>
+            </p>
+        </div>
+        <a class="btn btn-outline-secondary" th:href="@{/cats}">Voltar para CATs</a>
+    </div>
+
+    <div th:if="${mensagemSucesso}" class="alert alert-success" th:text="${mensagemSucesso}"></div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h2 class="h5 mb-0" th:text="${modoEdicao} ? 'Editar Item' : 'Adicionar Item'">Adicionar Item</h2>
+        </div>
+        <div class="card-body">
+            <form th:action="@{${acaoFormulario}}" th:object="${itemForm}" method="post" novalidate>
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-6">
+                        <label for="descricao" class="form-label">Descrição</label>
+                        <input id="descricao" type="text" class="form-control"
+                               th:field="*{descricao}" placeholder="Ex.: Luminária LED 120W">
+                        <div class="text-danger small mt-1"
+                             th:if="${#fields.hasErrors('descricao')}"
+                             th:errors="*{descricao}"></div>
+                    </div>
+
+                    <div class="col-lg-3">
+                        <label for="quantidade" class="form-label">Quantidade</label>
+                        <input id="quantidade" type="number" step="0.01" min="0.01" class="form-control"
+                               th:field="*{quantidade}" placeholder="0">
+                        <div class="text-danger small mt-1"
+                             th:if="${#fields.hasErrors('quantidade')}"
+                             th:errors="*{quantidade}"></div>
+                    </div>
+
+                    <div class="col-lg-3">
+                        <label for="unidade" class="form-label">Unidade</label>
+                        <input id="unidade" type="text" class="form-control"
+                               th:field="*{unidade}" placeholder="UND">
+                        <div class="text-danger small mt-1"
+                             th:if="${#fields.hasErrors('unidade')}"
+                             th:errors="*{unidade}"></div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary"
+                            th:text="${modoEdicao} ? 'Atualizar' : 'Adicionar'">
+                        Adicionar
+                    </button>
+                    <a th:if="${modoEdicao}" class="btn btn-outline-secondary" th:href="@{/cats/{id}/itens(id=${cat.id})}">
+                        Cancelar edição
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div th:if="${#lists.isEmpty(cat.itens)}" class="p-4 text-center text-body-secondary">
+                Nenhum item cadastrado para esta CAT.
+            </div>
+
+            <div th:unless="${#lists.isEmpty(cat.itens)}" class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Descrição</th>
+                        <th>Quantidade</th>
+                        <th>Unidade</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="item : ${cat.itens}">
+                        <td th:text="${item.descricao}">Descrição</td>
+                        <td th:text="${#numbers.formatDecimal(item.quantidade, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                        <td th:text="${item.unidade}">UND</td>
+                        <td class="text-end">
+                            <div class="d-inline-flex gap-2">
+                                <a class="btn btn-sm btn-outline-primary"
+                                   th:href="@{/cats/{catId}/itens/{itemId}/editar(catId=${cat.id}, itemId=${item.id})}">
+                                    Editar
+                                </a>
+                                <form th:action="@{/cats/{catId}/itens/{itemId}/excluir(catId=${cat.id}, itemId=${item.id})}"
+                                      method="post"
+                                      onsubmit="return confirm('Deseja realmente excluir este item?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script th:replace="~{fragments/layout :: scripts}"></script>
+</body>
+</html>
