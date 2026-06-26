@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Nova Análise')}"></head>
+<body class="bg-body-tertiary">
+<nav th:replace="~{fragments/layout :: topo}"></nav>
+
+<main class="container pb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-6">
+            <div class="mb-4">
+                <h1 class="h3 mb-1">Nova Análise</h1>
+                <p class="text-body-secondary mb-0">
+                    Selecione a área e informe os itens exigidos pelo edital.
+                </p>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form th:action="@{/analises}" th:object="${novaAnaliseForm}" method="post" novalidate>
+                        <div class="mb-4">
+                            <label for="area" class="form-label">Área</label>
+                            <select id="area" class="form-select" th:field="*{area}">
+                                <option value="">Selecione</option>
+                                <option th:each="area : ${areas}" th:value="${area}"
+                                        th:text="${area == T(br.com.softwareprisma.licitacao.domain.enums.Area).ILUMINACAO ? 'Iluminação' : 'Pavimentação'}">
+                                    Área
+                                </option>
+                            </select>
+                            <div class="text-danger small mt-1"
+                                 th:if="${#fields.hasErrors('area')}"
+                                 th:errors="*{area}"></div>
+                        </div>
+
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header bg-white">
+                                <h2 class="h5 mb-0">Itens do Edital</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-lg-6">
+                                        <label for="novaItemDescricao" class="form-label">Descrição</label>
+                                        <input id="novaItemDescricao" type="text" class="form-control" placeholder="Ex.: Luminária LED 90-120W">
+                                    </div>
+
+                                    <div class="col-lg-3">
+                                        <label for="novaItemQuantidade" class="form-label">Quantidade</label>
+                                        <input id="novaItemQuantidade" type="number" step="0.01" min="0.01" class="form-control" placeholder="0">
+                                    </div>
+
+                                    <div class="col-lg-2">
+                                        <label for="novaItemUnidade" class="form-label">Unidade</label>
+                                        <input id="novaItemUnidade" type="text" class="form-control" placeholder="UND">
+                                    </div>
+
+                                    <div class="col-lg-1 d-grid">
+                                        <button type="button" class="btn btn-primary" id="botaoAdicionarItem">Adicionar</button>
+                                    </div>
+                                </div>
+
+                                <div id="novoItemErro" class="text-danger small mt-2"></div>
+
+                                <div class="mt-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h3 class="h6 mb-0">Lista</h3>
+                                        <span id="itensCount" class="text-body-secondary">Nenhum item adicionado</span>
+                                    </div>
+                                    <div id="itensLista" class="list-group"></div>
+                                </div>
+
+                                <div id="hiddenItensInputs"></div>
+
+                                <div class="text-danger small mt-2"
+                                     th:if="${#fields.hasErrors('itens')}"
+                                     th:errors="*{itens}"></div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg" id="analisarBtn" disabled>ANALISAR</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+    <script>
+        const itens = [];
+        const itensLista = document.getElementById('itensLista');
+        const itensCount = document.getElementById('itensCount');
+        const novoItemErro = document.getElementById('novoItemErro');
+        const hiddenItensInputs = document.getElementById('hiddenItensInputs');
+        const analisarBtn = document.getElementById('analisarBtn');
+
+        function atualizarItens() {
+            itensLista.innerHTML = '';
+            hiddenItensInputs.innerHTML = '';
+
+            if (itens.length === 0) {
+                itensCount.textContent = 'Nenhum item adicionado';
+                analisarBtn.disabled = true;
+                return;
+            }
+
+            itensCount.textContent = `${itens.length} item(s) adicionados`;
+            analisarBtn.disabled = false;
+
+            itens.forEach((item, index) => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'list-group-item d-flex justify-content-between align-items-center gap-3';
+                itemElement.innerHTML = `
+                    <div>
+                        <div class="fw-semibold text-success">✓ ${item.descricao}</div>
+                        <div class="text-body-secondary mt-1">${item.quantidade} ${item.unidade}</div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger">Remover</button>
+                `;
+                const removeButton = itemElement.querySelector('button');
+                removeButton.addEventListener('click', () => {
+                    itens.splice(index, 1);
+                    atualizarItens();
+                });
+                itensLista.appendChild(itemElement);
+
+                const descricaoInput = document.createElement('input');
+                descricaoInput.type = 'hidden';
+                descricaoInput.name = `itens[${index}].descricao`;
+                descricaoInput.value = item.descricao;
+                hiddenItensInputs.appendChild(descricaoInput);
+
+                const quantidadeInput = document.createElement('input');
+                quantidadeInput.type = 'hidden';
+                quantidadeInput.name = `itens[${index}].quantidade`;
+                quantidadeInput.value = item.quantidadeNormalized;
+                hiddenItensInputs.appendChild(quantidadeInput);
+
+                const unidadeInput = document.createElement('input');
+                unidadeInput.type = 'hidden';
+                unidadeInput.name = `itens[${index}].unidade`;
+                unidadeInput.value = item.unidade;
+                hiddenItensInputs.appendChild(unidadeInput);
+            });
+        }
+
+        document.getElementById('botaoAdicionarItem').addEventListener('click', () => {
+            novoItemErro.textContent = '';
+
+            const descricao = document.getElementById('novaItemDescricao').value.trim();
+            const quantidadeRaw = document.getElementById('novaItemQuantidade').value.trim();
+            const unidade = document.getElementById('novaItemUnidade').value.trim();
+
+            if (!descricao) {
+                novoItemErro.textContent = 'Informe a descrição do item.';
+                return;
+            }
+
+            if (!quantidadeRaw) {
+                novoItemErro.textContent = 'Informe a quantidade do item.';
+                return;
+            }
+
+            const quantidade = parseFloat(quantidadeRaw.replace(',', '.'));
+            if (Number.isNaN(quantidade) || quantidade <= 0) {
+                novoItemErro.textContent = 'Informe uma quantidade maior que zero.';
+                return;
+            }
+
+            if (!unidade) {
+                novoItemErro.textContent = 'Informe a unidade do item.';
+                return;
+            }
+
+            itens.push({
+                descricao,
+                quantidade: quantidadeRaw,
+                quantidadeNormalized: quantidade.toString(),
+                unidade
+            });
+
+            document.getElementById('novaItemDescricao').value = '';
+            document.getElementById('novaItemQuantidade').value = '';
+            document.getElementById('novaItemUnidade').value = '';
+            atualizarItens();
+        });
+
+        atualizarItens();
+    </script>
+    <script th:replace="~{fragments/layout :: scripts}"></script>
+</body>
+</html>

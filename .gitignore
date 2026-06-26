@@ -1,0 +1,16 @@
+# Maven
+target/
+
+# IDEs
+.vscode/
+.idea/
+*.iml
+
+# Logs
+*.log
+hs_err_pid*
+replay_pid*
+
+# Sistema
+.DS_Store
+Thumbs.db

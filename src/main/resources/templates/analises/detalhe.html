@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Nova Análise')}"></head>
+<body class="bg-body-tertiary">
+<nav th:replace="~{fragments/layout :: topo}"></nav>
+
+<main class="container pb-5">
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="h3 mb-1">Nova Análise</h1>
+            <p class="text-body-secondary mb-0">
+                Área:
+                <strong th:text="${analise.area == T(br.com.softwareprisma.licitacao.domain.enums.Area).ILUMINACAO ? 'Iluminação' : 'Pavimentação'}">
+                    Iluminação
+                </strong>
+            </p>
+        </div>
+        <a class="btn btn-outline-secondary" th:href="@{/analises/nova}">Nova análise</a>
+    </div>
+
+    <div th:if="${mensagemSucesso}" class="alert alert-success" th:text="${mensagemSucesso}"></div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h2 class="h5 mb-0" th:text="${modoEdicao} ? 'Editar Item' : 'Adicionar Item'">Adicionar Item</h2>
+        </div>
+        <div class="card-body">
+            <form th:action="@{${acaoFormulario}}" th:object="${itemForm}" method="post" novalidate>
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-6">
+                        <label for="descricao" class="form-label">Descrição</label>
+                        <input id="descricao" type="text" class="form-control"
+                               th:field="*{descricao}" placeholder="Ex.: Luminária LED 90-120W">
+                        <div class="text-danger small mt-1"
+                             th:if="${#fields.hasErrors('descricao')}"
+                             th:errors="*{descricao}"></div>
+                    </div>
+
+                    <div class="col-lg-3">
+                        <label for="quantidade" class="form-label">Quantidade</label>
+                        <input id="quantidade" type="number" step="0.01" min="0.01" class="form-control"
+                               th:field="*{quantidade}" placeholder="0">
+                        <div class="text-danger small mt-1"
+                             th:if="${#fields.hasErrors('quantidade')}"
+                             th:errors="*{quantidade}"></div>
+                    </div>
+
+                    <div class="col-lg-3">
+                        <label for="unidade" class="form-label">Unidade</label>
+                        <input id="unidade" type="text" class="form-control"
+                               th:field="*{unidade}" placeholder="UND">
+                        <div class="text-danger small mt-1"
+                             th:if="${#fields.hasErrors('unidade')}"
+                             th:errors="*{unidade}"></div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary"
+                            th:text="${modoEdicao} ? 'Atualizar' : 'Adicionar'">
+                        Adicionar
+                    </button>
+                    <a th:if="${modoEdicao}" class="btn btn-outline-secondary"
+                       th:href="@{/analises/{id}(id=${analise.id})}">
+                        Cancelar edição
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h2 class="h5 mb-0">Itens do Edital</h2>
+        </div>
+        <div class="card-body p-0">
+            <div th:if="${#lists.isEmpty(analise.itens)}" class="p-4 text-center text-body-secondary">
+                Nenhum item adicionado. Informe os itens exigidos pelo edital acima.
+            </div>
+
+            <div th:unless="${#lists.isEmpty(analise.itens)}" class="list-group list-group-flush">
+                <div th:each="item : ${analise.itens}" class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                            <div class="fw-semibold text-success">
+                                &#10003;
+                                <span th:text="${item.descricao}">Descrição</span>
+                            </div>
+                            <div class="text-body-secondary mt-1">
+                                <span th:text="${#numbers.formatDecimal(item.quantidade, 1, 'POINT', 2, 'COMMA')}">0</span>
+                                <span th:text="${item.unidade}">UND</span>
+                            </div>
+                        </div>
+                        <div class="d-inline-flex gap-2 flex-shrink-0">
+                            <a class="btn btn-sm btn-outline-primary"
+                               th:href="@{/analises/{analiseId}/itens/{itemId}/editar(analiseId=${analise.id}, itemId=${item.id})}">
+                                Editar
+                            </a>
+                            <form th:action="@{/analises/{analiseId}/itens/{itemId}/excluir(analiseId=${analise.id}, itemId=${item.id})}"
+                                  method="post"
+                                  onsubmit="return confirm('Deseja realmente excluir este item?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form th:action="@{/analises/{id}/analisar(id=${analise.id})}" method="post">
+        <button type="submit" class="btn btn-success btn-lg w-100"
+                th:disabled="${#lists.isEmpty(analise.itens)}">
+            ANALISAR
+        </button>
+    </form>
+</main>
+
+<script th:replace="~{fragments/layout :: scripts}"></script>
+</body>
+</html>
