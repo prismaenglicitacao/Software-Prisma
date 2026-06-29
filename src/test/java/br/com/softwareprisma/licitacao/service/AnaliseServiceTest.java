@@ -1,15 +1,7 @@
 package br.com.softwareprisma.licitacao.service;
 
-import br.com.softwareprisma.licitacao.domain.AnaliseItem;
-import br.com.softwareprisma.licitacao.domain.Cat;
-import br.com.softwareprisma.licitacao.domain.CatItem;
-import br.com.softwareprisma.licitacao.domain.Engenheiro;
-import br.com.softwareprisma.licitacao.domain.enums.Area;
-import br.com.softwareprisma.licitacao.domain.enums.ResultadoAnalise;
-import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
-import java.util.List;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

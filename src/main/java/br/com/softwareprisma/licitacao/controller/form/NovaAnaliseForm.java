@@ -1,6 +1,5 @@
 package br.com.softwareprisma.licitacao.controller.form;
 
-import br.com.softwareprisma.licitacao.controller.form.AnaliseItemForm;
 import br.com.softwareprisma.licitacao.domain.enums.Area;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
