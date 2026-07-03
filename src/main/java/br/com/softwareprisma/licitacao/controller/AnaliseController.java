@@ -40,8 +40,7 @@ public class AnaliseController {
     @PostMapping
     public String iniciar(@Valid @ModelAttribute("novaAnaliseForm") NovaAnaliseForm form,
                           BindingResult bindingResult,
-                          Model model,
-                          RedirectAttributes redirectAttributes) {
+                          Model model) {
         if (form.getItens().isEmpty()) {
             bindingResult.rejectValue("itens", "NotEmpty", "Informe ao menos um item.");
         }
@@ -52,11 +51,7 @@ public class AnaliseController {
 
         var analise = analiseService.criar(form.getArea());
         form.getItens().forEach(itemForm -> analiseItemService.salvar(analise.getId(), itemForm.toEntity()));
-
-        AnaliseResultado resultado = analiseService.prepararAnalise(analise.getId());
-        redirectAttributes.addFlashAttribute("mensagemSucesso",
-                resultado.atende() ? "Itens do edital registrados. O algoritmo indicou que a licitação atende." : "Itens do edital registrados. O algoritmo indicou que a licitação não atende.");
-        return "redirect:/analises/" + analise.getId() + "/resumo";
+        return "redirect:/analises/" + analise.getId();
     }
 
     @PostMapping("/{id}/analisar")

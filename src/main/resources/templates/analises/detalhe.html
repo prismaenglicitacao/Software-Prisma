@@ -25,12 +25,19 @@
             <h2 class="h5 mb-0" th:text="${modoEdicao} ? 'Editar Item' : 'Adicionar Item'">Adicionar Item</h2>
         </div>
         <div class="card-body">
+            <!-- Itens utilizados recentemente -->
+            <div class="mb-4" id="itensRecentesSection" style="display: none;">
+                <h3 class="h6 mb-2">Itens utilizados recentemente</h3>
+                <div id="itensRecentes" class="d-flex flex-wrap gap-2"></div>
+            </div>
+
             <form th:action="@{${acaoFormulario}}" th:object="${itemForm}" method="post" novalidate>
                 <div class="row g-3 align-items-end">
-                    <div class="col-lg-6">
+                    <div class="col-lg-6 position-relative">
                         <label for="descricao" class="form-label">Descrição</label>
                         <input id="descricao" type="text" class="form-control"
-                               th:field="*{descricao}" placeholder="Ex.: Luminária LED 90-120W">
+                               th:field="*{descricao}" placeholder="Ex.: Luminária LED 90-120W" autocomplete="off">
+                        <div id="sugestoesLista" class="list-group position-absolute w-100 shadow-sm mt-1" style="display: none; z-index: 1000; max-height: 300px; overflow-y: auto;"></div>
                         <div class="text-danger small mt-1"
                              th:if="${#fields.hasErrors('descricao')}"
                              th:errors="*{descricao}"></div>
@@ -47,8 +54,26 @@
 
                     <div class="col-lg-3">
                         <label for="unidade" class="form-label">Unidade</label>
-                        <input id="unidade" type="text" class="form-control"
-                               th:field="*{unidade}" placeholder="UND">
+                        <select id="unidade" class="form-select" th:field="*{unidade}">
+                            <option value="">Selecione</option>
+                            <option value="UND">UND</option>
+                            <option value="UN">UN</option>
+                            <option value="M">M</option>
+                            <option value="M²">M²</option>
+                            <option value="M³">M³</option>
+                            <option value="KM">KM</option>
+                            <option value="KG">KG</option>
+                            <option value="TON">TON</option>
+                            <option value="L">L</option>
+                            <option value="ML">ML</option>
+                            <option value="H">H</option>
+                            <option value="DIA">DIA</option>
+                            <option value="MÊS">MÊS</option>
+                            <option value="CJ">CJ</option>
+                            <option value="PAR">PAR</option>
+                            <option value="CX">CX</option>
+                            <option value="PCT">PCT</option>
+                        </select>
                         <div class="text-danger small mt-1"
                              th:if="${#fields.hasErrors('unidade')}"
                              th:errors="*{unidade}"></div>
@@ -116,6 +141,88 @@
     </form>
 </main>
 
+<script>
+    const descricaoInput = document.getElementById('descricao');
+    const sugestoesLista = document.getElementById('sugestoesLista');
+    const itensRecentesSection = document.getElementById('itensRecentesSection');
+    const itensRecentes = document.getElementById('itensRecentes');
+    let debounceTimer;
+
+    // Carregar itens recentes ao iniciar
+    async function carregarItensRecentes() {
+        try {
+            const response = await fetch('/api/itens/recentes');
+            const data = await response.json();
+            
+            if (data.length > 0) {
+                itensRecentesSection.style.display = 'block';
+                itensRecentes.innerHTML = data.map(item => 
+                    `<button type="button" class="btn btn-sm btn-outline-primary" 
+                            onclick="selecionarItemRecente('${item.descricao}', '${item.unidade}')">
+                        ${item.descricao} (${item.unidade})
+                    </button>`
+                ).join('');
+            }
+        } catch (error) {
+            console.error('Erro ao carregar itens recentes:', error);
+        }
+    }
+
+    function selecionarItemRecente(descricao, unidade) {
+        descricaoInput.value = descricao;
+        document.getElementById('unidade').value = unidade;
+        document.getElementById('quantidade').focus();
+    }
+
+    // Autocomplete
+    descricaoInput.addEventListener('input', (e) => {
+        const termo = e.target.value.trim();
+        
+        clearTimeout(debounceTimer);
+        
+        if (termo.length < 2) {
+            sugestoesLista.style.display = 'none';
+            return;
+        }
+        
+        debounceTimer = setTimeout(async () => {
+            try {
+                const response = await fetch(`/api/itens/sugestoes?termo=${encodeURIComponent(termo)}`);
+                const data = await response.json();
+                
+                if (data.length > 0) {
+                    sugestoesLista.innerHTML = data.map(item => 
+                        `<button type="button" class="list-group-item list-group-item-action" 
+                                onclick="selecionarSugestao('${item.descricao}', '${item.unidade}')">
+                            ${item.descricao} <span class="text-body-secondary">${item.unidade}</span>
+                        </button>`
+                    ).join('');
+                    sugestoesLista.style.display = 'block';
+                } else {
+                    sugestoesLista.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Erro ao buscar sugestões:', error);
+            }
+        }, 300);
+    });
+
+    function selecionarSugestao(descricao, unidade) {
+        descricaoInput.value = descricao;
+        document.getElementById('unidade').value = unidade;
+        sugestoesLista.style.display = 'none';
+        document.getElementById('quantidade').focus();
+    }
+
+    // Fechar sugestões ao clicar fora
+    document.addEventListener('click', (e) => {
+        if (!descricaoInput.contains(e.target) && !sugestoesLista.contains(e.target)) {
+            sugestoesLista.style.display = 'none';
+        }
+    });
+
+    carregarItensRecentes();
+</script>
 <script th:replace="~{fragments/layout :: scripts}"></script>
 </body>
 </html>
