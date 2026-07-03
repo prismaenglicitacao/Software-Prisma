@@ -25,4 +25,10 @@ public interface CatRepository extends JpaRepository<Cat, Long> {
             where c.id = :id
             """)
     Optional<Cat> buscarDetalhadaPorId(Long id);
+
+    @Query("select count(c) from Cat c")
+    long countTotal();
+
+    @Query("select count(c) from Cat c where c.engenheiro.area = :area")
+    long countByArea(br.com.softwareprisma.licitacao.domain.enums.Area area);
 }

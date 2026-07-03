@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Dashboard')}"></head>
+
+<body class="bg-body-tertiary">
+    <nav th:replace="~{fragments/layout :: topo}"></nav>
+
+    <main class="container pb-5">
+        <div class="mb-4">
+            <h1 class="h3 mb-1">Dashboard</h1>
+            <p class="text-body-secondary mb-0">Visão geral do sistema</p>
+        </div>
+
+        <!-- Estatísticas Gerais -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-subtitle text-body-secondary mb-2">Engenheiros</h6>
+                        <h3 class="card-title mb-0" th:text="${estatisticas.quantidadeEngenheiros}">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-subtitle text-body-secondary mb-2">CATs</h6>
+                        <h3 class="card-title mb-0" th:text="${estatisticas.quantidadeCats}">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-subtitle text-body-secondary mb-2">Itens Cadastrados</h6>
+                        <h3 class="card-title mb-0" th:text="${estatisticas.quantidadeItens}">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-subtitle text-body-secondary mb-2">Análises Realizadas</h6>
+                        <h3 class="card-title mb-0" th:text="${estatisticas.quantidadeAnalises}">0</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-subtitle text-success mb-2">Atenderam</h6>
+                        <h3 class="card-title mb-0" th:text="${estatisticas.quantidadeAnalisesAtenderam}">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-subtitle text-danger mb-2">Não Atenderam</h6>
+                        <h3 class="card-title mb-0" th:text="${estatisticas.quantidadeAnalisesNaoAtenderam}">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-subtitle text-body-secondary mb-2">Cobertura Média</h6>
+                        <h3 class="card-title mb-0" th:text="${estatisticas.coberturaMedia + '%'}">0%</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="h6 mb-0">Análises por Mês</h5>
+                    </div>
+                    <div class="card-body" style="height: 320px;">
+                        <canvas id="analisesPorMesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="h6 mb-0">CATs por Área</h5>
+                    </div>
+                    <div class="card-body" style="height: 320px;">
+                        <canvas id="catsPorAreaChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="h6 mb-0">Itens por Área</h5>
+                    </div>
+                    <div class="card-body" style="height: 320px;">
+                        <canvas id="itensPorAreaChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Últimas Análises -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="h5 mb-0">Últimas Análises</h5>
+            </div>
+            <div class="card-body p-0">
+                <div th:if="${#lists.isEmpty(ultimasAnalises)}" class="p-4 text-center text-body-secondary">
+                    Nenhuma análise realizada.
+                </div>
+                <div th:unless="${#lists.isEmpty(ultimasAnalises)}">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Área</th>
+                                    <th>Data</th>
+                                    <th>Resultado</th>
+                                    <th>Cobertura</th>
+                                    <th class="text-end">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="analise : ${ultimasAnalises}">
+                                    <td th:text="${analise.area == T(br.com.softwareprisma.licitacao.domain.enums.Area).ILUMINACAO ? 'Iluminação' : 'Pavimentação'}">
+                                        Área</td>
+                                    <td th:text="${#temporals.format(analise.dataCriacao, 'dd/MM/yyyy HH:mm')}">01/01/2024
+                                    </td>
+                                    <td>
+                                        <span class="badge"
+                                            th:class="${analise.resultado == T(br.com.softwareprisma.licitacao.domain.enums.ResultadoAnalise).ATENDE ? 'bg-success' : 'bg-danger'}"
+                                            th:text="${analise.resultado == T(br.com.softwareprisma.licitacao.domain.enums.ResultadoAnalise).ATENDE ? 'Atendeu' : 'Não Atendeu'}">
+                                            Resultado
+                                        </span>
+                                    </td>
+                                    <td
+                                        th:text="${analise.cobertura != null ? #numbers.formatDecimal(analise.cobertura.multiply(1), 1, 'POINT', 2, 'COMMA') + '%' : '-'}">
+                                        0%</td>
+                                    <td class="text-end">
+                                        <a class="btn btn-sm btn-outline-primary"
+                                            th:href="@{/analises/{id}/resumo(id=${analise.id})}">
+                                            Visualizar
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Paginação -->
+                    <nav class="d-flex justify-content-between align-items-center p-3 border-top">
+                        <div class="text-body-secondary">
+                            Página <span th:text="${pagina.number + 1}">1</span> de <span th:text="${pagina.totalPages}">1</span>
+                        </div>
+                        <ul class="pagination mb-0">
+                            <li class="page-item" th:class="${!pagina.hasPrevious() ? 'disabled' : ''}">
+                                <a class="page-link" th:href="@{/(page=${pagina.number - 1})}" th:if="${pagina.hasPrevious()}">Anterior</a>
+                                <span class="page-link" th:if="${!pagina.hasPrevious()}">Anterior</span>
+                            </li>
+                            <li class="page-item" th:class="${!pagina.hasNext() ? 'disabled' : ''}">
+                                <a class="page-link" th:href="@{/(page=${pagina.number + 1})}" th:if="${pagina.hasNext()}">Próxima</a>
+                                <span class="page-link" th:if="${!pagina.hasNext()}">Próxima</span>
+                            </li>
+                        </ul>
+                    </nav>
+                    
+                    <!-- Botão Ver histórico completo -->
+                    <div class="p-3 border-top text-end">
+                        <a class="btn btn-outline-secondary" href="/historico">
+                            Ver histórico completo →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script th:replace="~{fragments/layout :: scripts}"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const catsIluminacao = /*[[${catsPorArea['ILUMINACAO']}]]*/ 0;
+        const catsPavimentacao = /*[[${catsPorArea['PAVIMENTACAO']}]]*/ 0;
+        const itensIluminacao = /*[[${itensPorArea['ILUMINACAO']}]]*/ 0;
+        const itensPavimentacao = /*[[${itensPorArea['PAVIMENTACAO']}]]*/ 0;
+
+        // Gráfico de CATs por Área
+        const catsPorAreaCtx = document.getElementById('catsPorAreaChart');
+        if (catsPorAreaCtx) {
+            new Chart(catsPorAreaCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Iluminação', 'Pavimentação'],
+                    datasets: [{
+                        data: [catsIluminacao, catsPavimentacao],
+                        backgroundColor: ['#0d6efd', '#198754']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    resizeDelay: 100,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Gráfico de Itens por Área
+        const itensPorAreaCtx = document.getElementById('itensPorAreaChart');
+        if (itensPorAreaCtx) {
+            new Chart(itensPorAreaCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Iluminação', 'Pavimentação'],
+                    datasets: [{
+                        data: [itensIluminacao, itensPavimentacao],
+                        backgroundColor: ['#0d6efd', '#198754']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    resizeDelay: 100,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Gráfico de Análises por Mês (simulado - dados reais precisariam de query adicional)
+        const analisesPorMesCtx = document.getElementById('analisesPorMesChart');
+        if (analisesPorMesCtx) {
+            new Chart(analisesPorMesCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+                    datasets: [{
+                        label: 'Análises',
+                        data: [0, 0, 0, 0, 0, 0],
+                        backgroundColor: '#0d6efd'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    resizeDelay: 100,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        /*]]>*/
+    </script>
+</body>
+
+</html>

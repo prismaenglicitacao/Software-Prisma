@@ -33,4 +33,10 @@ public interface CatItemRepository extends JpaRepository<CatItem, Long> {
             limit 50
             """)
     List<Object[]> buscarDescricoesRecentes();
+
+    @Query("select count(i) from CatItem i")
+    long countTotal();
+
+    @Query("select count(i) from CatItem i where i.cat.engenheiro.area = :area")
+    long countByArea(br.com.softwareprisma.licitacao.domain.enums.Area area);
 }
