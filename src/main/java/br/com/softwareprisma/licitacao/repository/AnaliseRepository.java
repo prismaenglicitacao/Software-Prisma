@@ -2,6 +2,8 @@ package br.com.softwareprisma.licitacao.repository;
 
 import br.com.softwareprisma.licitacao.controller.dto.AnaliseResumoDTO;
 import br.com.softwareprisma.licitacao.domain.Analise;
+import br.com.softwareprisma.licitacao.domain.enums.Area;
+import br.com.softwareprisma.licitacao.domain.enums.ResultadoAnalise;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -40,4 +42,14 @@ public interface AnaliseRepository extends JpaRepository<Analise, Long> {
             order by a.dataCriacao desc
             """)
     Page<AnaliseResumoDTO> findRecentes(Pageable pageable);
+
+    @EntityGraph(attributePaths = "itens")
+    @Query("""
+            select a
+            from Analise a
+            where (:area is null or a.area = :area)
+            and (:resultado is null or a.resultado = :resultado)
+            order by a.dataCriacao desc
+            """)
+    Page<Analise> buscarComFiltros(Area area, ResultadoAnalise resultado, Pageable pageable);
 }

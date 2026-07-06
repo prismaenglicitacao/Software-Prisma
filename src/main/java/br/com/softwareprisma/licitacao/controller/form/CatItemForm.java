@@ -4,6 +4,7 @@ import br.com.softwareprisma.licitacao.domain.CatItem;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,6 +17,7 @@ import java.math.BigDecimal;
 public class CatItemForm {
 
     @NotBlank(message = "Informe a descricao.")
+    @Size(max = 1000, message = "A descrição deve ter no máximo 1000 caracteres.")
     private String descricao;
 
     @NotNull(message = "Informe a quantidade.")

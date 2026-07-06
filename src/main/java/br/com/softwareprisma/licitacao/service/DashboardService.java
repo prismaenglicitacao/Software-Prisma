@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -55,21 +54,21 @@ public class DashboardService {
     }
 
     public Page<AnaliseResumoDTO> getUltimasAnalises(int page) {
-        PageRequest pageRequest = PageRequest.of(page, 5, Sort.by("dataCriacao").ascending());
+        PageRequest pageRequest = PageRequest.of(page, 5, Sort.by("dataCriacao").descending());
         return analiseRepository.findRecentes(pageRequest);
     }
 
     public Map<String, Long> getCatsPorArea() {
-        Map<String, Long> resultado = new HashMap<>();
-        resultado.put("ILUMINACAO", catRepository.countByArea(Area.ILUMINACAO));
-        resultado.put("PAVIMENTACAO", catRepository.countByArea(Area.PAVIMENTACAO));
-        return resultado;
+        return Map.of(
+            "ILUMINACAO", catRepository.countByArea(Area.ILUMINACAO),
+            "PAVIMENTACAO", catRepository.countByArea(Area.PAVIMENTACAO)
+        );
     }
 
     public Map<String, Long> getItensPorArea() {
-        Map<String, Long> resultado = new HashMap<>();
-        resultado.put("ILUMINACAO", catItemRepository.countByArea(Area.ILUMINACAO));
-        resultado.put("PAVIMENTACAO", catItemRepository.countByArea(Area.PAVIMENTACAO));
-        return resultado;
+        return Map.of(
+            "ILUMINACAO", catItemRepository.countByArea(Area.ILUMINACAO),
+            "PAVIMENTACAO", catItemRepository.countByArea(Area.PAVIMENTACAO)
+        );
     }
 }

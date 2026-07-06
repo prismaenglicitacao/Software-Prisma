@@ -12,6 +12,7 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -35,7 +36,8 @@ public class CatItem {
     private Cat cat;
 
     @NotBlank
-    @Column(nullable = false, length = 200)
+    @Size(max = 1000)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String descricao;
 
     @NotNull

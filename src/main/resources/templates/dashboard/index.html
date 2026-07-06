@@ -193,6 +193,17 @@
         const itensIluminacao = /*[[${itensPorArea['ILUMINACAO']}]]*/ 0;
         const itensPavimentacao = /*[[${itensPorArea['PAVIMENTACAO']}]]*/ 0;
 
+        const doughnutOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            resizeDelay: 100,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        };
+
         // Gráfico de CATs por Área
         const catsPorAreaCtx = document.getElementById('catsPorAreaChart');
         if (catsPorAreaCtx) {
@@ -205,16 +216,7 @@
                         backgroundColor: ['#0d6efd', '#198754']
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    resizeDelay: 100,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
+                options: doughnutOptions
             });
         }
 
@@ -230,16 +232,7 @@
                         backgroundColor: ['#0d6efd', '#198754']
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    resizeDelay: 100,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
+                options: doughnutOptions
             });
         }
 
