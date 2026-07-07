@@ -20,8 +20,8 @@
                         <label for="area" class="form-label">Área</label>
                         <select id="area" name="area" class="form-select">
                             <option value="">Todas</option>
-                            <option value="ILUMINACAO" th:selected="${area == 'ILUMINACAO'}">Iluminação</option>
-                            <option value="PAVIMENTACAO" th:selected="${area == 'PAVIMENTACAO'}">Pavimentação</option>
+                            <option value="ELETRICA" th:selected="${area == 'ELETRICA'}">Elétrica</option>
+                            <option value="CIVIL" th:selected="${area == 'CIVIL'}">Civil</option>
                         </select>
                     </div>
 
@@ -72,7 +72,7 @@
                             <tr th:each="analise : ${analises}">
                                 <td>Análise #<span th:text="${analise.id}">1</span></td>
                                 <td th:text="${#temporals.format(analise.dataCriacao, 'dd/MM/yyyy HH:mm')}">01/01/2024</td>
-                                <td th:text="${analise.area == T(br.com.softwareprisma.licitacao.domain.enums.Area).ILUMINACAO ? 'Iluminação' : 'Pavimentação'}">Área</td>
+                                <td th:text="${analise.area == T(br.com.softwareprisma.licitacao.domain.enums.Area).ELETRICA ? 'Elétrica' : 'Civil'}">Área</td>
                                 <td>
                                     <span class="badge"
                                         th:class="${analise.resultado == T(br.com.softwareprisma.licitacao.domain.enums.ResultadoAnalise).ATENDE ? 'bg-success' : 'bg-danger'}"

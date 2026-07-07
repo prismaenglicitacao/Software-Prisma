@@ -35,7 +35,8 @@
                     <div class="col-lg-6">
                         <label for="descricao" class="form-label">Descrição</label>
                         <input id="descricao" type="text" class="form-control"
-                               th:field="*{descricao}" placeholder="Ex.: Luminária LED 120W">
+                               th:field="*{descricao}" placeholder="Ex.: Luminária LED 120W" autocomplete="off">
+                        <div id="sugestoesLista" class="list-group position-absolute w-100 shadow-sm mt-1" style="display: none; z-index: 1000; max-height: 300px; overflow-y: auto;"></div>
                         <div class="text-danger small mt-1"
                              th:if="${#fields.hasErrors('descricao')}"
                              th:errors="*{descricao}"></div>
@@ -54,7 +55,7 @@
                         <label for="unidade" class="form-label">Unidade</label>
                         <select id="unidade" class="form-select" th:field="*{unidade}">
                             <option value="">Selecione</option>
-                            <option value="UND">UND</option>
+                            <option value="UD">UD</option>
                             <option value="UN">UN</option>
                             <option value="M">M</option>
                             <option value="M²">M²</option>
@@ -134,5 +135,58 @@
 </main>
 
 <script th:replace="~{fragments/layout :: scripts}"></script>
+<script>
+    const descricaoInput = document.getElementById('descricao');
+    const sugestoesLista = document.getElementById('sugestoesLista');
+    const unidadeSelect = document.getElementById('unidade');
+    let debounceTimer;
+
+    // Autocomplete
+    descricaoInput.addEventListener('input', (e) => {
+        const termo = e.target.value.trim();
+        
+        clearTimeout(debounceTimer);
+        
+        if (termo.length < 2) {
+            sugestoesLista.style.display = 'none';
+            return;
+        }
+        
+        debounceTimer = setTimeout(async () => {
+            try {
+                const response = await fetch(`/api/itens/sugestoes?termo=${encodeURIComponent(termo)}`);
+                const data = await response.json();
+                
+                if (data.length > 0) {
+                    sugestoesLista.innerHTML = data.map(item => 
+                        `<button type="button" class="list-group-item list-group-item-action" 
+                                onclick="selecionarSugestao('${item.descricao}', '${item.unidade}')">
+                            ${item.descricao} <span class="text-body-secondary">${item.unidade}</span>
+                        </button>`
+                    ).join('');
+                    sugestoesLista.style.display = 'block';
+                } else {
+                    sugestoesLista.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Erro ao buscar sugestões:', error);
+            }
+        }, 300);
+    });
+
+    function selecionarSugestao(descricao, unidade) {
+        descricaoInput.value = descricao;
+        unidadeSelect.value = unidade;
+        sugestoesLista.style.display = 'none';
+        document.getElementById('quantidade').focus();
+    }
+
+    // Fechar sugestões ao clicar fora
+    document.addEventListener('click', (e) => {
+        if (!descricaoInput.contains(e.target) && !sugestoesLista.contains(e.target)) {
+            sugestoesLista.style.display = 'none';
+        }
+    });
+</script>
 </body>
 </html>

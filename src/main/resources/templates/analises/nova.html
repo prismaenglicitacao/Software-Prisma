@@ -22,7 +22,7 @@
                             <select id="area" class="form-select" th:field="*{area}">
                                 <option value="">Selecione</option>
                                 <option th:each="area : ${areas}" th:value="${area}"
-                                        th:text="${area == T(br.com.softwareprisma.licitacao.domain.enums.Area).ILUMINACAO ? 'Iluminação' : 'Pavimentação'}">
+                                        th:text="${area == T(br.com.softwareprisma.licitacao.domain.enums.Area).ELETRICA ? 'Elétrica' : 'Civil'}">
                                     Área
                                 </option>
                             </select>
@@ -58,7 +58,7 @@
                                         <label for="novaItemUnidade" class="form-label">Unidade</label>
                                         <select id="novaItemUnidade" class="form-select">
                                             <option value="">Selecione</option>
-                                            <option value="UND">UND</option>
+                                            <option value="UD">UD</option>
                                             <option value="M">M</option>
                                             <option value="M²">M²</option>
                                             <option value="M³">M³</option>

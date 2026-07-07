@@ -132,7 +132,7 @@
                             </thead>
                             <tbody>
                                 <tr th:each="analise : ${ultimasAnalises}">
-                                    <td th:text="${analise.area == T(br.com.softwareprisma.licitacao.domain.enums.Area).ILUMINACAO ? 'Iluminação' : 'Pavimentação'}">
+                                    <td th:text="${analise.area == T(br.com.softwareprisma.licitacao.domain.enums.Area).ELETRICA ? 'Elétrica' : 'Civil'}">
                                         Área</td>
                                     <td th:text="${#temporals.format(analise.dataCriacao, 'dd/MM/yyyy HH:mm')}">01/01/2024
                                     </td>
@@ -188,10 +188,10 @@
     <script th:replace="~{fragments/layout :: scripts}"></script>
     <script th:inline="javascript">
         /*<![CDATA[*/
-        const catsIluminacao = /*[[${catsPorArea['ILUMINACAO']}]]*/ 0;
-        const catsPavimentacao = /*[[${catsPorArea['PAVIMENTACAO']}]]*/ 0;
-        const itensIluminacao = /*[[${itensPorArea['ILUMINACAO']}]]*/ 0;
-        const itensPavimentacao = /*[[${itensPorArea['PAVIMENTACAO']}]]*/ 0;
+        const catsEletrica = /*[[${catsPorArea['ELETRICA']}]]*/ 0;
+        const catsCivil = /*[[${catsPorArea['CIVIL']}]]*/ 0;
+        const itensEletrica = /*[[${itensPorArea['ELETRICA']}]]*/ 0;
+        const itensCivil = /*[[${itensPorArea['CIVIL']}]]*/ 0;
 
         const doughnutOptions = {
             responsive: true,
@@ -210,9 +210,9 @@
             new Chart(catsPorAreaCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Iluminação', 'Pavimentação'],
+                    labels: ['Elétrica', 'Civil'],
                     datasets: [{
-                        data: [catsIluminacao, catsPavimentacao],
+                        data: [catsEletrica, catsCivil],
                         backgroundColor: ['#0d6efd', '#198754']
                     }]
                 },
@@ -226,9 +226,9 @@
             new Chart(itensPorAreaCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Iluminação', 'Pavimentação'],
+                    labels: ['Elétrica', 'Civil'],
                     datasets: [{
-                        data: [itensIluminacao, itensPavimentacao],
+                        data: [itensEletrica, itensCivil],
                         backgroundColor: ['#0d6efd', '#198754']
                     }]
                 },

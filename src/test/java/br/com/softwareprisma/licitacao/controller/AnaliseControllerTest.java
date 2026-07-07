@@ -36,7 +36,7 @@ class AnaliseControllerTest {
     void deveRedirecionarParaResumoDepoisDeCriarAnalise() throws Exception {
         Analise analise = new Analise();
         analise.setId(10L);
-        analise.setArea(Area.ILUMINACAO);
+        analise.setArea(Area.ELETRICA);
 
         when(analiseService.criar(any())).thenReturn(analise);
         when(analiseService.prepararAnalise(10L)).thenReturn(new AnaliseResultado(
@@ -50,7 +50,7 @@ class AnaliseControllerTest {
         ));
 
         mockMvc.perform(post("/analises")
-                        .param("area", "ILUMINACAO")
+                        .param("area", "ELETRICA")
                         .param("itens[0].descricao", "Luminária LED")
                         .param("itens[0].quantidade", "10")
                         .param("itens[0].unidade", "UND"))

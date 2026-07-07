@@ -60,15 +60,15 @@ public class DashboardService {
 
     public Map<String, Long> getCatsPorArea() {
         return Map.of(
-            "ILUMINACAO", catRepository.countByArea(Area.ILUMINACAO),
-            "PAVIMENTACAO", catRepository.countByArea(Area.PAVIMENTACAO)
+            "ELETRICA", catRepository.countByArea(Area.ELETRICA),
+            "CIVIL", catRepository.countByArea(Area.CIVIL)
         );
     }
 
     public Map<String, Long> getItensPorArea() {
         return Map.of(
-            "ILUMINACAO", catItemRepository.countByArea(Area.ILUMINACAO),
-            "PAVIMENTACAO", catItemRepository.countByArea(Area.PAVIMENTACAO)
+            "ELETRICA", catItemRepository.countByArea(Area.ELETRICA),
+            "CIVIL", catItemRepository.countByArea(Area.CIVIL)
         );
     }
 }
