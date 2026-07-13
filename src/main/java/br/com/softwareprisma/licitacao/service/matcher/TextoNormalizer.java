@@ -20,6 +20,11 @@ public class TextoNormalizer {
 
         texto = texto.toLowerCase(Locale.ROOT);
 
+        texto = texto.replace("²", "2").replace("³", "3");
+
+        texto = texto.replaceAll("(?<=\\d)\\s+(?=[a-z])", "");
+        texto = texto.replaceAll("(?<=[a-z])\\s+(?=\\d)", "");
+
         texto = texto.replaceAll("[^a-z0-9 ]", " ");
 
         texto = texto.replaceAll("\\s+", " ");

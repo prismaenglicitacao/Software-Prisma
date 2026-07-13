@@ -19,8 +19,9 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -75,50 +76,70 @@ public class AnaliseService {
     }
 
     private AnaliseResultado comparar(Analise analise) {
-        List<RequisicaoAnalise> requisicoes = agruparRequisitos(analise.getItens());
-        BigDecimal totalExigido = requisicoes.stream()
-                .map(RequisicaoAnalise::quantidade)
-                .reduce(ZERO, BigDecimal::add);
+
+        BigDecimal totalExigido = analise.getItens()
+                .stream()
+                .map(AnaliseItem::getQuantidade)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         List<EngenheiroInfo> engenheiros = agruparEngenheirosPorArea(analise.getArea());
+
         if (engenheiros.isEmpty()) {
-            return criarResultado(Collections.emptyList(), Collections.emptyList(), requisicoes, totalExigido, analise.getItens());
+            return criarResultado(
+                    Collections.emptyList(),
+                    Collections.emptyList(),
+                    totalExigido,
+                    analise.getItens());
         }
 
-        Optional<AnaliseResultado> buscaCompleta = buscarMelhorCombinacaoValida(engenheiros, requisicoes, totalExigido, analise.getItens());
+        Optional<AnaliseResultado> buscaCompleta = buscarMelhorCombinacaoValida(
+                engenheiros,
+                totalExigido,
+                analise.getItens());
+
         if (buscaCompleta.isPresent()) {
             return buscaCompleta.get();
         }
 
-        return buscarMelhorCombinacaoInvalida(engenheiros, requisicoes, totalExigido, analise.getItens());
+        return buscarMelhorCombinacaoInvalida(
+                engenheiros,
+                totalExigido,
+                analise.getItens());
     }
 
-    private List<RequisicaoAnalise> agruparRequisitos(List<AnaliseItem> itens) {
-        List<RequisicaoAnalise> requisicoes = new ArrayList<>();
+    private List<RequisicaoAnalise> criarRequisicoes(List<AnaliseItem> itens) {
+
+        List<RequisicaoAnalise> lista = new ArrayList<>();
+
         for (AnaliseItem item : itens) {
-            requisicoes.add(new RequisicaoAnalise(
+
+            lista.add(new RequisicaoAnalise(
                     item.getDescricao(),
                     item.getUnidade(),
-                    item.getQuantidade(),
-                    null // itens do edital não têm CAT
-            ));
+                    item.getQuantidade()));
         }
-        return requisicoes;
+
+        return lista;
     }
 
     private List<EngenheiroInfo> agruparEngenheirosPorArea(Area area) {
         Map<Long, EngenheiroInfo> lista = new TreeMap<>();
         for (Cat cat : catRepository.listarTodasComEngenheiroEItens()) {
+            if (cat.getEngenheiro() == null || cat.getEngenheiro().getArea() == null) {
+                continue;
+            }
             if (!Objects.equals(cat.getEngenheiro().getArea(), area)) {
                 continue;
             }
             Long engenheiroId = cat.getEngenheiro().getId();
-            lista.computeIfAbsent(engenheiroId, id -> new EngenheiroInfo(
+            EngenheiroInfo info = lista.computeIfAbsent(
                     engenheiroId,
-                    cat.getEngenheiro().getNome(),
-                    new ArrayList<>(),
-                    new ArrayList<>()))
-                    .adicionarCat(cat);
+                    id -> new EngenheiroInfo(
+                            engenheiroId,
+                            cat.getEngenheiro().getNome(),
+                            new ArrayList<>(),
+                            new ArrayList<>()));
+            info.adicionarCat(cat);
         }
 
         return lista.values().stream()
@@ -126,10 +147,10 @@ public class AnaliseService {
                 .collect(Collectors.toList());
     }
 
-    private Optional<AnaliseResultado> buscarMelhorCombinacaoValida(List<EngenheiroInfo> engenheiros,
-                                                                    List<RequisicaoAnalise> requisicoes,
-                                                                    BigDecimal totalExigido,
-                                                                    List<AnaliseItem> itensAnalise) {
+    private Optional<AnaliseResultado> buscarMelhorCombinacaoValida(
+            List<EngenheiroInfo> engenheiros,
+            BigDecimal totalExigido,
+            List<AnaliseItem> itensAnalise) {
         for (int tamanho = 1; tamanho <= engenheiros.size(); tamanho++) {
             AnaliseResultado melhor = null;
             for (int mask = 1; mask < (1 << engenheiros.size()); mask++) {
@@ -137,10 +158,14 @@ public class AnaliseService {
                     continue;
                 }
                 Candidate candidato = construirCandidato(engenheiros, mask);
-                if (!atendeTodosOsItens(candidato.itens(), requisicoes)) {
+                if (!atendeTodosOsItens(candidato.itens(), itensAnalise)) {
                     continue;
                 }
-                AnaliseResultado resultado = criarResultado(candidato, requisicoes, totalExigido, itensAnalise);
+                AnaliseResultado resultado = criarResultado(
+                        candidato,
+                        totalExigido,
+                        itensAnalise);
+                ;
                 if (melhor == null || compararMelhorCandidato(resultado, melhor)) {
                     melhor = resultado;
                 }
@@ -152,59 +177,87 @@ public class AnaliseService {
         return Optional.empty();
     }
 
-    private AnaliseResultado buscarMelhorCombinacaoInvalida(List<EngenheiroInfo> engenheiros,
-                                                            List<RequisicaoAnalise> requisicoes,
-                                                            BigDecimal totalExigido,
-                                                            List<AnaliseItem> itensAnalise) {
+    private AnaliseResultado buscarMelhorCombinacaoInvalida(
+            List<EngenheiroInfo> engenheiros,
+            BigDecimal totalExigido,
+            List<AnaliseItem> itensAnalise) {
         AnaliseResultado melhor = null;
         for (int mask = 1; mask < (1 << engenheiros.size()); mask++) {
             Candidate candidato = construirCandidato(engenheiros, mask);
-            AnaliseResultado resultado = criarResultado(candidato, requisicoes, totalExigido, itensAnalise);
+            AnaliseResultado resultado = criarResultado(
+                    candidato,
+                    totalExigido,
+                    itensAnalise);
             if (melhor == null || compararMelhorCandidatoNaoAtende(resultado, melhor)) {
                 melhor = resultado;
             }
         }
         if (melhor == null) {
-            return criarResultado(Collections.emptyList(), Collections.emptyList(), requisicoes, totalExigido, itensAnalise);
+            return criarResultado(Collections.emptyList(), Collections.emptyList(), totalExigido,
+                    itensAnalise);
         }
         return melhor;
     }
 
     private Candidate construirCandidato(List<EngenheiroInfo> engenheiros, int mask) {
-        List<RequisicaoAnalise> itens = new ArrayList<>();
+
         List<EngenheiroInfo> selecionados = new ArrayList<>();
+
         List<String> catNomes = new ArrayList<>();
 
+        List<CatItem> itens = new ArrayList<>();
+
         for (int index = 0; index < engenheiros.size(); index++) {
+
             if ((mask & (1 << index)) == 0) {
                 continue;
             }
+
             EngenheiroInfo info = engenheiros.get(index);
+
             selecionados.add(info);
+
             catNomes.addAll(info.catNomes());
+
             itens.addAll(info.itens());
+
         }
 
-        return new Candidate(selecionados, catNomes, itens);
+        return new Candidate(
+                selecionados,
+                catNomes,
+                itens);
+
     }
 
-    private boolean atendeTodosOsItens(List<RequisicaoAnalise> itensCat, List<RequisicaoAnalise> requisicoes) {
-        for (RequisicaoAnalise requisito : requisicoes) {
-            BigDecimal totalEncontrado = ZERO;
-            for (RequisicaoAnalise itemCat : itensCat) {
-                if (descricaoMatcher.corresponde(
-                        requisito.descricao(),
-                        requisito.unidade(),
-                        itemCat.descricao(),
-                        itemCat.unidade()
-                )) {
-                    totalEncontrado = totalEncontrado.add(itemCat.quantidade());
+    private boolean atendeTodosOsItens(
+            List<CatItem> itensCat,
+            List<AnaliseItem> itensAnalise) {
+
+        for (AnaliseItem requisito : itensAnalise) {
+
+            BigDecimal quantidadeEncontrada = BigDecimal.ZERO;
+
+            for (CatItem item : itensCat) {
+
+                if (!descricaoMatcher.corresponde(
+                        requisito.getDescricao(),
+                        requisito.getUnidade(),
+                        item.getDescricao(),
+                        item.getUnidade())) {
+                    continue;
                 }
+
+                quantidadeEncontrada = quantidadeEncontrada.add(item.getQuantidade());
+
             }
-            if (totalEncontrado.compareTo(requisito.quantidade()) < 0) {
+
+            if (quantidadeEncontrada.compareTo(requisito.getQuantidade()) < 0) {
                 return false;
             }
+
         }
+
         return true;
     }
 
@@ -231,126 +284,223 @@ public class AnaliseService {
         return candidato.cats().size() < atual.cats().size();
     }
 
-    private AnaliseResultado criarResultado(Candidate candidato,
-                                            List<RequisicaoAnalise> requisicoes,
-                                            BigDecimal totalExigido,
-                                            List<AnaliseItem> itensAnalise) {
-        List<String> engenheiros = candidato.engenheiros().stream()
+    private AnaliseResultado criarResultado(
+            Candidate candidato,
+            BigDecimal totalExigido,
+            List<AnaliseItem> itensAnalise) {
+
+        List<String> engenheiros = candidato.engenheiros()
+                .stream()
                 .map(EngenheiroInfo::nome)
-                .collect(Collectors.toList());
-        
-        // Extrair apenas as CATs que foram realmente utilizadas
-        Set<String> catsUtilizadas = extrairCatsUtilizadas(itensAnalise, candidato.itens());
-        List<String> cats = Collections.unmodifiableList(new ArrayList<>(catsUtilizadas));
-        
-        List<AnaliseResultadoItem> itens = criarItensResultado(itensAnalise, requisicoes, candidato.itens());
-        BigDecimal cobertura = calcularCobertura(requisicoes, candidato.itens(), totalExigido);
-        List<String> itensFaltantes = itens.stream()
-                .filter(item -> !item.atende())
-                .map(item -> item.descricao() + " " + item.unidade())
-                .collect(Collectors.toList());
-        ResultadoAnalise resultado = itensFaltantes.isEmpty() ? ResultadoAnalise.ATENDE : ResultadoAnalise.NAO_ATENDE;
-        return new AnaliseResultado(resultado, engenheiros, cats, itens, itensFaltantes, cobertura, itensFaltantes.isEmpty());
+                .toList();
+
+        List<AnaliseResultadoItem> itens = criarItensResultado(
+                itensAnalise,
+                candidato.itens());
+
+        BigDecimal cobertura = calcularCobertura(
+                itensAnalise,
+                candidato.itens(),
+                totalExigido);
+
+        List<String> faltantes = itens.stream()
+                .filter(i -> !i.atende())
+                .map(i -> i.descricao() + " " + i.unidade())
+                .toList();
+
+        ResultadoAnalise resultado = faltantes.isEmpty()
+                ? ResultadoAnalise.ATENDE
+                : ResultadoAnalise.NAO_ATENDE;
+
+        List<String> catsUtilizadas = identificarCatsUtilizadas(itensAnalise, candidato.itens());
+
+        return new AnaliseResultado(
+                resultado,
+                engenheiros,
+                catsUtilizadas,
+                itens,
+                faltantes,
+                cobertura,
+                faltantes.isEmpty());
+
     }
 
-    private AnaliseResultado criarResultado(List<String> engenheiros,
-                                            List<String> cats,
-                                            List<RequisicaoAnalise> requisicoes,
-                                            BigDecimal totalExigido,
-                                            List<AnaliseItem> itensAnalise) {
-        List<AnaliseResultadoItem> itens = criarItensResultado(itensAnalise, requisicoes, Collections.emptyList());
-        BigDecimal cobertura = calcularCobertura(requisicoes, Collections.emptyList(), totalExigido);
-        List<String> itensFaltantes = itens.stream()
-                .filter(item -> !item.atende())
-                .map(item -> item.descricao() + " " + item.unidade())
-                .collect(Collectors.toList());
-        return new AnaliseResultado(ResultadoAnalise.NAO_ATENDE, engenheiros, cats, itens, itensFaltantes, cobertura, false);
-    }
-
-    private List<AnaliseResultadoItem> criarItensResultado(List<AnaliseItem> itensAnalise,
-                                                           List<RequisicaoAnalise> requisicoes,
-                                                           List<RequisicaoAnalise> itensCat) {
-        return itensAnalise.stream()
-                .map(item -> {
-                    BigDecimal exigido = item.getQuantidade();
-                    BigDecimal encontrado = ZERO;
-                    for (RequisicaoAnalise itemCat : itensCat) {
-                        if (descricaoMatcher.corresponde(
-                                item.getDescricao(),
-                                item.getUnidade(),
-                                itemCat.descricao(),
-                                itemCat.unidade()
-                        )) {
-                            encontrado = encontrado.add(itemCat.quantidade());
-                        }
+    private List<String> identificarCatsUtilizadas(List<AnaliseItem> itensAnalise, List<CatItem> itensCat) {
+        Set<String> catsUtilizadas = new java.util.HashSet<>();
+        
+        for (AnaliseItem requisito : itensAnalise) {
+            for (CatItem item : itensCat) {
+                if (descricaoMatcher.corresponde(
+                        requisito.getDescricao(),
+                        requisito.getUnidade(),
+                        item.getDescricao(),
+                        item.getUnidade())) {
+                    if (item.getCat() != null && item.getCat().getNome() != null) {
+                        catsUtilizadas.add(item.getCat().getNome());
                     }
-                    boolean atende = encontrado.compareTo(exigido) >= 0;
-                    return new AnaliseResultadoItem(item.getDescricao(), item.getUnidade(), exigido, encontrado, atende);
-                })
-                .collect(Collectors.toList());
+                }
+            }
+        }
+        
+        return new ArrayList<>(catsUtilizadas);
     }
 
-    private BigDecimal calcularCobertura(List<RequisicaoAnalise> requisicoes,
-                                         List<RequisicaoAnalise> itensCat,
-                                         BigDecimal totalExigido) {
+    private AnaliseResultado criarResultado(
+            List<String> engenheiros,
+            List<String> cats,
+            BigDecimal totalExigido,
+            List<AnaliseItem> itensAnalise) {
+
+        List<AnaliseResultadoItem> itens = criarItensResultado(
+                itensAnalise,
+                List.of());
+
+        BigDecimal cobertura = calcularCobertura(
+                itensAnalise,
+                List.of(),
+                totalExigido);
+
+        List<String> faltantes = itens.stream()
+                .filter(i -> !i.atende())
+                .map(i -> i.descricao() + " " + i.unidade())
+                .toList();
+
+        return new AnaliseResultado(
+                ResultadoAnalise.NAO_ATENDE,
+                engenheiros,
+                cats,
+                itens,
+                faltantes,
+                cobertura,
+                false);
+
+    }
+
+    private List<AnaliseResultadoItem> criarItensResultado(
+            List<AnaliseItem> itensAnalise,
+            List<CatItem> itensCat) {
+
+        List<AnaliseResultadoItem> resultado = new ArrayList<>();
+
+        for (AnaliseItem requisito : itensAnalise) {
+
+            BigDecimal encontrado = BigDecimal.ZERO;
+
+            for (CatItem item : itensCat) {
+
+                if (!descricaoMatcher.corresponde(
+                        requisito.getDescricao(),
+                        requisito.getUnidade(),
+                        item.getDescricao(),
+                        item.getUnidade())) {
+                    continue;
+                }
+
+                encontrado = encontrado.add(item.getQuantidade());
+
+            }
+
+            resultado.add(
+                    new AnaliseResultadoItem(
+                            requisito.getDescricao(),
+                            requisito.getUnidade(),
+                            requisito.getQuantidade(),
+                            encontrado,
+                            encontrado.compareTo(requisito.getQuantidade()) >= 0));
+
+        }
+
+        return resultado;
+
+    }
+
+    private BigDecimal calcularCobertura(
+            List<AnaliseItem> itensAnalise,
+            List<CatItem> itensCat,
+            BigDecimal totalExigido) {
+
         if (totalExigido.compareTo(ZERO) == 0) {
             return BigDecimal.valueOf(100);
         }
-        BigDecimal encontrado = ZERO;
-        for (RequisicaoAnalise requisicao : requisicoes) {
-            BigDecimal encontradoParaRequisicao = ZERO;
-            for (RequisicaoAnalise itemCat : itensCat) {
-                if (descricaoMatcher.corresponde(
-                        requisicao.descricao(),
-                        requisicao.unidade(),
-                        itemCat.descricao(),
-                        itemCat.unidade()
-                )) {
-                    encontradoParaRequisicao = encontradoParaRequisicao.add(itemCat.quantidade());
+
+        BigDecimal encontrado = BigDecimal.ZERO;
+
+        for (AnaliseItem requisito : itensAnalise) {
+
+            BigDecimal quantidade = BigDecimal.ZERO;
+
+            for (CatItem item : itensCat) {
+
+                if (!descricaoMatcher.corresponde(
+                        requisito.getDescricao(),
+                        requisito.getUnidade(),
+                        item.getDescricao(),
+                        item.getUnidade())) {
+                    continue;
                 }
+
+                quantidade = quantidade.add(item.getQuantidade());
             }
-            encontrado = encontrado.add(encontradoParaRequisicao.min(requisicao.quantidade()));
+
+            encontrado = encontrado.add(
+                    quantidade.min(requisito.getQuantidade()));
         }
-        return encontrado.divide(totalExigido, 4, RoundingMode.HALF_UP)
+
+        return encontrado
+                .divide(totalExigido, 4, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100))
                 .setScale(2, RoundingMode.HALF_UP);
     }
 
+    private CatItem localizarItemCorrespondente(
+            String descricao,
+            String unidade,
+            List<CatItem> itens) {
 
-    private record EngenheiroInfo(Long id, String nome, List<String> catNomes, List<RequisicaoAnalise> itens) {
+        CatItem melhor = null;
+        double melhorScore = 0;
+
+        for (CatItem item : itens) {
+
+            if (!descricaoMatcher.corresponde(
+                    descricao,
+                    unidade,
+                    item.getDescricao(),
+                    item.getUnidade())) {
+                continue;
+            }
+
+            double score = descricaoMatcher.similaridade(
+                    descricao,
+                    item.getDescricao());
+
+            if (score > melhorScore) {
+                melhorScore = score;
+                melhor = item;
+            }
+        }
+
+        return melhor;
+    }
+
+    private record EngenheiroInfo(
+            Long id,
+            String nome,
+            List<String> catNomes,
+            List<CatItem> itens) {
 
         void adicionarCat(Cat cat) {
+
             this.catNomes.add(cat.getNome());
-            for (CatItem item : cat.getItens()) {
-                this.itens.add(new RequisicaoAnalise(
-                        item.getDescricao(),
-                        item.getUnidade(),
-                        item.getQuantidade(),
-                        cat.getNome()
-                ));
-            }
+
+            this.itens.addAll(cat.getItens());
+
         }
     }
 
-    private record Candidate(List<EngenheiroInfo> engenheiros, List<String> catNomes, List<RequisicaoAnalise> itens) {
-    }
-
-    private Set<String> extrairCatsUtilizadas(List<AnaliseItem> itensAnalise, List<RequisicaoAnalise> itensCat) {
-        Set<String> catsUtilizadas = new HashSet<>();
-        for (AnaliseItem item : itensAnalise) {
-            for (RequisicaoAnalise itemCat : itensCat) {
-                if (descricaoMatcher.corresponde(
-                        item.getDescricao(),
-                        item.getUnidade(),
-                        itemCat.descricao(),
-                        itemCat.unidade()
-                )) {
-                    if (itemCat.nomeCat() != null) {
-                        catsUtilizadas.add(itemCat.nomeCat());
-                    }
-                }
-            }
-        }
-        return catsUtilizadas;
+    private record Candidate(
+            List<EngenheiroInfo> engenheiros,
+            List<String> catNomes,
+            List<CatItem> itens) {
     }
 }

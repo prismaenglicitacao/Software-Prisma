@@ -1,9 +1,11 @@
 package br.com.softwareprisma.licitacao.repository;
 
 import br.com.softwareprisma.licitacao.domain.Cat;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,4 +33,15 @@ public interface CatRepository extends JpaRepository<Cat, Long> {
 
     @Query("select count(c) from Cat c where c.engenheiro.area = :area")
     long countByArea(br.com.softwareprisma.licitacao.domain.enums.Area area);
+
+    @Query("""
+        SELECT new br.com.softwareprisma.licitacao.repository.projection.CatSearchProjection(
+            c.id, c.nome, e.nome, SIZE(c.itens)
+        )
+        FROM Cat c
+        JOIN c.engenheiro e
+        WHERE LOWER(unaccent(c.nome)) LIKE LOWER(unaccent(CONCAT('%', :termo, '%')))
+        ORDER BY c.nome ASC
+        """)
+    List<br.com.softwareprisma.licitacao.repository.projection.CatSearchProjection> pesquisarPorNomeOuNumero(@Param("termo") String termo, Pageable pageable);
 }

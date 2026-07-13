@@ -8,7 +8,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
@@ -22,6 +25,101 @@ public class CatService {
     @Transactional(readOnly = true)
     public List<Cat> listarTodas() {
         return catRepository.listarTodasComEngenheiroEItens();
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Engenheiro, List<Cat>> listarAgrupadasPorEngenheiro() {
+        List<Cat> cats = catRepository.listarTodasComEngenheiroEItens();
+        return cats.stream()
+                .filter(cat -> cat.getEngenheiro() != null)
+                .collect(Collectors.groupingBy(Cat::getEngenheiro))
+                .entrySet().stream()
+                .sorted(Map.Entry.comparingByKey(Comparator.comparing(
+                        Engenheiro::getNome,
+                        Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))))
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (e1, e2) -> e1,
+                        java.util.LinkedHashMap::new
+                ));
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Engenheiro, List<Cat>> listarAgrupadasPorEngenheiroFiltradas(String filtro) {
+        Map<Engenheiro, List<Cat>> agrupadas = listarAgrupadasPorEngenheiro();
+        
+        if (filtro == null || filtro.trim().isEmpty()) {
+            return agrupadas;
+        }
+        
+        String filtroLower = filtro.toLowerCase();
+        return agrupadas.entrySet().stream()
+                .filter(entry -> {
+                    String nome = entry.getKey() != null && entry.getKey().getNome() != null
+                            ? entry.getKey().getNome()
+                            : "";
+                    return nome.toLowerCase().contains(filtroLower);
+                })
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (e1, e2) -> e1,
+                        java.util.LinkedHashMap::new
+                ));
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Engenheiro, CatGroupInfo> listarAgrupadasPorEngenheiroComInfo() {
+        List<Cat> cats = catRepository.listarTodasComEngenheiroEItens();
+        Map<Engenheiro, List<Cat>> agrupadas = cats.stream()
+                .filter(cat -> cat.getEngenheiro() != null)
+                .collect(Collectors.groupingBy(Cat::getEngenheiro));
+        
+        return agrupadas.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey(Comparator.comparing(Engenheiro::getNome)))
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> new CatGroupInfo(entry.getValue()),
+                        (e1, e2) -> e1,
+                        java.util.LinkedHashMap::new
+                ));
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Engenheiro, CatGroupInfo> listarAgrupadasPorEngenheiroComInfoFiltradas(String filtro) {
+        List<Cat> cats = catRepository.listarTodasComEngenheiroEItens();
+        Map<Engenheiro, List<Cat>> agrupadas = cats.stream()
+                .filter(cat -> cat.getEngenheiro() != null)
+                .collect(Collectors.groupingBy(Cat::getEngenheiro));
+        
+        if (filtro != null && !filtro.trim().isEmpty()) {
+            String filtroLower = filtro.toLowerCase();
+            agrupadas = agrupadas.entrySet().stream()
+                    .filter(entry -> {
+                        String nome = entry.getKey() != null && entry.getKey().getNome() != null
+                                ? entry.getKey().getNome()
+                                : "";
+                        return nome.toLowerCase().contains(filtroLower);
+                    })
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            Map.Entry::getValue,
+                            (e1, e2) -> e1,
+                            java.util.LinkedHashMap::new
+                    ));
+        }
+        
+        return agrupadas.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey(Comparator.comparing(
+                        Engenheiro::getNome,
+                        Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))))
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> new CatGroupInfo(entry.getValue()),
+                        (e1, e2) -> e1,
+                        java.util.LinkedHashMap::new
+                ));
     }
 
     @Transactional(readOnly = true)
@@ -59,5 +157,29 @@ public class CatService {
     public void excluir(Long id) {
         Cat cat = buscarPorId(id);
         catRepository.delete(cat);
+    }
+
+    public static class CatGroupInfo {
+        private final List<Cat> cats;
+        private final int totalItens;
+
+        public CatGroupInfo(List<Cat> cats) {
+            this.cats = cats;
+            this.totalItens = cats.stream()
+                    .mapToInt(cat -> cat.getItens() != null ? cat.getItens().size() : 0)
+                    .sum();
+        }
+
+        public List<Cat> getCats() {
+            return cats;
+        }
+
+        public int getTotalItens() {
+            return totalItens;
+        }
+
+        public int getTotalCats() {
+            return cats.size();
+        }
     }
 }

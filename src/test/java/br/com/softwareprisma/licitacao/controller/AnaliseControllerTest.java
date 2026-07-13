@@ -7,8 +7,9 @@ import br.com.softwareprisma.licitacao.service.AnaliseResultado;
 import br.com.softwareprisma.licitacao.service.AnaliseService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -21,15 +22,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(AnaliseController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class AnaliseControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
    
+@MockBean
     private AnaliseService analiseService;
 
-  
+    @MockBean
     private AnaliseItemService analiseItemService;
 
     @Test
@@ -55,6 +58,6 @@ class AnaliseControllerTest {
                         .param("itens[0].quantidade", "10")
                         .param("itens[0].unidade", "UND"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/analises/10/resumo"));
+                .andExpect(redirectedUrl("/analises/10"));
     }
 }

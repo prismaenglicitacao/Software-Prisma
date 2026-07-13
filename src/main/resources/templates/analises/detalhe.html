@@ -56,9 +56,7 @@
                         <label for="unidade" class="form-label">Unidade</label>
                         <select id="unidade" class="form-select" th:field="*{unidade}">
                             <option value="">Selecione</option>
-                            <option value="UND">UND</option>
-                            <option value="CHP">CHP</option>
-                            <option value="CHI">CHI</option>
+                            <option value="UD">UD</option>
                             <option value="UN">UN</option>
                             <option value="M">M</option>
                             <option value="M²">M²</option>
@@ -72,6 +70,7 @@
                             <option value="DIA">DIA</option>
                             <option value="MÊS">MÊS</option>
                             <option value="CJ">CJ</option>
+                            <option value="CHP">CHP</option>
                             <option value="PAR">PAR</option>
                             <option value="CX">CX</option>
                             <option value="PCT">PCT</option>
@@ -143,27 +142,49 @@
     </form>
 </main>
 
-<script>
+<script th:inline="javascript">
     const descricaoInput = document.getElementById('descricao');
     const sugestoesLista = document.getElementById('sugestoesLista');
     const itensRecentesSection = document.getElementById('itensRecentesSection');
     const itensRecentes = document.getElementById('itensRecentes');
+    const areaAnalise = /*[[${analise.area}]]*/ null;
     let debounceTimer;
+
+    function montarUrlItens(path, termo) {
+        const params = new URLSearchParams();
+        if (termo) {
+            params.set('termo', termo);
+        }
+        if (areaAnalise) {
+            params.set('area', areaAnalise);
+        }
+        const query = params.toString();
+        return query ? `${path}?${query}` : path;
+    }
 
     // Carregar itens recentes ao iniciar
     async function carregarItensRecentes() {
         try {
-            const response = await fetch('/api/itens/recentes');
+            const response = await fetch(montarUrlItens('/api/itens/recentes'));
             const data = await response.json();
             
             if (data.length > 0) {
                 itensRecentesSection.style.display = 'block';
-                itensRecentes.innerHTML = data.map(item => 
-                    `<button type="button" class="btn btn-sm btn-outline-primary" 
-                            onclick="selecionarItemRecente('${item.descricao}', '${item.unidade}')">
-                        ${item.descricao} (${item.unidade})
-                    </button>`
-                ).join('');
+                itensRecentes.innerHTML = '';
+                data.forEach(item => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'btn btn-sm btn-outline-primary';
+                    button.dataset.descricao = item.descricao;
+                    button.dataset.unidade = item.unidade;
+                    button.textContent = `${item.descricao} (${item.unidade})`;
+                    button.addEventListener('click', () => {
+                        selecionarItemRecente(button.dataset.descricao, button.dataset.unidade);
+                    });
+                    itensRecentes.appendChild(button);
+                });
+            } else {
+                itensRecentesSection.style.display = 'none';
             }
         } catch (error) {
             console.error('Erro ao carregar itens recentes:', error);
@@ -189,16 +210,29 @@
         
         debounceTimer = setTimeout(async () => {
             try {
-                const response = await fetch(`/api/itens/sugestoes?termo=${encodeURIComponent(termo)}`);
+                const response = await fetch(montarUrlItens('/api/itens/sugestoes', termo));
                 const data = await response.json();
                 
                 if (data.length > 0) {
-                    sugestoesLista.innerHTML = data.map(item => 
-                        `<button type="button" class="list-group-item list-group-item-action" 
-                                onclick="selecionarSugestao('${item.descricao}', '${item.unidade}')">
-                            ${item.descricao} <span class="text-body-secondary">${item.unidade}</span>
-                        </button>`
-                    ).join('');
+                    sugestoesLista.innerHTML = '';
+                    data.forEach(item => {
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = 'list-group-item list-group-item-action';
+                        button.dataset.descricao = item.descricao;
+                        button.dataset.unidade = item.unidade;
+                        button.append(document.createTextNode(`${item.descricao} `));
+
+                        const unidadeSpan = document.createElement('span');
+                        unidadeSpan.className = 'text-body-secondary';
+                        unidadeSpan.textContent = item.unidade;
+                        button.appendChild(unidadeSpan);
+
+                        button.addEventListener('click', () => {
+                            selecionarSugestao(button.dataset.descricao, button.dataset.unidade);
+                        });
+                        sugestoesLista.appendChild(button);
+                    });
                     sugestoesLista.style.display = 'block';
                 } else {
                     sugestoesLista.style.display = 'none';

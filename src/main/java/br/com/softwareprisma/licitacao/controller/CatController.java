@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -29,8 +30,9 @@ public class CatController {
     }
 
     @GetMapping
-    public String listar(Model model) {
-        model.addAttribute("cats", catService.listarTodas());
+    public String listar(@RequestParam(required = false) String filtro, Model model) {
+        model.addAttribute("catsPorEngenheiro", catService.listarAgrupadasPorEngenheiroComInfoFiltradas(filtro));
+        model.addAttribute("filtro", filtro);
         return "cats/lista";
     }
 

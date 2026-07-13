@@ -19,38 +19,39 @@ public class DescricaoMatcher {
 
     private final ValorTecnicoExtractor valorTecnicoExtractor;
 
-    public boolean corresponde(String descricao1, String unidade1, String descricao2, String unidade2) {
-        String unidadeNormalizada1 = unidadeNormalizer.normalizar(unidade1);
-        String unidadeNormalizada2 = unidadeNormalizer.normalizar(unidade2);
-        
-        if (!unidadeNormalizada1.equals(unidadeNormalizada2)) {
-            return false;
-        }
-        
-        // Prioridade 1: Comparar valores técnicos
-        var valores1 = valorTecnicoExtractor.extrair(descricao1);
-        var valores2 = valorTecnicoExtractor.extrair(descricao2);
-        
-        // Se ambos têm valores técnicos, eles devem ser idênticos
-        if (!valores1.isEmpty() && !valores2.isEmpty()) {
-            if (!valores1.equals(valores2)) {
-                return false;
-            }
-        }
-        
-        // Prioridade 2: Verificar substantivos principais (evitar falsos positivos)
-        if (!substantivosPrincipaisCorrespondem(descricao1, descricao2)) {
-            return false;
-        }
-        
-        // Prioridade 3: Comparar similaridade textual
-        return similaridade(descricao1, descricao2) >= 0.80;
+    public String gerarChave(String descricao, String unidade) {
+
+        return textoNormalizer.normalizar(descricao)
+                + "|"
+                + unidadeNormalizer.normalizar(unidade);
+
     }
 
-    public boolean corresponde(String descricao1, String descricao2) {
+    public boolean corresponde(String a, String b) {
+        return corresponde(a, "", b, "");
+    }
 
-        return similaridade(descricao1, descricao2) >= 0.80;
+    public boolean corresponde(
+            String descricao1,
+            String unidade1,
+            String descricao2,
+            String unidade2) {
 
+        // unidades diferentes = nunca corresponde
+        if (!unidadeNormalizer.normalizar(unidade1)
+                .equals(unidadeNormalizer.normalizar(unidade2))) {
+            return false;
+        }
+
+        // textos muito diferentes
+        if (similaridade(descricao1, descricao2) < 0.80) {
+            return false;
+        }
+
+        Set<String> valores1 = valorTecnicoExtractor.extrair(descricao1);
+        Set<String> valores2 = valorTecnicoExtractor.extrair(descricao2);
+
+        return valores1.equals(valores2);
     }
 
     public double similaridade(String descricao1, String descricao2) {
@@ -75,38 +76,6 @@ public class DescricaoMatcher {
 
                 .collect(Collectors.toSet());
 
-    }
-
-    private boolean substantivosPrincipaisCorrespondem(String descricao1, String descricao2) {
-        var tokens1 = tokenizar(textoNormalizer.normalizar(descricao1));
-        var tokens2 = tokenizar(textoNormalizer.normalizar(descricao2));
-        
-        // Se não há tokens suficientes, não pode validar
-        if (tokens1.size() < 2 || tokens2.size() < 2) {
-            return true;
-        }
-        
-        // Verificar se há pelo menos um substantivo principal em comum
-        // (excluindo adjetivos genéricos como "concreto", "pvc", "led")
-        Set<String> adjetivosGenericos = Set.of("concreto", "pvc", "led", "metal", "plastico", "madeira", "ferro", "aco");
-        
-        var substantivos1 = tokens1.stream()
-                .filter(t -> !adjetivosGenericos.contains(t))
-                .collect(Collectors.toSet());
-        
-        var substantivos2 = tokens2.stream()
-                .filter(t -> !adjetivosGenericos.contains(t))
-                .collect(Collectors.toSet());
-        
-        // Se ambos têm substantivos principais, devem ter pelo menos um em comum
-        if (!substantivos1.isEmpty() && !substantivos2.isEmpty()) {
-            substantivos1.retainAll(substantivos2);
-            if (substantivos1.isEmpty()) {
-                return false;
-            }
-        }
-        
-        return true;
     }
 
 }

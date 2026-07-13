@@ -1,114 +1,124 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/layout :: head('Nova Análise')}"></head>
+
 <body class="bg-body-tertiary">
-<nav th:replace="~{fragments/layout :: topo}"></nav>
+    <nav th:replace="~{fragments/layout :: topo}"></nav>
 
-<main class="container pb-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8 col-xl-6">
-            <div class="mb-4">
-                <h1 class="h3 mb-1">Nova Análise</h1>
-                <p class="text-body-secondary mb-0">
-                    Selecione a área e informe os itens exigidos pelo edital.
-                </p>
-            </div>
+    <main class="container pb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-6">
+                <div class="mb-4">
+                    <h1 class="h3 mb-1">Nova Análise</h1>
+                    <p class="text-body-secondary mb-0">
+                        Selecione a área e informe os itens exigidos pelo edital.
+                    </p>
+                </div>
 
-            <div class="card shadow-sm mb-4">
-                <div class="card-body p-4">
-                    <form th:action="@{/analises}" th:object="${novaAnaliseForm}" method="post" novalidate>
-                        <div class="mb-4">
-                            <label for="area" class="form-label">Área</label>
-                            <select id="area" class="form-select" th:field="*{area}">
-                                <option value="">Selecione</option>
-                                <option th:each="area : ${areas}" th:value="${area}"
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <form th:action="@{/analises}" th:object="${novaAnaliseForm}" method="post" novalidate>
+                            <div class="mb-4">
+                                <label for="area" class="form-label">Área</label>
+                                <select id="area" class="form-select" th:field="*{area}">
+                                    <option value="">Selecione</option>
+                                    <option th:each="area : ${areas}" th:value="${area}"
                                         th:text="${area == T(br.com.softwareprisma.licitacao.domain.enums.Area).ELETRICA ? 'Elétrica' : 'Civil'}">
-                                    Área
-                                </option>
-                            </select>
-                            <div class="text-danger small mt-1"
-                                 th:if="${#fields.hasErrors('area')}"
-                                 th:errors="*{area}"></div>
-                        </div>
-
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-header bg-white">
-                                <h2 class="h5 mb-0">Itens do Edital</h2>
+                                        Área
+                                    </option>
+                                </select>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('area')}"
+                                    th:errors="*{area}"></div>
                             </div>
-                            <div class="card-body">
-                                <!-- Itens utilizados recentemente -->
-                                <div class="mb-4" id="itensRecentesSection" style="display: none;">
-                                    <h3 class="h6 mb-2">Itens utilizados recentemente</h3>
-                                    <div id="itensRecentes" class="d-flex flex-wrap gap-2"></div>
+
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header bg-white">
+                                    <h2 class="h5 mb-0">Itens do Edital</h2>
                                 </div>
-
-                                <div class="row g-3 align-items-end">
-                                    <div class="col-lg-5">
-                                        <label for="novaItemDescricao" class="form-label">Descrição</label>
-                                        <input id="novaItemDescricao" type="text" class="form-control" placeholder="Ex.: Luminária LED 90-120W" autocomplete="off">
-                                        <div id="sugestoesLista" class="list-group position-absolute w-100 shadow-sm mt-1" style="display: none; z-index: 1000; max-height: 300px; overflow-y: auto;"></div>
+                                <div class="card-body">
+                                    <!-- Itens utilizados recentemente -->
+                                    <div class="mb-4" id="itensRecentesSection" style="display: none;">
+                                        <h3 class="h6 mb-2">Itens utilizados recentemente</h3>
+                                        <div id="itensRecentes" class="d-flex flex-wrap gap-2"></div>
                                     </div>
 
-                                    <div class="col-lg-2">
-                                        <label for="novaItemQuantidade" class="form-label">Quantidade</label>
-                                        <input id="novaItemQuantidade" type="number" step="0.01" min="0.01" class="form-control" placeholder="0">
+                                    <div class="row g-3 align-items-end">
+                                        <div class="col-lg-5">
+                                            <label for="novaItemDescricao" class="form-label">Descrição</label>
+                                            <input id="novaItemDescricao" type="text" class="form-control"
+                                                placeholder="Ex.: Luminária LED 90-120W" autocomplete="off">
+                                            <div id="sugestoesLista"
+                                                class="list-group position-absolute w-100 shadow-sm mt-1"
+                                                style="display: none; z-index: 1000; max-height: 300px; overflow-y: auto;">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-lg-2">
+                                            <label for="novaItemQuantidade" class="form-label">Quantidade</label>
+                                            <input id="novaItemQuantidade" type="number" step="0.01" min="0.01"
+                                                class="form-control" placeholder="0">
+                                        </div>
+
+                                        <div class="col-lg-3">
+                                            <label for="novaItemUnidade" class="form-label">Unidade</label>
+                                            <select id="novaItemUnidade" class="form-select">
+                                                <option value="">Selecione</option>
+                                                <option value="UD">UD</option>
+                                                <option value="UN">UN</option>
+                                                <option value="M">M</option>
+                                                <option value="M²">M²</option>
+                                                <option value="M³">M³</option>
+                                                <option value="KM">KM</option>
+                                                <option value="KG">KG</option>
+                                                <option value="TON">TON</option>
+                                                <option value="L">L</option>
+                                                <option value="ML">ML</option>
+                                                <option value="H">H</option>
+                                                <option value="DIA">DIA</option>
+                                                <option value="MÊS">MÊS</option>
+                                                <option value="CJ">CJ</option>
+                                                <option value="CHP">CHP</option>
+                                                <option value="PAR">PAR</option>
+                                                <option value="CX">CX</option>
+                                                <option value="PCT">PCT</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-lg-2 d-grid">
+                                            <button type="button" class="btn btn-primary"
+                                                id="botaoAdicionarItem">Adicionar</button>
+                                        </div>
                                     </div>
 
-                                    <div class="col-lg-3">
-                                        <label for="novaItemUnidade" class="form-label">Unidade</label>
-                                        <select id="novaItemUnidade" class="form-select">
-                                            <option value="">Selecione</option>
-                                            <option value="UD">UD</option>
-                                            <option value="M">M</option>
-                                            <option value="M²">M²</option>
-                                            <option value="M³">M³</option>
-                                            <option value="KM">KM</option>
-                                            <option value="KG">KG</option>
-                                            <option value="TON">TON</option>
-                                            <option value="L">L</option>
-                                            <option value="ML">ML</option>
-                                            <option value="H">H</option>
-                                            <option value="DIA">DIA</option>
-                                            <option value="MÊS">MÊS</option>
-                                            <option value="CJ">CJ</option>
-                                            <option value="PAR">PAR</option>
-                                            <option value="CX">CX</option>
-                                            <option value="PCT">PCT</option>
-                                        </select>
+                                    <div id="novoItemErro" class="text-danger small mt-2"></div>
+
+                                    <div class="mt-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h3 class="h6 mb-0">Lista</h3>
+                                            <span id="itensCount" class="text-body-secondary">Nenhum item
+                                                adicionado</span>
+                                        </div>
+                                        <div id="itensLista" class="list-group"></div>
                                     </div>
 
-                                    <div class="col-lg-2 d-grid">
-                                        <button type="button" class="btn btn-primary" id="botaoAdicionarItem">Adicionar</button>
-                                    </div>
+                                    <div id="hiddenItensInputs"></div>
+
+                                    <div class="text-danger small mt-2" th:if="${#fields.hasErrors('itens')}"
+                                        th:errors="*{itens}"></div>
                                 </div>
-
-                                <div id="novoItemErro" class="text-danger small mt-2"></div>
-
-                                <div class="mt-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h3 class="h6 mb-0">Lista</h3>
-                                        <span id="itensCount" class="text-body-secondary">Nenhum item adicionado</span>
-                                    </div>
-                                    <div id="itensLista" class="list-group"></div>
-                                </div>
-
-                                <div id="hiddenItensInputs"></div>
-
-                                <div class="text-danger small mt-2"
-                                     th:if="${#fields.hasErrors('itens')}"
-                                     th:errors="*{itens}"></div>
                             </div>
-                        </div>
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-success btn-lg" id="analisarBtn" disabled>ANALISAR</button>
-                        </div>
-                    </form>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-success btn-lg" id="analisarBtn"
+                                    disabled>ANALISAR</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</main>
+    </main>
 
     <script>
         const itens = [];
@@ -117,26 +127,50 @@
         const novoItemErro = document.getElementById('novoItemErro');
         const hiddenItensInputs = document.getElementById('hiddenItensInputs');
         const analisarBtn = document.getElementById('analisarBtn');
+        const areaSelect = document.getElementById('area');
         const descricaoInput = document.getElementById('novaItemDescricao');
         const sugestoesLista = document.getElementById('sugestoesLista');
         const itensRecentesSection = document.getElementById('itensRecentesSection');
         const itensRecentes = document.getElementById('itensRecentes');
         let debounceTimer;
 
+        function montarUrlItens(path, termo) {
+            const params = new URLSearchParams();
+            if (termo) {
+                params.set('termo', termo);
+            }
+            const area = areaSelect.value.trim();
+            if (area) {
+                params.set('area', area);
+            }
+            const query = params.toString();
+            return query ? `${path}?${query}` : path;
+        }
+
         // Carregar itens recentes ao iniciar
         async function carregarItensRecentes() {
             try {
-                const response = await fetch('/api/itens/recentes');
+                const response = await fetch(montarUrlItens('/api/itens/recentes'));
                 const data = await response.json();
-                
+
                 if (data.length > 0) {
                     itensRecentesSection.style.display = 'block';
-                    itensRecentes.innerHTML = data.map(item => 
-                        `<button type="button" class="btn btn-sm btn-outline-primary" 
-                                onclick="selecionarItemRecente('${item.descricao}', '${item.unidade}')">
-                            ${item.descricao} (${item.unidade})
-                        </button>`
-                    ).join('');
+                    itensRecentes.innerHTML = '';
+                    data.forEach(item => {
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = 'btn btn-sm btn-outline-primary';
+                        button.dataset.descricao = item.descricao;
+                        button.dataset.unidade = item.unidade;
+                        button.textContent = `${item.descricao} (${item.unidade})`;
+                        button.addEventListener('click', () => {
+                            selecionarItemRecente(button.dataset.descricao, button.dataset.unidade);
+                        });
+                        itensRecentes.appendChild(button);
+                    });
+                } else {
+                    itensRecentesSection.style.display = 'none';
+                    itensRecentes.innerHTML = '';
                 }
             } catch (error) {
                 console.error('Erro ao carregar itens recentes:', error);
@@ -152,26 +186,39 @@
         // Autocomplete
         descricaoInput.addEventListener('input', (e) => {
             const termo = e.target.value.trim();
-            
+
             clearTimeout(debounceTimer);
-            
+
             if (termo.length < 2) {
                 sugestoesLista.style.display = 'none';
                 return;
             }
-            
+
             debounceTimer = setTimeout(async () => {
                 try {
-                    const response = await fetch(`/api/itens/sugestoes?termo=${encodeURIComponent(termo)}`);
+                    const response = await fetch(montarUrlItens('/api/itens/sugestoes', termo));
                     const data = await response.json();
-                    
+
                     if (data.length > 0) {
-                        sugestoesLista.innerHTML = data.map(item => 
-                            `<button type="button" class="list-group-item list-group-item-action" 
-                                    onclick="selecionarSugestao('${item.descricao}', '${item.unidade}')">
-                                ${item.descricao} <span class="text-body-secondary">${item.unidade}</span>
-                            </button>`
-                        ).join('');
+                        sugestoesLista.innerHTML = '';
+                        data.forEach(item => {
+                            const button = document.createElement('button');
+                            button.type = 'button';
+                            button.className = 'list-group-item list-group-item-action';
+                            button.dataset.descricao = item.descricao;
+                            button.dataset.unidade = item.unidade;
+                            button.append(document.createTextNode(`${item.descricao} `));
+
+                            const unidadeSpan = document.createElement('span');
+                            unidadeSpan.className = 'text-body-secondary';
+                            unidadeSpan.textContent = item.unidade;
+                            button.appendChild(unidadeSpan);
+
+                            button.addEventListener('click', () => {
+                                selecionarSugestao(button.dataset.descricao, button.dataset.unidade);
+                            });
+                            sugestoesLista.appendChild(button);
+                        });
                         sugestoesLista.style.display = 'block';
                     } else {
                         sugestoesLista.style.display = 'none';
@@ -194,6 +241,11 @@
             if (!descricaoInput.contains(e.target) && !sugestoesLista.contains(e.target)) {
                 sugestoesLista.style.display = 'none';
             }
+        });
+
+        areaSelect.addEventListener('change', () => {
+            sugestoesLista.style.display = 'none';
+            carregarItensRecentes();
         });
 
         function atualizarItens() {
@@ -292,4 +344,5 @@
     </script>
     <script th:replace="~{fragments/layout :: scripts}"></script>
 </body>
+
 </html>

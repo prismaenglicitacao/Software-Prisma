@@ -23,7 +23,16 @@
                 <a class="nav-link" th:href="@{/analises/nova}">Nova Análise</a>
                 <a class="nav-link" th:href="@{/usuarios}" sec:authorize="hasRole('ADMIN')">Usuários</a>
             </div>
-            <div class="navbar-nav ms-auto">
+            <div class="navbar-nav ms-auto d-flex align-items-center gap-3">
+                <div class="position-relative">
+                    <input type="text" 
+                           class="form-control form-control-sm" 
+                           style="width: 200px; background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;"
+                           placeholder="Pesquisar... (Ctrl+K)"
+                           id="globalSearchInput"
+                           autocomplete="off">
+                    <kbd class="position-absolute top-50 end-0 translate-middle-y me-2 bg-secondary border-0" style="font-size: 10px; opacity: 0.7;">⌘K</kbd>
+                </div>
                 <div class="dropdown">
                     <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <span sec:authentication="name">Usuário</span>
@@ -43,8 +52,39 @@
         </div>
     </nav>
 
+    <!-- Modal de Pesquisa Global -->
+    <div class="modal fade" id="globalSearchModal" tabindex="-1" aria-labelledby="globalSearchModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-body p-0">
+                    <div class="p-3 border-bottom">
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                                </svg>
+                            </span>
+                            <input type="text" 
+                                   class="form-control border-0 fs-5" 
+                                   placeholder="Pesquisar engenheiros, CATs, itens..." 
+                                   id="modalSearchInput"
+                                   autocomplete="off">
+                            <kbd class="input-group-text bg-transparent border-0" style="font-size: 12px;">ESC</kbd>
+                        </div>
+                    </div>
+                    <div id="searchResults" class="p-3" style="max-height: 500px; overflow-y: auto;">
+                        <div class="text-center text-muted py-5">
+                            <p class="mb-0">Digite para pesquisar...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script th:fragment="scripts"
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/global-search.js}"></script>
 </body>
 
 </html>
