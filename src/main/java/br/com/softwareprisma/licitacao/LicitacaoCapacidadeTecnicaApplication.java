@@ -8,5 +8,7 @@ public class LicitacaoCapacidadeTecnicaApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(LicitacaoCapacidadeTecnicaApplication.class, args);
+
+        
     }
 }

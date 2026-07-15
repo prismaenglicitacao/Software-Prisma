@@ -1,6 +1,8 @@
 package br.com.softwareprisma.licitacao.repository;
 
 import br.com.softwareprisma.licitacao.domain.CatItem;
+import br.com.softwareprisma.licitacao.repository.projection.ItemSearchProjection;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -53,15 +55,20 @@ public interface CatItemRepository extends JpaRepository<CatItem, Long> {
     @Query("select count(i) from CatItem i where i.cat.engenheiro.area = :area")
     long countByArea(br.com.softwareprisma.licitacao.domain.enums.Area area);
 
-    @Query("""
-        SELECT new br.com.softwareprisma.licitacao.repository.projection.ItemSearchProjection(
-            i.id, c.id, i.descricao, i.unidade, c.nome, e.nome, e.area
-        )
-        FROM CatItem i
-        JOIN i.cat c
-        JOIN c.engenheiro e
-        WHERE LOWER(unaccent(i.descricao)) LIKE LOWER(unaccent(CONCAT('%', :termo, '%')))
-        ORDER BY i.descricao ASC
-        """)
-    List<br.com.softwareprisma.licitacao.repository.projection.ItemSearchProjection> pesquisarPorDescricao(@Param("termo") String termo, Pageable pageable);
+   @Query("""
+    SELECT new br.com.softwareprisma.licitacao.repository.projection.ItemSearchProjection(
+        i.id, c.id, i.descricao, i.unidade, c.nome, e.nome, e.area
+    )
+    FROM CatItem i
+    JOIN i.cat c
+    JOIN c.engenheiro e
+    WHERE LOWER(i.descricao) LIKE LOWER(CONCAT('%', :termo, '%'))
+    ORDER BY i.descricao
+    """)
+List<ItemSearchProjection> pesquisarPorDescricao(
+        @Param("termo") String termo,
+        Pageable pageable);
+
+    @Query("SELECT ci.cat.id, COUNT(ci) FROM CatItem ci WHERE ci.cat.id IN :catIds GROUP BY ci.cat.id")
+    List<Object[]> contarItensPorCatIds(@Param("catIds") List<Long> catIds);
 }

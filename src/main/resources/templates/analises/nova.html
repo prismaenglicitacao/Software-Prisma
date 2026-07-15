@@ -5,6 +5,7 @@
 
 <body class="bg-body-tertiary">
     <nav th:replace="~{fragments/layout :: topo}"></nav>
+    <div th:replace="~{fragments/layout :: modal}"></div>
 
     <main class="container pb-5">
         <div class="row justify-content-center">
@@ -63,25 +64,27 @@
                                         <div class="col-lg-3">
                                             <label for="novaItemUnidade" class="form-label">Unidade</label>
                                             <select id="novaItemUnidade" class="form-select">
-                                                <option value="">Selecione</option>
-                                                <option value="UD">UD</option>
-                                                <option value="UN">UN</option>
-                                                <option value="M">M</option>
-                                                <option value="M²">M²</option>
-                                                <option value="M³">M³</option>
-                                                <option value="KM">KM</option>
-                                                <option value="KG">KG</option>
-                                                <option value="TON">TON</option>
-                                                <option value="L">L</option>
-                                                <option value="ML">ML</option>
-                                                <option value="H">H</option>
-                                                <option value="DIA">DIA</option>
-                                                <option value="MÊS">MÊS</option>
-                                                <option value="CJ">CJ</option>
-                                                <option value="CHP">CHP</option>
-                                                <option value="PAR">PAR</option>
-                                                <option value="CX">CX</option>
-                                                <option value="PCT">PCT</option>
+                                             <option value="">Selecione</option>
+                            <option value="UD">UD</option>
+                            <option value="UN">UN</option>
+                            <option value="M">M</option>
+                            <option value="M²">M²</option>
+                            <option value="M³">M³</option>
+                            <option value="KM">KM</option>
+                            <option value="KG">KG</option>
+                            <option value="TON">TON</option>
+                            <option value="L">L</option>
+                            <option value="ML">ML</option>
+                            <option value="H">H</option>
+                            <option value="DIA">DIA</option>
+                            <option value="DIA/ANO">DIA/ANO</option>
+                            <option value="H/MÊS">H/MÊS</option>
+                            <option value="MÊS">MÊS</option>
+                            <option value="CJ">CJ</option>
+                            <option value="CHP">CHP</option>
+                            <option value="PAR">PAR</option>
+                            <option value="CX">CX</option>
+                            <option value="PCT">PCT</option>
                                             </select>
                                         </div>
 

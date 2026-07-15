@@ -36,11 +36,11 @@ public interface CatRepository extends JpaRepository<Cat, Long> {
 
     @Query("""
         SELECT new br.com.softwareprisma.licitacao.repository.projection.CatSearchProjection(
-            c.id, c.nome, e.nome, SIZE(c.itens)
+            c.id, c.nome, e.nome, 0
         )
         FROM Cat c
         JOIN c.engenheiro e
-        WHERE LOWER(unaccent(c.nome)) LIKE LOWER(unaccent(CONCAT('%', :termo, '%')))
+       WHERE LOWER(c.nome)LIKE LOWER(CONCAT('%', :termo, '%'))
         ORDER BY c.nome ASC
         """)
     List<br.com.softwareprisma.licitacao.repository.projection.CatSearchProjection> pesquisarPorNomeOuNumero(@Param("termo") String termo, Pageable pageable);

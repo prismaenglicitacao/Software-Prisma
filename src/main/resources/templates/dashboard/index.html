@@ -3,8 +3,10 @@
 
 <head th:replace="~{fragments/layout :: head('Dashboard')}"></head>
 
+
 <body class="bg-body-tertiary">
     <nav th:replace="~{fragments/layout :: topo}"></nav>
+    <div th:replace="~{fragments/layout :: modal}"></div>
 
     <main class="container pb-5">
         <div class="mb-4">
@@ -69,7 +71,10 @@
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <h6 class="card-subtitle text-body-secondary mb-2">Cobertura Média</h6>
-                        <h3 class="card-title mb-0" th:text="${estatisticas.coberturaMedia + '%'}">0%</h3>
+                        <h3 class="card-title mb-0"
+                            th:text="${#numbers.formatDecimal(estatisticas.coberturaMedia / 100, 1, 2) + '%'}">
+                            0%
+                        </h3>
                     </div>
                 </div>
             </div>
@@ -77,16 +82,6 @@
 
         <!-- Gráficos -->
         <div class="row g-4 mb-4">
-            <div class="col-lg-4">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-white">
-                        <h5 class="h6 mb-0">Análises por Mês</h5>
-                    </div>
-                    <div class="card-body" style="height: 320px;">
-                        <canvas id="analisesPorMesChart"></canvas>
-                    </div>
-                </div>
-            </div>
             <div class="col-lg-4">
                 <div class="card shadow-sm">
                     <div class="card-header bg-white">
@@ -132,9 +127,11 @@
                             </thead>
                             <tbody>
                                 <tr th:each="analise : ${ultimasAnalises}">
-                                    <td th:text="${analise.area == T(br.com.softwareprisma.licitacao.domain.enums.Area).ELETRICA ? 'Elétrica' : 'Civil'}">
+                                    <td
+                                        th:text="${analise.area == T(br.com.softwareprisma.licitacao.domain.enums.Area).ELETRICA ? 'Elétrica' : 'Civil'}">
                                         Área</td>
-                                    <td th:text="${#temporals.format(analise.dataCriacao, 'dd/MM/yyyy HH:mm')}">01/01/2024
+                                    <td th:text="${#temporals.format(analise.dataCriacao, 'dd/MM/yyyy HH:mm')}">
+                                        01/01/2024
                                     </td>
                                     <td>
                                         <span class="badge"
@@ -156,24 +153,27 @@
                             </tbody>
                         </table>
                     </div>
-                    
+
                     <!-- Paginação -->
                     <nav class="d-flex justify-content-between align-items-center p-3 border-top">
                         <div class="text-body-secondary">
-                            Página <span th:text="${pagina.number + 1}">1</span> de <span th:text="${pagina.totalPages}">1</span>
+                            Página <span th:text="${pagina.number + 1}">1</span> de <span
+                                th:text="${pagina.totalPages}">1</span>
                         </div>
                         <ul class="pagination mb-0">
                             <li class="page-item" th:class="${!pagina.hasPrevious() ? 'disabled' : ''}">
-                                <a class="page-link" th:href="@{/(page=${pagina.number - 1})}" th:if="${pagina.hasPrevious()}">Anterior</a>
+                                <a class="page-link" th:href="@{/(page=${pagina.number - 1})}"
+                                    th:if="${pagina.hasPrevious()}">Anterior</a>
                                 <span class="page-link" th:if="${!pagina.hasPrevious()}">Anterior</span>
                             </li>
                             <li class="page-item" th:class="${!pagina.hasNext() ? 'disabled' : ''}">
-                                <a class="page-link" th:href="@{/(page=${pagina.number + 1})}" th:if="${pagina.hasNext()}">Próxima</a>
+                                <a class="page-link" th:href="@{/(page=${pagina.number + 1})}"
+                                    th:if="${pagina.hasNext()}">Próxima</a>
                                 <span class="page-link" th:if="${!pagina.hasNext()}">Próxima</span>
                             </li>
                         </ul>
                     </nav>
-                    
+
                     <!-- Botão Ver histórico completo -->
                     <div class="p-3 border-top text-end">
                         <a class="btn btn-outline-secondary" href="/historico">
@@ -237,39 +237,10 @@
         }
 
         // Gráfico de Análises por Mês (simulado - dados reais precisariam de query adicional)
-        const analisesPorMesCtx = document.getElementById('analisesPorMesChart');
-        if (analisesPorMesCtx) {
-            new Chart(analisesPorMesCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
-                    datasets: [{
-                        label: 'Análises',
-                        data: [0, 0, 0, 0, 0, 0],
-                        backgroundColor: '#0d6efd'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    resizeDelay: 100,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
-                        }
-                    }
-                }
-            });
-        }
+
         /*]]>*/
+      
+        
     </script>
 </body>
 

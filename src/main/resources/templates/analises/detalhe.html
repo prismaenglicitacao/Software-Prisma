@@ -3,6 +3,7 @@
 <head th:replace="~{fragments/layout :: head('Nova Análise')}"></head>
 <body class="bg-body-tertiary">
 <nav th:replace="~{fragments/layout :: topo}"></nav>
+<div th:replace="~{fragments/layout :: modal}"></div>
 
 <main class="container pb-5">
     <div class="d-flex justify-content-between align-items-start mb-4">
@@ -68,6 +69,8 @@
                             <option value="ML">ML</option>
                             <option value="H">H</option>
                             <option value="DIA">DIA</option>
+                            <option value="DIA/ANO">DIA/ANO</option>
+                            <option value="H/MÊS">H/MÊS</option>
                             <option value="MÊS">MÊS</option>
                             <option value="CJ">CJ</option>
                             <option value="CHP">CHP</option>

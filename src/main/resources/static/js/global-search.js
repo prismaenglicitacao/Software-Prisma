@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
                          onclick="window.location.href='/cats/${cat.id}'">
                         <div class="fw-bold">${cat.nome}</div>
                         <div class="text-muted small">
-                            ${cat.numero} • Engenheiro: ${cat.engenheiroNome} • ${cat.totalItens} item(ns)
+                            Engenheiro: ${cat.engenheiroNome} • ${cat.totalItens} item(ns)
                         </div>
                     </div>
                 `;
@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
                          onclick="window.location.href='/cats/${item.catId}/itens'">
                         <div class="fw-bold">${item.descricao}</div>
                         <div class="text-muted small">
-                            CAT: ${item.catNome} (${item.catNumero})<br>
+                            CAT: ${item.catNome}<br>
                             Engenheiro: ${item.engenheiroNome} • Área: ${item.area || 'N/A'}
                         </div>
                     </div>
@@ -210,6 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         searchResults.innerHTML = html;
+        console.log("Renderização concluída");
 
         // Armazenar referências para navegação por teclado
         const items = searchResults.querySelectorAll('.search-result-item');
