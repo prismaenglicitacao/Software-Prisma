@@ -7,6 +7,8 @@ import br.com.softwareprisma.licitacao.service.CatItemService;
 import br.com.softwareprisma.licitacao.service.CatService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -25,12 +28,17 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @RequiredArgsConstructor
 public class CatItemController {
 
+    private static final int PAGE_SIZE = 25;
+
     private final CatService catService;
     private final CatItemService catItemService;
 
     @GetMapping
-    public String listar(@PathVariable Long catId, Model model) {
-        carregarTela(catId, model, new CatItemForm(), false, null);
+    public String listar(@PathVariable Long catId,
+                         @RequestParam(defaultValue = "0") int page,
+                         @RequestParam(required = false) String q,
+                         Model model) {
+        carregarTela(catId, model, new CatItemForm(), false, null, page, q);
         return "cat-itens/lista";
     }
 
@@ -39,22 +47,27 @@ public class CatItemController {
                          @Valid @ModelAttribute("itemForm") CatItemForm itemForm,
                          BindingResult bindingResult,
                          Model model,
-                         RedirectAttributes redirectAttributes) {
+                         RedirectAttributes redirectAttributes,
+                         @RequestParam(defaultValue = "0") int page) {
         if (bindingResult.hasErrors()) {
-            carregarTela(catId, model, itemForm, false, null);
+            carregarTela(catId, model, itemForm, false, null, page, null);
             return "cat-itens/lista";
         }
 
         catItemService.salvar(catId, itemForm.toEntity());
         redirectAttributes.addFlashAttribute("mensagemSucesso", "Item da CAT cadastrado com sucesso.");
-        return "redirect:/cats/" + catId + "/itens";
+        return "redirect:/cats/" + catId + "/itens?page=" + page;
     }
 
     @GetMapping("/{itemId}/editar")
-    public String editar(@PathVariable Long catId, @PathVariable Long itemId, Model model) {
+    public String editar(@PathVariable Long catId,
+                         @PathVariable Long itemId,
+                         @RequestParam(defaultValue = "0") int page,
+                         @RequestParam(required = false) String q,
+                         Model model) {
         CatItem item = catItemService.buscarDetalhadoPorId(itemId);
         validarPertencimento(catId, item);
-        carregarTela(catId, model, CatItemForm.fromEntity(item), true, itemId);
+        carregarTela(catId, model, CatItemForm.fromEntity(item), true, itemId, page, q);
         return "cat-itens/lista";
     }
 
@@ -69,7 +82,7 @@ public class CatItemController {
         validarPertencimento(catId, item);
 
         if (bindingResult.hasErrors()) {
-            carregarTela(catId, model, itemForm, true, itemId);
+            carregarTela(catId, model, itemForm, true, itemId, 0, null);
             return "cat-itens/lista";
         }
 
@@ -93,9 +106,19 @@ public class CatItemController {
                               Model model,
                               CatItemForm itemForm,
                               boolean modoEdicao,
-                              Long itemIdEdicao) {
+                              Long itemIdEdicao,
+                              int page,
+                              String q) {
         Cat cat = catService.buscarDetalhadaPorId(catId);
+
+        String qNorm = (q != null && !q.isBlank()) ? q.trim() : null;
+        Page<CatItem> itensPaginados = catItemService.listarPaginado(
+                catId, qNorm, PageRequest.of(page, PAGE_SIZE));
+
         model.addAttribute("cat", cat);
+        model.addAttribute("itensPaginados", itensPaginados);
+        model.addAttribute("q", q != null ? q : "");
+        model.addAttribute("paginaAtual", page);
         model.addAttribute("itemForm", itemForm);
         model.addAttribute("modoEdicao", modoEdicao);
         model.addAttribute("itemIdEdicao", itemIdEdicao);

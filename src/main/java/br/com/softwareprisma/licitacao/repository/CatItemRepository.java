@@ -3,6 +3,7 @@ package br.com.softwareprisma.licitacao.repository;
 import br.com.softwareprisma.licitacao.domain.CatItem;
 import br.com.softwareprisma.licitacao.repository.projection.ItemSearchProjection;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -49,6 +50,39 @@ public interface CatItemRepository extends JpaRepository<CatItem, Long> {
             """)
     List<Object[]> buscarDescricoesPorTermo(String termo);
 
+    @Query("""
+            select i.descricao, i.unidade, sum(i.quantidade)
+            from CatItem i
+            where (:area is null or i.cat.engenheiro.area = :area)
+              and lower(i.descricao) like lower(concat('%', :termo, '%'))
+            group by i.descricao, i.unidade
+            order by 
+                case when lower(i.descricao) like lower(concat(:termo, '%')) then 0 else 1 end,
+                i.descricao
+            """)
+    List<Object[]> buscarDescricoesPorTermoComQuantidade(String termo,
+                                                         br.com.softwareprisma.licitacao.domain.enums.Area area);
+
+    @Query("""
+            select i.descricao, i.unidade, sum(i.quantidade)
+            from CatItem i
+            where lower(i.descricao) like lower(concat('%', :termo, '%'))
+            group by i.descricao, i.unidade
+            order by 
+                case when lower(i.descricao) like lower(concat(:termo, '%')) then 0 else 1 end,
+                i.descricao
+            """)
+    List<Object[]> buscarDescricoesPorTermoComQuantidade(String termo);
+
+    @Query("""
+            select i.descricao, i.unidade, sum(i.quantidade)
+            from CatItem i
+            where (:area is null or i.cat.engenheiro.area = :area)
+            group by i.descricao, i.unidade
+            order by max(i.id) desc
+            """)
+    List<Object[]> buscarDescricoesRecentesComQuantidade(br.com.softwareprisma.licitacao.domain.enums.Area area);
+
     @Query("select count(i) from CatItem i")
     long countTotal();
 
@@ -71,4 +105,10 @@ List<ItemSearchProjection> pesquisarPorDescricao(
 
     @Query("SELECT ci.cat.id, COUNT(ci) FROM CatItem ci WHERE ci.cat.id IN :catIds GROUP BY ci.cat.id")
     List<Object[]> contarItensPorCatIds(@Param("catIds") List<Long> catIds);
+
+    @Query("SELECT i FROM CatItem i WHERE i.cat.id = :catId ORDER BY i.id ASC")
+    Page<CatItem> findByCatId(@Param("catId") Long catId, Pageable pageable);
+
+    @Query("SELECT i FROM CatItem i WHERE i.cat.id = :catId AND LOWER(i.descricao) LIKE LOWER(CONCAT('%', :descricao, '%')) ORDER BY i.id ASC")
+    Page<CatItem> findByCatIdAndDescricaoContainingIgnoreCase(@Param("catId") Long catId, @Param("descricao") String descricao, Pageable pageable);
 }

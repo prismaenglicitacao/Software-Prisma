@@ -303,9 +303,8 @@ public class AnaliseService {
                 candidato.itens(),
                 totalExigido);
 
-        List<String> faltantes = itens.stream()
+        List<AnaliseResultadoItem> faltantes = itens.stream()
                 .filter(i -> !i.atende())
-                .map(i -> i.descricao() + " " + i.unidade())
                 .toList();
 
         ResultadoAnalise resultado = faltantes.isEmpty()
@@ -360,9 +359,8 @@ public class AnaliseService {
                 List.of(),
                 totalExigido);
 
-        List<String> faltantes = itens.stream()
+        List<AnaliseResultadoItem> faltantes = itens.stream()
                 .filter(i -> !i.atende())
-                .map(i -> i.descricao() + " " + i.unidade())
                 .toList();
 
         return new AnaliseResultado(

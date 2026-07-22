@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
@@ -21,6 +23,14 @@ public class CatItemService {
     public CatItem buscarDetalhadoPorId(Long id) {
         return catItemRepository.buscarDetalhadoPorId(id)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Item da CAT nao encontrado"));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CatItem> listarPaginado(Long catId, String q, Pageable pageable) {
+        if (q == null || q.isBlank()) {
+            return catItemRepository.findByCatId(catId, pageable);
+        }
+        return catItemRepository.findByCatIdAndDescricaoContainingIgnoreCase(catId, q, pageable);
     }
 
     @Transactional

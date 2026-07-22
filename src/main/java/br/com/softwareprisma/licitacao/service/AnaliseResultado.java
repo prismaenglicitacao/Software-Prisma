@@ -10,7 +10,7 @@ public record AnaliseResultado(
         List<String> engenheiros,
         List<String> cats,
         List<AnaliseResultadoItem> itens,
-        List<String> itensFaltantes,
+        List<AnaliseResultadoItem> itensFaltantes,
         BigDecimal cobertura,
         boolean atende
 ) {

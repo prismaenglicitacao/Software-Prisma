@@ -71,8 +71,18 @@
                     <div class="card border-0 bg-body-secondary p-3 h-100">
                         <h3 class="h6 mb-2">Itens faltantes</h3>
                         <ul class="mb-0 text-danger">
-                            <li th:each="faltante : ${analiseResultado.itensFaltantes}"
-                                th:text="'✖ ' + faltante">✖ Cabo 16mm²</li>
+                            <li th:each="faltante : ${analiseResultado.itensFaltantes}">
+                                <span class="fw-semibold" th:text="${faltante.descricao}">Descrição</span>
+                                <span class="text-body-secondary ms-1" th:text="${faltante.unidade}">UN</span>
+                                <span class="ms-1">
+                                    — Necessário:
+                                    <span th:text="${#numbers.formatDecimal(faltante.exigido, 1, 'POINT', 2, 'COMMA')}">0,00</span>
+                                    <span th:if="${faltante.encontrado != null and faltante.encontrado.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                                        / Encontrado:
+                                        <span th:text="${#numbers.formatDecimal(faltante.encontrado, 1, 'POINT', 2, 'COMMA')}">0,00</span>
+                                    </span>
+                                </span>
+                            </li>
                         </ul>
                     </div>
                 </div>

@@ -82,6 +82,7 @@
                             <option value="MÊS">MÊS</option>
                             <option value="CJ">CJ</option>
                             <option value="CHP">CHP</option>
+                            <option value="CHI">CHI</option>
                             <option value="PAR">PAR</option>
                             <option value="CX">CX</option>
                             <option value="PCT">PCT</option>
@@ -202,9 +203,17 @@
                     const response = await fetch(montarUrlItens('/api/itens/sugestoes', termo));
                     const data = await response.json();
 
-                    if (data.length > 0) {
+                    // Filtrar itens já adicionados à análise
+                    const itensJaAdicionados = new Set(
+                        itens.map(item => `${item.descricao}|${item.unidade}`)
+                    );
+                    const dataFiltrada = data.filter(item => 
+                        !itensJaAdicionados.has(`${item.descricao}|${item.unidade}`)
+                    );
+
+                    if (dataFiltrada.length > 0) {
                         sugestoesLista.innerHTML = '';
-                        data.forEach(item => {
+                        dataFiltrada.forEach(item => {
                             const button = document.createElement('button');
                             button.type = 'button';
                             button.className = 'list-group-item list-group-item-action';
@@ -216,6 +225,13 @@
                             unidadeSpan.className = 'text-body-secondary';
                             unidadeSpan.textContent = item.unidade;
                             button.appendChild(unidadeSpan);
+
+                            if (item.quantidadeDisponivel != null) {
+                                const qtdSpan = document.createElement('span');
+                                qtdSpan.className = 'text-body-secondary ms-2';
+                                qtdSpan.textContent = 'Qtd: ' + item.quantidadeDisponivel;
+                                button.appendChild(qtdSpan);
+                            }
 
                             button.addEventListener('click', () => {
                                 selecionarSugestao(button.dataset.descricao, button.dataset.unidade);

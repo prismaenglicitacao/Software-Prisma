@@ -73,6 +73,7 @@
                             <option value="MÊS">MÊS</option>
                             <option value="CJ">CJ</option>
                             <option value="CHP">CHP</option>
+                            <option value="CHI">CHI</option>
                             <option value="PAR">PAR</option>
                             <option value="CX">CX</option>
                             <option value="PCT">PCT</option>
@@ -97,12 +98,23 @@
     </div>
 
     <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <form th:action="@{/cats/{catId}/itens(catId=${cat.id})}" method="get" class="d-flex gap-2">
+                <input type="text" name="q" class="form-control" placeholder="Pesquisar item..."
+                       th:value="${q}" autocomplete="off">
+                <button type="submit" class="btn btn-outline-secondary">Pesquisar</button>
+                <a th:if="${q != null and !#strings.isEmpty(q)}"
+                   th:href="@{/cats/{catId}/itens(catId=${cat.id})}"
+                   class="btn btn-outline-danger">Limpar</a>
+            </form>
+        </div>
         <div class="card-body p-0">
-            <div th:if="${#lists.isEmpty(cat.itens)}" class="p-4 text-center text-body-secondary">
-                Nenhum item cadastrado para esta CAT.
+            <div th:if="${itensPaginados.totalElements == 0}" class="p-4 text-center text-body-secondary">
+                <span th:if="${q != null and !#strings.isEmpty(q)}">Nenhum item encontrado para "<span th:text="${q}"></span>".</span>
+                <span th:unless="${q != null and !#strings.isEmpty(q)}">Nenhum item cadastrado para esta CAT.</span>
             </div>
 
-            <div th:unless="${#lists.isEmpty(cat.itens)}" class="table-responsive">
+            <div th:unless="${itensPaginados.totalElements == 0}" class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                     <tr>
@@ -113,14 +125,14 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="item : ${cat.itens}">
+                    <tr th:each="item : ${itensPaginados.content}">
                         <td th:text="${item.descricao}">Descrição</td>
                         <td th:text="${#numbers.formatDecimal(item.quantidade, 1, 'POINT', 2, 'COMMA')}">0,00</td>
                         <td th:text="${item.unidade}">UND</td>
                         <td class="text-end">
                             <div class="d-inline-flex gap-2">
                                 <a class="btn btn-sm btn-outline-primary"
-                                   th:href="@{/cats/{catId}/itens/{itemId}/editar(catId=${cat.id}, itemId=${item.id})}">
+                                   th:href="@{/cats/{catId}/itens/{itemId}/editar(catId=${cat.id}, itemId=${item.id}, page=${paginaAtual}, q=${q})}">
                                     Editar
                                 </a>
                                 <form th:action="@{/cats/{catId}/itens/{itemId}/excluir(catId=${cat.id}, itemId=${item.id})}"
@@ -133,6 +145,41 @@
                     </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Paginação e contador -->
+            <div th:unless="${itensPaginados.totalElements == 0}"
+                 class="d-flex justify-content-between align-items-center px-3 py-2 border-top">
+
+                <!-- Contador -->
+                <small class="text-body-secondary">
+                    Mostrando
+                    <span th:text="${itensPaginados.number * itensPaginados.size + 1}">1</span>–<span th:text="${itensPaginados.number * itensPaginados.size + itensPaginados.numberOfElements}">25</span>
+                    de
+                    <span th:text="${itensPaginados.totalElements}">0</span>
+                    itens
+                </small>
+
+                <!-- Navegação -->
+                <nav th:if="${itensPaginados.totalPages > 1}">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item" th:classappend="${itensPaginados.first} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/cats/{catId}/itens(catId=${cat.id}, page=${paginaAtual - 1}, q=${q})}">&laquo;</a>
+                        </li>
+                        <li th:each="i : ${#numbers.sequence(0, itensPaginados.totalPages - 1)}"
+                            class="page-item"
+                            th:classappend="${i == paginaAtual} ? 'active'">
+                            <a class="page-link"
+                               th:href="@{/cats/{catId}/itens(catId=${cat.id}, page=${i}, q=${q})}"
+                               th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${itensPaginados.last} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/cats/{catId}/itens(catId=${cat.id}, page=${paginaAtual + 1}, q=${q})}">&raquo;</a>
+                        </li>
+                    </ul>
+                </nav>
             </div>
         </div>
     </div>

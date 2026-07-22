@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -24,21 +25,28 @@ public class ItemAutocompleteController {
         if (termo == null || termo.trim().length() < 2) {
             return List.of();
         }
-        
+
         List<Object[]> resultados = area != null
-                ? catItemRepository.buscarDescricoesPorTermo(termo, area)
-                : catItemRepository.buscarDescricoesPorTermo(termo);
+                ? catItemRepository.buscarDescricoesPorTermoComQuantidade(termo, area)
+                : catItemRepository.buscarDescricoesPorTermoComQuantidade(termo);
         return resultados.stream()
-                .map(row -> new ItemSugestaoDTO((String) row[0], (String) row[1]))
-                .limit(20)
+                .map(row -> new ItemSugestaoDTO(
+                        (String) row[0],
+                        (String) row[1],
+                        row[2] != null ? ((Number) row[2]).toString() != null
+                                ? new BigDecimal(row[2].toString()) : null : null))
+                .limit(100)
                 .toList();
     }
 
     @GetMapping("/recentes")
     public List<ItemSugestaoDTO> buscarRecentes(@RequestParam(required = false) Area area) {
-        List<Object[]> resultados = catItemRepository.buscarDescricoesRecentes(area);
+        List<Object[]> resultados = catItemRepository.buscarDescricoesRecentesComQuantidade(area);
         return resultados.stream()
-                .map(row -> new ItemSugestaoDTO((String) row[0], (String) row[1]))
+                .map(row -> new ItemSugestaoDTO(
+                        (String) row[0],
+                        (String) row[1],
+                        row[2] != null ? new BigDecimal(row[2].toString()) : null))
                 .limit(10)
                 .toList();
     }
