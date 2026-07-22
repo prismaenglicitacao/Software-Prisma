@@ -1,6 +1,7 @@
 package br.com.softwareprisma.licitacao.config;
 
 import br.com.softwareprisma.licitacao.repository.UsuarioRepository;
+import br.com.softwareprisma.licitacao.security.LoginAttemptService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,12 +23,13 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final UsuarioRepository usuarioRepository;
+    private final LoginAttemptService loginAttemptService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/css/**", "/js/**", "/api/**").permitAll()
+                .requestMatchers("/login", "/css/**", "/js/**").permitAll()
                 .requestMatchers("/usuarios/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
@@ -35,10 +37,34 @@ public class SecurityConfig {
                 .loginPage("/login")
                 .defaultSuccessUrl("/", true)
                 .permitAll()
+                .failureHandler((request, response, exception) -> {
+                    String login = request.getParameter("username");
+                    loginAttemptService.loginFailed(login);
+                    request.getSession().setAttribute("lockError", 
+                        loginAttemptService.isLocked(login) ? 
+                        "Muitas tentativas de login. Tente novamente em " + loginAttemptService.getRemainingLockTimeMinutes(login) + " minutos." : 
+                        "Usuário ou senha inválidos");
+                    response.sendRedirect("/login?error");
+                })
+                .successHandler((request, response, authentication) -> {
+                    String login = request.getParameter("username");
+                    loginAttemptService.loginSucceeded(login);
+                    response.sendRedirect("/");
+                })
             )
             .logout(logout -> logout
                 .logoutSuccessUrl("/login?logout")
                 .permitAll()
+            )
+            .sessionManagement(session -> session
+                .sessionFixation().migrateSession()
+                .maximumSessions(1)
+                .maxSessionsPreventsLogin(false)
+                .expiredUrl("/login?expired")
+            )
+            .headers(headers -> headers
+                .frameOptions(frame -> frame.sameOrigin())
+                .contentSecurityPolicy(csp -> csp.policyDirectives("script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net"))
             )
             .csrf(csrf -> csrf.disable());
 

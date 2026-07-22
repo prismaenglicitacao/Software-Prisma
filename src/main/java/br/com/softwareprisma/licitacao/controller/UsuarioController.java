@@ -92,6 +92,31 @@ public class UsuarioController {
         if (result.hasErrors()) {
             return "usuarios/formulario";
         }
+        
+        // Validar complexidade da senha (apenas para novos usuários)
+        if (usuario.getSenha() != null && !usuario.getSenha().isEmpty()) {
+            if (usuario.getSenha().length() < 8) {
+                result.rejectValue("senha", "weak.password", "A senha deve ter no mínimo 8 caracteres.");
+                return "usuarios/formulario";
+            }
+            boolean temMaiuscula = !usuario.getSenha().equals(usuario.getSenha().toLowerCase());
+            boolean temMinuscula = !usuario.getSenha().equals(usuario.getSenha().toUpperCase());
+            boolean temNumero = usuario.getSenha().matches(".*\\d.*");
+            
+            if (!temMaiuscula) {
+                result.rejectValue("senha", "weak.password", "A senha deve possuir pelo menos uma letra maiúscula.");
+                return "usuarios/formulario";
+            }
+            if (!temMinuscula) {
+                result.rejectValue("senha", "weak.password", "A senha deve possuir pelo menos uma letra minúscula.");
+                return "usuarios/formulario";
+            }
+            if (!temNumero) {
+                result.rejectValue("senha", "weak.password", "A senha deve possuir pelo menos um número.");
+                return "usuarios/formulario";
+            }
+        }
+        
         try {
             usuarioService.criar(usuario);
             redirectAttributes.addFlashAttribute("mensagemSucesso", "Usuário criado com sucesso");
@@ -136,6 +161,29 @@ public class UsuarioController {
             redirectAttributes.addFlashAttribute("mensagemErro", "Senha não pode ser vazia");
             return "redirect:/usuarios/" + id + "/editar";
         }
+        
+        // Validar complexidade da senha
+        if (novaSenha.length() < 8) {
+            redirectAttributes.addFlashAttribute("mensagemErro", "A senha deve ter no mínimo 8 caracteres.");
+            return "redirect:/usuarios/" + id + "/editar";
+        }
+        boolean temMaiuscula = !novaSenha.equals(novaSenha.toLowerCase());
+        boolean temMinuscula = !novaSenha.equals(novaSenha.toUpperCase());
+        boolean temNumero = novaSenha.matches(".*\\d.*");
+        
+        if (!temMaiuscula) {
+            redirectAttributes.addFlashAttribute("mensagemErro", "A senha deve possuir pelo menos uma letra maiúscula.");
+            return "redirect:/usuarios/" + id + "/editar";
+        }
+        if (!temMinuscula) {
+            redirectAttributes.addFlashAttribute("mensagemErro", "A senha deve possuir pelo menos uma letra minúscula.");
+            return "redirect:/usuarios/" + id + "/editar";
+        }
+        if (!temNumero) {
+            redirectAttributes.addFlashAttribute("mensagemErro", "A senha deve possuir pelo menos um número.");
+            return "redirect:/usuarios/" + id + "/editar";
+        }
+        
         usuarioService.alterarSenha(id, novaSenha);
         redirectAttributes.addFlashAttribute("mensagemSucesso", "Senha resetada com sucesso");
         return "redirect:/usuarios";
@@ -165,7 +213,10 @@ public class UsuarioController {
 
     public static class SenhaForm {
         private String senhaAtual;
+
+        @br.com.softwareprisma.licitacao.validation.SenhaForte
         private String novaSenha;
+
         private String confirmarSenha;
 
         public String getSenhaAtual() {
