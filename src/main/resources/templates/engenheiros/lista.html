@@ -8,10 +8,12 @@
 <main class="container pb-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h3 mb-1">Engenheiros</h1>
+            <h1 class="h4 mb-1">Engenheiros</h1>
             <p class="text-body-secondary mb-0">Cadastro e manutenção dos engenheiros por área.</p>
         </div>
-        <a class="btn btn-primary" th:href="@{/engenheiros/novo}">Novo Engenheiro</a>
+        <a class="btn btn-primary" th:href="@{/engenheiros/novo}">
+            <i class="bi bi-plus-lg me-2"></i>Novo Engenheiro
+        </a>
     </div>
 
     <div th:if="${mensagemSucesso}" class="alert alert-success" th:text="${mensagemSucesso}"></div>
@@ -19,12 +21,13 @@
     <div class="card shadow-sm">
         <div class="card-body p-0">
             <div th:if="${#lists.isEmpty(engenheiros)}" class="p-4 text-center text-body-secondary">
+                <i class="bi bi-inbox fs-1 d-block mb-3"></i>
                 Nenhum engenheiro cadastrado.
             </div>
 
             <div th:unless="${#lists.isEmpty(engenheiros)}" class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
+                    <thead>
                     <tr>
                         <th>Nome</th>
                         <th>Área</th>
@@ -35,20 +38,24 @@
                     <tr th:each="engenheiro : ${engenheiros}">
                         <td th:text="${engenheiro.nome}">Nome</td>
                         <td>
-                            <span class="badge rounded-pill text-bg-secondary"
+                            <span class="badge rounded-pill"
+                                  th:class="${engenheiro.area == T(br.com.softwareprisma.licitacao.domain.enums.Area).ELETRICA ? 'text-bg-primary' : 'text-bg-warning'}"
                                   th:text="${engenheiro.area == T(br.com.softwareprisma.licitacao.domain.enums.Area).ELETRICA ? 'Elétrica' : 'Civil'}">
                                 Área
                             </span>
                         </td>
                         <td class="text-end">
-                            <div class="d-inline-flex gap-2">
+                            <div class="d-inline-flex gap-1">
                                 <a class="btn btn-sm btn-outline-primary"
-                                   th:href="@{/engenheiros/{id}/editar(id=${engenheiro.id})}">
-                                    Editar
+                                   th:href="@{/engenheiros/{id}/editar(id=${engenheiro.id})}"
+                                   title="Editar">
+                                    <i class="bi bi-pencil"></i>
                                 </a>
                                 <form th:action="@{/engenheiros/{id}/excluir(id=${engenheiro.id})}" method="post"
                                       onsubmit="return confirm('Deseja realmente excluir este engenheiro?');">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Excluir">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
                                 </form>
                             </div>
                         </td>

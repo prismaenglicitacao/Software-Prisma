@@ -10,94 +10,115 @@
 
     <main class="container pb-5">
         <div class="mb-4">
-            <h1 class="h3 mb-1">Dashboard</h1>
+            <h1 class="h4 mb-1">Dashboard</h1>
             <p class="text-body-secondary mb-0">Visão geral do sistema</p>
         </div>
 
         <!-- Estatísticas Gerais -->
-        <div class="row g-4 mb-4">
+        <div class="row g-3 mb-4">
             <div class="col-md-6 col-lg-3">
-                <div class="card shadow-sm">
+                <div class="dashboard-card">
                     <div class="card-body">
-                        <h6 class="card-subtitle text-body-secondary mb-2">Engenheiros</h6>
-                        <h3 class="card-title mb-0" th:text="${estatisticas.quantidadeEngenheiros}">0</h3>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="dashboard-stat-label">Engenheiros</span>
+                            <i class="bi bi-person-badge text-body-secondary fs-5"></i>
+                        </div>
+                        <div class="dashboard-stat" th:text="${estatisticas.quantidadeEngenheiros}">0</div>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 col-lg-3">
-                <div class="card shadow-sm">
+                <div class="dashboard-card">
                     <div class="card-body">
-                        <h6 class="card-subtitle text-body-secondary mb-2">CATs</h6>
-                        <h3 class="card-title mb-0" th:text="${estatisticas.quantidadeCats}">0</h3>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="dashboard-stat-label">CATs</span>
+                            <i class="bi bi-file-earmark-text text-body-secondary fs-5"></i>
+                        </div>
+                        <div class="dashboard-stat" th:text="${estatisticas.quantidadeCats}">0</div>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 col-lg-3">
-                <div class="card shadow-sm">
+                <div class="dashboard-card">
                     <div class="card-body">
-                        <h6 class="card-subtitle text-body-secondary mb-2">Itens Cadastrados</h6>
-                        <h3 class="card-title mb-0" th:text="${estatisticas.quantidadeItens}">0</h3>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="dashboard-stat-label">Itens</span>
+                            <i class="bi bi-list-ul text-body-secondary fs-5"></i>
+                        </div>
+                        <div class="dashboard-stat" th:text="${estatisticas.quantidadeItens}">0</div>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 col-lg-3">
-                <div class="card shadow-sm">
+                <div class="dashboard-card">
                     <div class="card-body">
-                        <h6 class="card-subtitle text-body-secondary mb-2">Análises Realizadas</h6>
-                        <h3 class="card-title mb-0" th:text="${estatisticas.quantidadeAnalises}">0</h3>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="dashboard-stat-label">Análises</span>
+                            <i class="bi bi-graph-up text-body-secondary fs-5"></i>
+                        </div>
+                        <div class="dashboard-stat" th:text="${estatisticas.quantidadeAnalises}">0</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="row g-4 mb-4">
+        <div class="row g-3 mb-4">
             <div class="col-md-6 col-lg-3">
-                <div class="card shadow-sm">
+                <div class="dashboard-card">
                     <div class="card-body">
-                        <h6 class="card-subtitle text-success mb-2">Atenderam</h6>
-                        <h3 class="card-title mb-0" th:text="${estatisticas.quantidadeAnalisesAtenderam}">0</h3>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="dashboard-stat-label">Atenderam</span>
+                            <i class="bi bi-check-circle text-body-secondary fs-5"></i>
+                        </div>
+                        <div class="dashboard-stat dashboard-stat-success" th:text="${estatisticas.quantidadeAnalisesAtenderam}">0</div>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 col-lg-3">
-                <div class="card shadow-sm">
+                <div class="dashboard-card">
                     <div class="card-body">
-                        <h6 class="card-subtitle text-danger mb-2">Não Atenderam</h6>
-                        <h3 class="card-title mb-0" th:text="${estatisticas.quantidadeAnalisesNaoAtenderam}">0</h3>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="dashboard-stat-label">Não Atenderam</span>
+                            <i class="bi bi-x-circle text-body-secondary fs-5"></i>
+                        </div>
+                        <div class="dashboard-stat dashboard-stat-danger" th:text="${estatisticas.quantidadeAnalisesNaoAtenderam}">0</div>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 col-lg-3">
-                <div class="card shadow-sm">
+                <div class="dashboard-card">
                     <div class="card-body">
-                        <h6 class="card-subtitle text-body-secondary mb-2">Cobertura Média</h6>
-                        <h3 class="card-title mb-0"
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="dashboard-stat-label">Cobertura Média</span>
+                            <i class="bi bi-percent text-body-secondary fs-5"></i>
+                        </div>
+                        <div class="dashboard-stat"
                             th:text="${#numbers.formatDecimal(estatisticas.coberturaMedia / 100, 1, 2) + '%'}">
                             0%
-                        </h3>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Gráficos -->
-        <div class="row g-4 mb-4">
+        <div class="row g-3 mb-4">
             <div class="col-lg-4">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-white">
+                <div class="dashboard-card">
+                    <div class="card-header">
                         <h5 class="h6 mb-0">CATs por Área</h5>
                     </div>
-                    <div class="card-body" style="height: 320px;">
+                    <div class="card-body" style="height: 280px;">
                         <canvas id="catsPorAreaChart"></canvas>
                     </div>
                 </div>
             </div>
             <div class="col-lg-4">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-white">
+                <div class="dashboard-card">
+                    <div class="card-header">
                         <h5 class="h6 mb-0">Itens por Área</h5>
                     </div>
-                    <div class="card-body" style="height: 320px;">
+                    <div class="card-body" style="height: 280px;">
                         <canvas id="itensPorAreaChart"></canvas>
                     </div>
                 </div>
@@ -105,9 +126,12 @@
         </div>
 
         <!-- Últimas Análises -->
-        <div class="card shadow-sm">
-            <div class="card-header bg-white">
-                <h5 class="h5 mb-0">Últimas Análises</h5>
+        <div class="dashboard-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="h6 mb-0">Últimas Análises</h5>
+                <a class="btn btn-sm btn-outline-primary" th:href="@{/historico}">
+                    Ver todas
+                </a>
             </div>
             <div class="card-body p-0">
                 <div th:if="${#lists.isEmpty(ultimasAnalises)}" class="p-4 text-center text-body-secondary">
@@ -116,7 +140,7 @@
                 <div th:unless="${#lists.isEmpty(ultimasAnalises)}">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
+                            <thead>
                                 <tr>
                                     <th>Área</th>
                                     <th>Data</th>
@@ -146,7 +170,7 @@
                                     <td class="text-end">
                                         <a class="btn btn-sm btn-outline-primary"
                                             th:href="@{/analises/{id}/resumo(id=${analise.id})}">
-                                            Visualizar
+                                            <i class="bi bi-eye"></i>
                                         </a>
                                     </td>
                                 </tr>
@@ -173,13 +197,6 @@
                             </li>
                         </ul>
                     </nav>
-
-                    <!-- Botão Ver histórico completo -->
-                    <div class="p-3 border-top text-end">
-                        <a class="btn btn-outline-secondary" href="/historico">
-                            Ver histórico completo →
-                        </a>
-                    </div>
                 </div>
             </div>
         </div>
@@ -199,9 +216,17 @@
             resizeDelay: 100,
             plugins: {
                 legend: {
-                    position: 'bottom'
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            family: 'Inter',
+                            size: 12
+                        },
+                        padding: 15
+                    }
                 }
-            }
+            },
+            cutout: '65%'
         };
 
         // Gráfico de CATs por Área
@@ -213,7 +238,8 @@
                     labels: ['Elétrica', 'Civil'],
                     datasets: [{
                         data: [catsEletrica, catsCivil],
-                        backgroundColor: ['#0d6efd', '#198754']
+                        backgroundColor: ['#0B3D91', '#FF6B35'],
+                        borderWidth: 0
                     }]
                 },
                 options: doughnutOptions
@@ -229,18 +255,15 @@
                     labels: ['Elétrica', 'Civil'],
                     datasets: [{
                         data: [itensEletrica, itensCivil],
-                        backgroundColor: ['#0d6efd', '#198754']
+                        backgroundColor: ['#0B3D91', '#FF6B35'],
+                        borderWidth: 0
                     }]
                 },
                 options: doughnutOptions
             });
         }
 
-        // Gráfico de Análises por Mês (simulado - dados reais precisariam de query adicional)
-
         /*]]>*/
-      
-        
     </script>
 </body>
 

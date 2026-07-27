@@ -1,0 +1,668 @@
+/* ============================================
+   PRISMA EMPREENDIMENTOS - Identidade Visual
+   ============================================ */
+
+:root {
+    /* Cores Institucionais */
+    --prisma-blue: #0B3D91;
+    --prisma-blue-dark: #082D6E;
+    --prisma-blue-light: #1A4FA8;
+    --prisma-orange: #FF6B35;
+    --prisma-orange-dark: #E55A2B;
+    --prisma-orange-light: #FF8A5B;
+    
+    /* Cores Neutras */
+    --prisma-white: #FFFFFF;
+    --prisma-gray-50: #F8F9FA;
+    --prisma-gray-100: #E9ECEF;
+    --prisma-gray-200: #DEE2E6;
+    --prisma-gray-300: #CED4DA;
+    --prisma-gray-400: #ADB5BD;
+    --prisma-gray-500: #6C757D;
+    --prisma-gray-600: #495057;
+    --prisma-gray-700: #343A40;
+    --prisma-gray-800: #212529;
+    --prisma-gray-900: #0D1117;
+    
+    /* Cores de Status */
+    --prisma-success: #198754;
+    --prisma-success-light: #D1E7DD;
+    --prisma-danger: #DC3545;
+    --prisma-danger-light: #F8D7DA;
+    --prisma-warning: #FFC107;
+    --prisma-warning-light: #FFF3CD;
+    --prisma-info: #0DCAF0;
+    --prisma-info-light: #CFF4FC;
+    
+    /* Tipografia */
+    --prisma-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --prisma-font-size-base: 0.875rem;
+    --prisma-font-size-sm: 0.8125rem;
+    --prisma-font-size-lg: 1rem;
+    --prisma-line-height: 1.5;
+    
+    /* Espaçamento */
+    --prisma-spacing-xs: 0.25rem;
+    --prisma-spacing-sm: 0.5rem;
+    --prisma-spacing-md: 1rem;
+    --prisma-spacing-lg: 1.5rem;
+    --prisma-spacing-xl: 2rem;
+    --prisma-spacing-xxl: 3rem;
+    
+    /* Bordas */
+    --prisma-border-radius: 0.375rem;
+    --prisma-border-radius-lg: 0.5rem;
+    --prisma-border-radius-xl: 0.75rem;
+    --prisma-border-width: 1px;
+    --prisma-border-color: var(--prisma-gray-200);
+    
+    /* Sombras */
+    --prisma-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --prisma-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --prisma-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --prisma-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    
+    /* Transições */
+    --prisma-transition: all 0.2s ease-in-out;
+    --prisma-transition-fast: all 0.15s ease-in-out;
+}
+
+/* ============================================
+   RESET E BASE
+   ============================================ */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--prisma-font-family);
+    font-size: var(--prisma-font-size-base);
+    line-height: var(--prisma-line-height);
+    color: var(--prisma-gray-700);
+    background-color: var(--prisma-gray-50);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   NAVBAR
+   ============================================ */
+
+.navbar {
+    background-color: var(--prisma-blue) !important;
+    padding: 0.5rem 0;
+    box-shadow: var(--prisma-shadow);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.125rem;
+    color: var(--prisma-white) !important;
+    letter-spacing: -0.025em;
+}
+
+.nav-link {
+    font-size: var(--prisma-font-size-base);
+    color: rgba(255, 255, 255, 0.85) !important;
+    padding: 0.5rem 1rem !important;
+    font-weight: 500;
+    transition: var(--prisma-transition-fast);
+    border-radius: var(--prisma-border-radius);
+}
+
+.nav-link:hover {
+    color: var(--prisma-white) !important;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link.active {
+    color: var(--prisma-white) !important;
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* ============================================
+   CARDS
+   ============================================ */
+
+.card {
+    border: 1px solid var(--prisma-border-color);
+    border-radius: var(--prisma-border-radius-lg);
+    box-shadow: var(--prisma-shadow-sm);
+    transition: var(--prisma-transition);
+    background-color: var(--prisma-white);
+}
+
+.card:hover {
+    box-shadow: var(--prisma-shadow-md);
+    transform: translateY(-1px);
+}
+
+.card-header {
+    background-color: var(--prisma-white);
+    border-bottom: 1px solid var(--prisma-border-color);
+    padding: var(--prisma-spacing-md) var(--prisma-spacing-lg);
+    font-weight: 600;
+    font-size: var(--prisma-font-size-base);
+}
+
+.card-body {
+    padding: var(--prisma-spacing-lg);
+}
+
+.card-title {
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: var(--prisma-gray-800);
+    margin-bottom: var(--prisma-spacing-sm);
+}
+
+.card-subtitle {
+    font-size: var(--prisma-font-size-sm);
+    color: var(--prisma-gray-500);
+    font-weight: 500;
+    margin-bottom: var(--prisma-spacing-sm);
+}
+
+/* ============================================
+   BOTÕES
+   ============================================ */
+
+.btn {
+    font-family: var(--prisma-font-family);
+    font-size: var(--prisma-font-size-base);
+    font-weight: 500;
+    padding: 0.4375rem 1rem;
+    border-radius: var(--prisma-border-radius);
+    transition: var(--prisma-transition-fast);
+    border: var(--prisma-border-width) solid transparent;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--prisma-shadow-sm);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn-primary {
+    background-color: var(--prisma-blue);
+    border-color: var(--prisma-blue);
+    color: var(--prisma-white);
+}
+
+.btn-primary:hover {
+    background-color: var(--prisma-blue-dark);
+    border-color: var(--prisma-blue-dark);
+}
+
+.btn-secondary {
+    background-color: var(--prisma-gray-500);
+    border-color: var(--prisma-gray-500);
+    color: var(--prisma-white);
+}
+
+.btn-secondary:hover {
+    background-color: var(--prisma-gray-600);
+    border-color: var(--prisma-gray-600);
+}
+
+.btn-success {
+    background-color: var(--prisma-success);
+    border-color: var(--prisma-success);
+    color: var(--prisma-white);
+}
+
+.btn-success:hover {
+    background-color: #157347;
+    border-color: #157347;
+}
+
+.btn-danger {
+    background-color: var(--prisma-danger);
+    border-color: var(--prisma-danger);
+    color: var(--prisma-white);
+}
+
+.btn-danger:hover {
+    background-color: #BB2D3B;
+    border-color: #BB2D3B;
+}
+
+.btn-outline-primary {
+    color: var(--prisma-blue);
+    border-color: var(--prisma-blue);
+    background-color: transparent;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--prisma-blue);
+    border-color: var(--prisma-blue);
+    color: var(--prisma-white);
+}
+
+.btn-outline-secondary {
+    color: var(--prisma-gray-500);
+    border-color: var(--prisma-gray-300);
+    background-color: transparent;
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--prisma-gray-500);
+    border-color: var(--prisma-gray-500);
+    color: var(--prisma-white);
+}
+
+.btn-outline-danger {
+    color: var(--prisma-danger);
+    border-color: var(--prisma-danger);
+    background-color: transparent;
+}
+
+.btn-outline-danger:hover {
+    background-color: var(--prisma-danger);
+    border-color: var(--prisma-danger);
+    color: var(--prisma-white);
+}
+
+.btn-prisma-orange {
+    background-color: var(--prisma-orange);
+    border-color: var(--prisma-orange);
+    color: var(--prisma-white);
+}
+
+.btn-prisma-orange:hover {
+    background-color: var(--prisma-orange-dark);
+    border-color: var(--prisma-orange-dark);
+}
+
+.btn-sm {
+    padding: 0.25rem 0.75rem;
+    font-size: var(--prisma-font-size-sm);
+}
+
+/* ============================================
+   FORMULÁRIOS
+   ============================================ */
+
+.form-control,
+.form-select {
+    font-family: var(--prisma-font-family);
+    font-size: var(--prisma-font-size-base);
+    padding: 0.4375rem 0.75rem;
+    border-radius: var(--prisma-border-radius);
+    border: var(--prisma-border-width) solid var(--prisma-border-color);
+    transition: var(--prisma-transition-fast);
+    background-color: var(--prisma-white);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--prisma-blue);
+    box-shadow: 0 0 0 0.2rem rgba(11, 61, 145, 0.15);
+    background-color: var(--prisma-white);
+}
+
+.form-control::placeholder {
+    color: var(--prisma-gray-400);
+}
+
+.form-label {
+    font-weight: 500;
+    font-size: var(--prisma-font-size-sm);
+    color: var(--prisma-gray-700);
+    margin-bottom: var(--prisma-spacing-xs);
+}
+
+.form-check-input {
+    border-radius: var(--prisma-border-radius);
+}
+
+.form-check-input:checked {
+    background-color: var(--prisma-blue);
+    border-color: var(--prisma-blue);
+}
+
+/* ============================================
+   TABELAS
+   ============================================ */
+
+.table {
+    font-size: var(--prisma-font-size-base);
+    color: var(--prisma-gray-700);
+}
+
+.table thead th {
+    font-weight: 600;
+    font-size: var(--prisma-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    color: var(--prisma-gray-600);
+    background-color: var(--prisma-gray-50);
+    border-bottom: 2px solid var(--prisma-border-color);
+    padding: 0.75rem 1rem;
+}
+
+.table tbody tr {
+    transition: var(--prisma-transition-fast);
+}
+
+.table tbody tr:hover {
+    background-color: var(--prisma-gray-50);
+}
+
+.table tbody td {
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
+}
+
+.table-striped > tbody > tr:nth-of-typeOdd > * {
+    background-color: rgba(248, 249, 250, 0.5);
+}
+
+/* ============================================
+   BADGES
+   ============================================ */
+
+.badge {
+    font-weight: 500;
+    font-size: var(--prisma-font-size-sm);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--prisma-border-radius);
+}
+
+.bg-success {
+    background-color: var(--prisma-success) !important;
+}
+
+.bg-danger {
+    background-color: var(--prisma-danger) !important;
+}
+
+.bg-warning {
+    background-color: var(--prisma-warning) !important;
+}
+
+.bg-info {
+    background-color: var(--prisma-info) !important;
+}
+
+/* ============================================
+   ALERTS
+   ============================================ */
+
+.alert {
+    border-radius: var(--prisma-border-radius-lg);
+    border: var(--prisma-border-width) solid transparent;
+    font-size: var(--prisma-font-size-base);
+}
+
+.alert-success {
+    background-color: var(--prisma-success-light);
+    border-color: var(--prisma-success);
+    color: #0F5132;
+}
+
+.alert-danger {
+    background-color: var(--prisma-danger-light);
+    border-color: var(--prisma-danger);
+    color: #842029;
+}
+
+.alert-warning {
+    background-color: var(--prisma-warning-light);
+    border-color: var(--prisma-warning);
+    color: #664D03;
+}
+
+.alert-info {
+    background-color: var(--prisma-info-light);
+    border-color: var(--prisma-info);
+    color: #055160;
+}
+
+/* ============================================
+   PAGINAÇÃO
+   ============================================ */
+
+.pagination {
+    margin-bottom: 0;
+}
+
+.page-link {
+    font-size: var(--prisma-font-size-sm);
+    color: var(--prisma-gray-600);
+    border: var(--prisma-border-width) solid var(--prisma-border-color);
+    padding: 0.375rem 0.75rem;
+    transition: var(--prisma-transition-fast);
+}
+
+.page-link:hover {
+    background-color: var(--prisma-gray-50);
+    border-color: var(--prisma-gray-300);
+    color: var(--prisma-gray-700);
+}
+
+.page-item.active .page-link {
+    background-color: var(--prisma-blue);
+    border-color: var(--prisma-blue);
+    color: var(--prisma-white);
+}
+
+.page-item.disabled .page-link {
+    background-color: var(--prisma-gray-50);
+    border-color: var(--prisma-border-color);
+    color: var(--prisma-gray-400);
+}
+
+/* ============================================
+   ACCORDION
+   ============================================ */
+
+.accordion-button {
+    font-weight: 500;
+    font-size: var(--prisma-font-size-base);
+    color: var(--prisma-gray-700);
+    background-color: var(--prisma-gray-50);
+    border: var(--prisma-border-width) solid var(--prisma-border-color);
+    border-radius: var(--prisma-border-radius) !important;
+    padding: 0.75rem 1rem;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: var(--prisma-blue);
+    color: var(--prisma-white);
+    box-shadow: none;
+}
+
+.accordion-button:focus {
+    box-shadow: 0 0 0 0.2rem rgba(11, 61, 145, 0.15);
+}
+
+.accordion-body {
+    padding: var(--prisma-spacing-md);
+}
+
+.accordion-item {
+    border: var(--prisma-border-width) solid var(--prisma-border-color);
+    border-radius: var(--prisma-border-radius) !important;
+    margin-bottom: var(--prisma-spacing-sm);
+}
+
+/* ============================================
+   DROPDOWN
+   ============================================ */
+
+.dropdown-menu {
+    border: var(--prisma-border-width) solid var(--prisma-border-color);
+    border-radius: var(--prisma-border-radius-lg);
+    box-shadow: var(--prisma-shadow-md);
+    padding: var(--prisma-spacing-xs);
+}
+
+.dropdown-item {
+    font-size: var(--prisma-font-size-base);
+    color: var(--prisma-gray-700);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--prisma-border-radius);
+    transition: var(--prisma-transition-fast);
+}
+
+.dropdown-item:hover {
+    background-color: var(--prisma-gray-50);
+    color: var(--prisma-gray-800);
+}
+
+.dropdown-divider {
+    margin: var(--prisma-spacing-sm) 0;
+    border-top: 1px solid var(--prisma-border-color);
+}
+
+/* ============================================
+   MODAL
+   ============================================ */
+
+.modal-content {
+    border: none;
+    border-radius: var(--prisma-border-radius-lg);
+    box-shadow: var(--prisma-shadow-lg);
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--prisma-border-color);
+    padding: var(--prisma-spacing-lg);
+}
+
+.modal-body {
+    padding: var(--prisma-spacing-lg);
+}
+
+.modal-footer {
+    border-top: 1px solid var(--prisma-border-color);
+    padding: var(--prisma-spacing-lg);
+}
+
+/* ============================================
+   INPUT GROUP
+   ============================================ */
+
+.input-group-text {
+    background-color: var(--prisma-gray-50);
+    border: var(--prisma-border-width) solid var(--prisma-border-color);
+    color: var(--prisma-gray-600);
+    font-size: var(--prisma-font-size-base);
+}
+
+/* ============================================
+   TIPOGRAFIA
+   ============================================ */
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    color: var(--prisma-gray-800);
+    letter-spacing: -0.025em;
+}
+
+h1 { font-size: 1.75rem; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.25rem; }
+h4 { font-size: 1.125rem; }
+h5 { font-size: 1rem; }
+h6 { font-size: 0.875rem; }
+
+.text-body-secondary {
+    color: var(--prisma-gray-500) !important;
+}
+
+/* ============================================
+   UTILITÁRIOS
+   ============================================ */
+
+.bg-body-tertiary {
+    background-color: var(--prisma-gray-50) !important;
+}
+
+.shadow-sm {
+    box-shadow: var(--prisma-shadow-sm) !important;
+}
+
+/* ============================================
+   DASHBOARD ESPECÍFICO
+   ============================================ */
+
+.dashboard-card {
+    border: 1px solid var(--prisma-border-color);
+    border-radius: var(--prisma-border-radius-lg);
+    box-shadow: var(--prisma-shadow-sm);
+    transition: var(--prisma-transition);
+    background-color: var(--prisma-white);
+    height: 100%;
+}
+
+.dashboard-card:hover {
+    box-shadow: var(--prisma-shadow-md);
+    transform: translateY(-2px);
+}
+
+.dashboard-card .card-body {
+    padding: var(--prisma-spacing-lg);
+}
+
+.dashboard-stat {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--prisma-blue);
+    line-height: 1.2;
+}
+
+.dashboard-stat-label {
+    font-size: var(--prisma-font-size-sm);
+    color: var(--prisma-gray-500);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dashboard-stat-success {
+    color: var(--prisma-success);
+}
+
+.dashboard-stat-danger {
+    color: var(--prisma-danger);
+}
+
+.dashboard-stat-warning {
+    color: var(--prisma-warning);
+}
+
+/* ============================================
+   RESPONSIVIDADE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .navbar-brand {
+        font-size: 1rem;
+    }
+    
+    .nav-link {
+        padding: 0.5rem 0.75rem !important;
+        font-size: var(--prisma-font-size-sm);
+    }
+    
+    .dashboard-stat {
+        font-size: 1.75rem;
+    }
+    
+    h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.25rem; }
+    h3 { font-size: 1.125rem; }
+}
+
+@media (min-width: 1400px) {
+    .container {
+        max-width: 1320px;
+    }
+}
