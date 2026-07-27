@@ -102,6 +102,7 @@
                         <th>Item</th>
                         <th>Exigido</th>
                         <th>Encontrado</th>
+                        <th>Origem da Comprovação</th>
                         <th>Status</th>
                     </tr>
                     </thead>
@@ -110,6 +111,16 @@
                         <td th:text="${item.descricao}">Descrição</td>
                         <td th:text="${#numbers.formatDecimal(item.exigido, 1, 'POINT', 2, 'COMMA')}">0,00</td>
                         <td th:text="${#numbers.formatDecimal(item.encontrado, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                        <td>
+                            <div th:if="${#lists.isEmpty(item.origens)}" class="text-body-secondary">
+                                -
+                            </div>
+                            <div th:unless="${#lists.isEmpty(item.origens)}">
+                                <div th:each="origem : ${item.origens}" class="text-body-secondary" style="font-size: 0.875rem;">
+                                    <span th:text="${origem}">CAT123 - João</span>
+                                </div>
+                            </div>
+                        </td>
                         <td th:text="${item.atende} ? '✅' : '✖'">✅</td>
                     </tr>
                     </tbody>

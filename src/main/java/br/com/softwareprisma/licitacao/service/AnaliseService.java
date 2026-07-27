@@ -383,6 +383,7 @@ public class AnaliseService {
         for (AnaliseItem requisito : itensAnalise) {
 
             BigDecimal encontrado = BigDecimal.ZERO;
+            List<String> origens = new ArrayList<>();
 
             for (CatItem item : itensCat) {
 
@@ -396,6 +397,18 @@ public class AnaliseService {
 
                 encontrado = encontrado.add(item.getQuantidade());
 
+                // Registrar origem: CAT - Engenheiro
+                if (item.getCat() != null) {
+                    String catNome = item.getCat().getNome();
+                    String engenheiroNome = item.getCat().getEngenheiro() != null 
+                            ? item.getCat().getEngenheiro().getNome() 
+                            : "N/A";
+                    String origem = catNome + " - " + engenheiroNome;
+                    if (!origens.contains(origem)) {
+                        origens.add(origem);
+                    }
+                }
+
             }
 
             resultado.add(
@@ -404,7 +417,8 @@ public class AnaliseService {
                             requisito.getUnidade(),
                             requisito.getQuantidade(),
                             encontrado,
-                            encontrado.compareTo(requisito.getQuantidade()) >= 0));
+                            encontrado.compareTo(requisito.getQuantidade()) >= 0,
+                            origens));
 
         }
 
