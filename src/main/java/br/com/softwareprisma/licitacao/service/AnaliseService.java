@@ -43,6 +43,48 @@ public class AnaliseService {
     private final DescricaoMatcher descricaoMatcher;
 
     @Transactional(readOnly = true)
+    public AnaliseResultado buscarResultadoPersistido(Long id) {
+        Analise analise = buscarDetalhadaPorId(id);
+        
+        if (analise.getResultado() == null) {
+            throw new ResponseStatusException(BAD_REQUEST, "Análise ainda não foi processada.");
+        }
+        
+        // Criar resultado baseado nos dados persistidos
+        List<AnaliseResultadoItem> itens = criarItensResultadoPersistidos(analise.getItens());
+        
+        List<AnaliseResultadoItem> faltantes = itens.stream()
+                .filter(i -> !i.atende())
+                .toList();
+        
+        return new AnaliseResultado(
+                analise.getResultado(),
+                List.of(), // Engenheiros não persistidos
+                List.of(), // CATs não persistidos
+                itens,
+                faltantes,
+                analise.getCobertura() != null ? analise.getCobertura() : BigDecimal.ZERO,
+                analise.getResultado() == ResultadoAnalise.ATENDE);
+    }
+    
+    private List<AnaliseResultadoItem> criarItensResultadoPersistidos(List<AnaliseItem> itensAnalise) {
+        List<AnaliseResultadoItem> resultado = new ArrayList<>();
+        
+        for (AnaliseItem item : itensAnalise) {
+            resultado.add(
+                    new AnaliseResultadoItem(
+                            item.getDescricao(),
+                            item.getUnidade(),
+                            item.getQuantidade(),
+                            BigDecimal.ZERO, // Não temos valor encontrado persistido
+                            false, // Não podemos determinar sem recalcular
+                            List.of())); // Sem origens persistidas
+        }
+        
+        return resultado;
+    }
+
+    @Transactional(readOnly = true)
     public Analise buscarDetalhadaPorId(Long id) {
         return analiseRepository.buscarDetalhadaPorId(id)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Analise nao encontrada"));

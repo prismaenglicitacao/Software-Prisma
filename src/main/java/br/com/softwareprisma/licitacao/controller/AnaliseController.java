@@ -65,7 +65,7 @@ public class AnaliseController {
     @GetMapping("/{id}/resumo")
     public String resumo(@PathVariable Long id, Model model) {
         model.addAttribute("analise", analiseService.buscarDetalhadaPorId(id));
-        model.addAttribute("analiseResultado", analiseService.comparar(id));
+        model.addAttribute("analiseResultado", analiseService.buscarResultadoPersistido(id));
         return "analises/resumo";
     }
 
