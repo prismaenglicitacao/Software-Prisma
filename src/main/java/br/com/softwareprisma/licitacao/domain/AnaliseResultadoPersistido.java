@@ -41,6 +41,12 @@ public class AnaliseResultadoPersistido {
     @Column(name = "cobertura", precision = 5, scale = 2)
     private BigDecimal cobertura;
 
+    @Column(name = "engenheiros_utilizados", length = 1000)
+    private String engenheirosUtilizados;
+
+    @Column(name = "cats_utilizadas", length = 2000)
+    private String catsUtilizadas;
+
     @Column(name = "data_criacao", nullable = false)
     private LocalDateTime dataCriacao = LocalDateTime.now();
 

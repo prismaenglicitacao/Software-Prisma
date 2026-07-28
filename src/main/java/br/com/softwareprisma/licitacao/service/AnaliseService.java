@@ -93,10 +93,19 @@ public class AnaliseService {
                 .filter(i -> !i.atende())
                 .toList();
         
+        // Reconstruir engenheiros e CATs a partir das strings persistidas
+        List<String> engenheiros = snapshot.getEngenheirosUtilizados() != null && !snapshot.getEngenheirosUtilizados().isEmpty()
+                ? List.of(snapshot.getEngenheirosUtilizados().split(", "))
+                : List.of();
+        
+        List<String> cats = snapshot.getCatsUtilizadas() != null && !snapshot.getCatsUtilizadas().isEmpty()
+                ? List.of(snapshot.getCatsUtilizadas().split(", "))
+                : List.of();
+        
         return new AnaliseResultado(
                 snapshot.getResultado(),
-                List.of(), // Engenheiros não persistidos no snapshot atual
-                List.of(), // CATs não persistidos no snapshot atual
+                engenheiros,
+                cats,
                 itens,
                 faltantes,
                 snapshot.getCobertura() != null ? snapshot.getCobertura() : BigDecimal.ZERO,
@@ -179,6 +188,10 @@ public class AnaliseService {
         persistido.setAnaliseId(analiseId);
         persistido.setResultado(resultado.resultado());
         persistido.setCobertura(resultado.cobertura());
+        
+        // Persistir engenheiros e CATs como strings separadas por vírgula
+        persistido.setEngenheirosUtilizados(String.join(", ", resultado.engenheiros()));
+        persistido.setCatsUtilizadas(String.join(", ", resultado.cats()));
         
         // Salvar itens
         for (AnaliseResultadoItem item : resultado.itens()) {
