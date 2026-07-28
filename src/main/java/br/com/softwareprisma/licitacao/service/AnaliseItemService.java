@@ -25,9 +25,29 @@ public class AnaliseItemService {
 
     @Transactional
     public AnaliseItem salvar(Long analiseId, AnaliseItem item) {
+        System.out.println("=== AnaliseItemService.salvar() INICIO ===");
+        System.out.println("Analise ID: " + analiseId);
+        
         Analise analise = analiseService.buscarDetalhadaPorId(analiseId);
+        
+        System.out.println("Analise carregada - Quantidade de itens ANTES do save: " + analise.getItens().size());
+        System.out.println("Itens ANTES do save:");
+        for (AnaliseItem i : analise.getItens()) {
+            System.out.println("  - ID: " + i.getId() + ", Descricao: " + i.getDescricao());
+        }
+        
         item.setAnalise(analise);
-        return analiseItemRepository.save(item);
+        AnaliseItem saved = analiseItemRepository.save(item);
+        
+        System.out.println("Item salvo - ID: " + saved.getId());
+        System.out.println("Quantidade de itens DEPOIS do save: " + analise.getItens().size());
+        System.out.println("Itens DEPOIS do save:");
+        for (AnaliseItem i : analise.getItens()) {
+            System.out.println("  - ID: " + i.getId() + ", Descricao: " + i.getDescricao());
+        }
+        System.out.println("=== AnaliseItemService.salvar() FIM ===");
+        
+        return saved;
     }
 
     @Transactional

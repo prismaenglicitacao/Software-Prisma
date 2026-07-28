@@ -9,7 +9,6 @@ import br.com.softwareprisma.licitacao.domain.enums.ResultadoAnalise;
 import br.com.softwareprisma.licitacao.repository.AnaliseRepository;
 import br.com.softwareprisma.licitacao.repository.CatRepository;
 import br.com.softwareprisma.licitacao.service.matcher.DescricaoMatcher;
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,7 +40,6 @@ public class AnaliseService {
     private final CatRepository catRepository;
     private final DescricaoMatcher descricaoMatcher;
     private final br.com.softwareprisma.licitacao.repository.AnaliseResultadoPersistidoRepository resultadoPersistidoRepository;
-    private final EntityManager entityManager;
 
     @Transactional(readOnly = true)
     public boolean temSnapshotCompleto(Long id) {
@@ -150,8 +148,20 @@ public class AnaliseService {
 
     @Transactional(readOnly = true)
     public Analise buscarDetalhadaPorId(Long id) {
-        return analiseRepository.buscarDetalhadaPorId(id)
+        System.out.println("=== AnaliseService.buscarDetalhadaPorId() INICIO ===");
+        System.out.println("Buscando Analise ID: " + id);
+        
+        Analise analise = analiseRepository.buscarDetalhadaPorId(id)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Analise nao encontrada"));
+        
+        System.out.println("Analise encontrada - Quantidade de itens: " + analise.getItens().size());
+        System.out.println("Itens:");
+        for (AnaliseItem i : analise.getItens()) {
+            System.out.println("  - ID: " + i.getId() + ", Descricao: " + i.getDescricao() + ", Unidade: " + i.getUnidade() + ", Qtd: " + i.getQuantidade());
+        }
+        System.out.println("=== AnaliseService.buscarDetalhadaPorId() FIM ===");
+        
+        return analise;
     }
 
     @Transactional
@@ -163,25 +173,37 @@ public class AnaliseService {
 
     @Transactional
     public AnaliseResultado prepararAnalise(Long id) {
-        // Forçar recarregamento dos itens para garantir dados atualizados
-        Analise analise = analiseRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Analise nao encontrada"));
+        System.out.println("=== AnaliseService.prepararAnalise() INICIO ===");
+        System.out.println("Analise ID: " + id);
         
-        // Limpar a coleção para forçar recarregamento do banco
-        analise.getItens().clear();
-        entityManager.refresh(analise);
+        Analise analise = buscarDetalhadaPorId(id);
+        
+        System.out.println("Após buscarDetalhadaPorId - Quantidade de itens: " + analise.getItens().size());
+        System.out.println("Itens:");
+        for (AnaliseItem i : analise.getItens()) {
+            System.out.println("  - ID: " + i.getId() + ", Descricao: " + i.getDescricao() + ", Unidade: " + i.getUnidade() + ", Qtd: " + i.getQuantidade());
+        }
         
         if (analise.getItens().isEmpty()) {
             throw new ResponseStatusException(BAD_REQUEST, "Adicione ao menos um item antes de analisar.");
         }
 
         AnaliseResultado resultado = comparar(analise);
+        
+        System.out.println("Após comparar - Quantidade de itens no resultado: " + resultado.itens().size());
+        System.out.println("Itens no resultado:");
+        for (AnaliseResultadoItem i : resultado.itens()) {
+            System.out.println("  - Descricao: " + i.descricao() + ", Unidade: " + i.unidade() + ", Exigido: " + i.exigido());
+        }
+        
         analise.setResultado(resultado.resultado());
         analise.setCobertura(resultado.cobertura());
         analiseRepository.save(analise);
         
         // Salvar snapshot completo do resultado
         salvarResultadoPersistido(id, resultado);
+        
+        System.out.println("=== AnaliseService.prepararAnalise() FIM ===");
         
         return resultado;
     }
@@ -242,11 +264,20 @@ public class AnaliseService {
     }
 
     private AnaliseResultado comparar(Analise analise) {
+        System.out.println("=== AnaliseService.comparar() INICIO ===");
+        System.out.println("Analise ID: " + analise.getId());
+        System.out.println("Quantidade de itens recebida: " + analise.getItens().size());
+        System.out.println("Itens recebidos:");
+        for (AnaliseItem i : analise.getItens()) {
+            System.out.println("  - ID: " + i.getId() + ", Descricao: " + i.getDescricao() + ", Unidade: " + i.getUnidade() + ", Qtd: " + i.getQuantidade());
+        }
 
         BigDecimal totalExigido = analise.getItens()
                 .stream()
                 .map(AnaliseItem::getQuantidade)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        System.out.println("Total exigido: " + totalExigido);
 
         List<EngenheiroInfo> engenheiros = agruparEngenheirosPorArea(analise.getArea());
 
@@ -264,13 +295,18 @@ public class AnaliseService {
                 analise.getItens());
 
         if (buscaCompleta.isPresent()) {
+            System.out.println("=== AnaliseService.comparar() FIM (busca completa) ===");
             return buscaCompleta.get();
         }
 
-        return buscarMelhorCombinacaoInvalida(
+        System.out.println("Busca completa não encontrada, buscando melhor combinação inválida");
+        AnaliseResultado resultado = buscarMelhorCombinacaoInvalida(
                 engenheiros,
                 totalExigido,
                 analise.getItens());
+        
+        System.out.println("=== AnaliseService.comparar() FIM (busca inválida) ===");
+        return resultado;
     }
 
     private List<RequisicaoAnalise> criarRequisicoes(List<AnaliseItem> itens) {
