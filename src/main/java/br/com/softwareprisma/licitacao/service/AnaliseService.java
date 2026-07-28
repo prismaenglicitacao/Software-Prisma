@@ -178,6 +178,7 @@ public class AnaliseService {
         
         Analise analise = buscarDetalhadaPorId(id);
         
+        System.out.println("Analise object identityHashCode: " + System.identityHashCode(analise));
         System.out.println("Após buscarDetalhadaPorId - Quantidade de itens: " + analise.getItens().size());
         System.out.println("Itens:");
         for (AnaliseItem i : analise.getItens()) {
@@ -188,6 +189,7 @@ public class AnaliseService {
             throw new ResponseStatusException(BAD_REQUEST, "Adicione ao menos um item antes de analisar.");
         }
 
+        System.out.println("Chamando comparar(analise) com identityHashCode: " + System.identityHashCode(analise));
         AnaliseResultado resultado = comparar(analise);
         
         System.out.println("Após comparar - Quantidade de itens no resultado: " + resultado.itens().size());
@@ -280,6 +282,7 @@ public class AnaliseService {
     private AnaliseResultado comparar(Analise analise) {
         System.out.println("=== AnaliseService.comparar() INICIO ===");
         System.out.println("Analise ID: " + analise.getId());
+        System.out.println("Analise object identityHashCode: " + System.identityHashCode(analise));
         System.out.println("Quantidade de itens recebida: " + analise.getItens().size());
         System.out.println("Itens recebidos:");
         for (AnaliseItem i : analise.getItens()) {

@@ -56,7 +56,11 @@ public class AnaliseController {
 
     @PostMapping("/{id}/analisar")
     public String analisar(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        System.out.println("=== AnaliseController.analisar() INICIO ===");
+        System.out.println("Analise ID: " + id);
+        System.out.println("Chamando analiseService.prepararAnalise(" + id + ")");
         AnaliseResultado resultado = analiseService.prepararAnalise(id);
+        System.out.println("=== AnaliseController.analisar() FIM ===");
         redirectAttributes.addFlashAttribute("mensagemSucesso",
                 resultado.atende() ? "Itens do edital registrados. O algoritmo indicou que a licitação atende." : "Itens do edital registrados. O algoritmo indicou que a licitação não atende.");
         return "redirect:/analises/" + id + "/resumo";
