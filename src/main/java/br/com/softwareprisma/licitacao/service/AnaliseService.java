@@ -210,8 +210,20 @@ public class AnaliseService {
     
     @Transactional
     private void salvarResultadoPersistido(Long analiseId, AnaliseResultado resultado) {
-        // Remover snapshot anterior se existir
-        resultadoPersistidoRepository.deleteByAnaliseId(analiseId);
+        System.out.println("=== salvarResultadoPersistido() INICIO ===");
+        System.out.println("Analise ID: " + analiseId);
+        
+        // Verificar se já existe snapshot
+        java.util.Optional<br.com.softwareprisma.licitacao.domain.AnaliseResultadoPersistido> existente = 
+            resultadoPersistidoRepository.findByAnaliseId(analiseId);
+        
+        System.out.println("Snapshot existente: " + existent.isPresent());
+        
+        if (existent.isPresent()) {
+            System.out.println("Deletando snapshot existente com ID: " + existente.get().getId());
+            resultadoPersistidoRepository.delete(existente.get());
+            System.out.println("Snapshot deletado");
+        }
         
         // Criar novo snapshot
         br.com.softwareprisma.licitacao.domain.AnaliseResultadoPersistido persistido = 
@@ -254,7 +266,9 @@ public class AnaliseService {
             persistido.getItens().add(itemPersistido);
         }
         
+        System.out.println("Salvando novo snapshot");
         resultadoPersistidoRepository.save(persistido);
+        System.out.println("=== salvarResultadoPersistido() FIM ===");
     }
 
     @Transactional(readOnly = true)
