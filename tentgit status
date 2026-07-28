@@ -1,0 +1,13 @@
+[35msrc/main/java/br/com/softwareprisma/licitacao/service/AnaliseService.java[m[36m:[m[32m217[m[36m:[m        java.util.Optional<br.com.softwareprisma.licitacao.domain.AnaliseResultadoPersistido> [1;31mexistent[me = 
+[35msrc/main/java/br/com/softwareprisma/licitacao/service/AnaliseService.java[m[36m:[m[32m220[m[36m:[m        System.out.println("Snapshot [1;31mexistent[me: " + [1;31mexistent[me.isPresent());
+[35msrc/main/java/br/com/softwareprisma/licitacao/service/AnaliseService.java[m[36m:[m[32m222[m[36m:[m        if ([1;31mexistent[me.isPresent()) {
+[35msrc/main/java/br/com/softwareprisma/licitacao/service/AnaliseService.java[m[36m:[m[32m223[m[36m:[m            System.out.println("Deletando snapshot [1;31mexistent[me com ID: " + [1;31mexistent[me.get().getId());
+[35msrc/main/java/br/com/softwareprisma/licitacao/service/AnaliseService.java[m[36m:[m[32m224[m[36m:[m            resultadoPersistidoRepository.delete([1;31mexistent[me.get());
+[35msrc/main/java/br/com/softwareprisma/licitacao/service/UsuarioService.java[m[36m:[m[32m44[m[36m:[m        Usuario [1;31mexistent[me = buscarPorId(id);
+[35msrc/main/java/br/com/softwareprisma/licitacao/service/UsuarioService.java[m[36m:[m[32m45[m[36m:[m        [1;31mexistent[me.setNome(usuario.getNome());
+[35msrc/main/java/br/com/softwareprisma/licitacao/service/UsuarioService.java[m[36m:[m[32m46[m[36m:[m        [1;31mexistent[me.setAtivo(usuario.getAtivo());
+[35msrc/main/java/br/com/softwareprisma/licitacao/service/UsuarioService.java[m[36m:[m[32m47[m[36m:[m        [1;31mexistent[me.setAdministrador(usuario.getAdministrador());
+[35msrc/main/java/br/com/softwareprisma/licitacao/service/UsuarioService.java[m[36m:[m[32m48[m[36m:[m        return usuarioRepository.save([1;31mexistent[me);
+[35msrc/main/java/br/com/softwareprisma/licitacao/service/matcher/ItemAgrupador.java[m[36m:[m[32m29[m[36m:[m        for (ItemAgrupado [1;31mexistent[me : lista) {
+[35msrc/main/java/br/com/softwareprisma/licitacao/service/matcher/ItemAgrupador.java[m[36m:[m[32m31[m[36m:[m            if (matcher.corresponde([1;31mexistent[me, novo)) {
+[35msrc/main/java/br/com/softwareprisma/licitacao/service/matcher/ItemAgrupador.java[m[36m:[m[32m33[m[36m:[m                [1;31mexistent[me.adicionar(quantidade);

@@ -219,7 +219,7 @@ public class AnaliseService {
         
         System.out.println("Snapshot existente: " + existente.isPresent());
         
-        if (existent.isPresent()) {
+        if (existente.isPresent()) {
             System.out.println("Deletando snapshot existente com ID: " + existente.get().getId());
             resultadoPersistidoRepository.delete(existente.get());
             System.out.println("Snapshot deletado");
