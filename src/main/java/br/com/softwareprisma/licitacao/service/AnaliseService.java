@@ -9,6 +9,7 @@ import br.com.softwareprisma.licitacao.domain.enums.ResultadoAnalise;
 import br.com.softwareprisma.licitacao.repository.AnaliseRepository;
 import br.com.softwareprisma.licitacao.repository.CatRepository;
 import br.com.softwareprisma.licitacao.service.matcher.DescricaoMatcher;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +41,7 @@ public class AnaliseService {
     private final CatRepository catRepository;
     private final DescricaoMatcher descricaoMatcher;
     private final br.com.softwareprisma.licitacao.repository.AnaliseResultadoPersistidoRepository resultadoPersistidoRepository;
+    private final EntityManager entityManager;
 
     @Transactional(readOnly = true)
     public boolean temSnapshotCompleto(Long id) {
@@ -161,7 +163,14 @@ public class AnaliseService {
 
     @Transactional
     public AnaliseResultado prepararAnalise(Long id) {
-        Analise analise = buscarDetalhadaPorId(id);
+        // Forçar recarregamento dos itens para garantir dados atualizados
+        Analise analise = analiseRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Analise nao encontrada"));
+        
+        // Limpar a coleção para forçar recarregamento do banco
+        analise.getItens().clear();
+        entityManager.refresh(analise);
+        
         if (analise.getItens().isEmpty()) {
             throw new ResponseStatusException(BAD_REQUEST, "Adicione ao menos um item antes de analisar.");
         }
