@@ -19,6 +19,8 @@ public class DescricaoMatcher {
 
     private final ValorTecnicoExtractor valorTecnicoExtractor;
 
+    private final AtributoQualitativoExtractor atributoQualitativoExtractor;
+
     public String gerarChave(String descricao, String unidade) {
 
         return textoNormalizer.normalizar(descricao)
@@ -51,7 +53,15 @@ public class DescricaoMatcher {
         Set<String> valores1 = valorTecnicoExtractor.extrair(descricao1);
         Set<String> valores2 = valorTecnicoExtractor.extrair(descricao2);
 
-        return valores1.equals(valores2);
+        if (!valores1.equals(valores2)) {
+            return false;
+        }
+
+        // Verificar atributos qualitativos críticos
+        Set<String> atributos1 = atributoQualitativoExtractor.extrair(descricao1);
+        Set<String> atributos2 = atributoQualitativoExtractor.extrair(descricao2);
+
+        return atributos1.equals(atributos2);
     }
 
     public double similaridade(String descricao1, String descricao2) {
