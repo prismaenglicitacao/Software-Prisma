@@ -217,7 +217,7 @@ public class AnaliseService {
         java.util.Optional<br.com.softwareprisma.licitacao.domain.AnaliseResultadoPersistido> existente = 
             resultadoPersistidoRepository.findByAnaliseId(analiseId);
         
-        System.out.println("Snapshot existente: " + existent.isPresent());
+        System.out.println("Snapshot existente: " + existente.isPresent());
         
         if (existent.isPresent()) {
             System.out.println("Deletando snapshot existente com ID: " + existente.get().getId());
