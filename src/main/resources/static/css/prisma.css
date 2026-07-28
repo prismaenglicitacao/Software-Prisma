@@ -522,6 +522,42 @@ body {
 }
 
 /* ============================================
+   AUTOCOMPLETE / LIST GROUP
+   ============================================ */
+
+.list-group {
+    z-index: 1050 !important;
+}
+
+.list-group-item {
+    background-color: var(--prisma-white) !important;
+    border: var(--prisma-border-width) solid var(--prisma-border-color);
+    color: var(--prisma-gray-700);
+    padding: 0.5rem 0.75rem;
+    transition: var(--prisma-transition-fast);
+}
+
+.list-group-item:hover,
+.list-group-item-action:hover {
+    background-color: var(--prisma-gray-50) !important;
+    color: var(--prisma-gray-800) !important;
+    opacity: 1 !important;
+}
+
+.list-group-item-action {
+    cursor: pointer;
+}
+
+/* Garantir que o dropdown do autocomplete fique acima de tudo */
+#sugestoesLista {
+    z-index: 1050 !important;
+    background-color: var(--prisma-white) !important;
+    border: var(--prisma-border-width) solid var(--prisma-border-color);
+    border-radius: var(--prisma-border-radius-lg);
+    box-shadow: var(--prisma-shadow-lg);
+}
+
+/* ============================================
    MODAL
    ============================================ */
 

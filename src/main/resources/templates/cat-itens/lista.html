@@ -37,7 +37,7 @@
                         <label for="descricao" class="form-label">Descrição</label>
                         <input id="descricao" type="text" class="form-control"
                                th:field="*{descricao}" placeholder="Ex.: Luminária LED 120W" autocomplete="off">
-                        <div id="sugestoesLista" class="list-group position-absolute w-100 shadow-sm mt-1" style="display: none; z-index: 1000; max-height: 300px; overflow-y: auto;"></div>
+                        <div id="sugestoesLista" class="list-group position-absolute w-100 shadow-sm mt-1" style="display: none; max-height: 300px; overflow-y: auto;"></div>
                         <div class="text-danger small mt-1"
                              th:if="${#fields.hasErrors('descricao')}"
                              th:errors="*{descricao}"></div>
