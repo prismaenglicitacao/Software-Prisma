@@ -45,8 +45,11 @@ public class DescricaoMatcher {
             return false;
         }
 
-        // textos muito diferentes
-        if (similaridade(descricao1, descricao2) < 0.80) {
+        // textos devem ser praticamente idênticos (igualdade de texto normalizado)
+        String desc1Normalizada = normalizarTextoConservador(descricao1);
+        String desc2Normalizada = normalizarTextoConservador(descricao2);
+        
+        if (!desc1Normalizada.equals(desc2Normalizada)) {
             return false;
         }
 
@@ -62,6 +65,20 @@ public class DescricaoMatcher {
         Set<String> atributos2 = atributoQualitativoExtractor.extrair(descricao2);
 
         return atributos1.equals(atributos2);
+    }
+
+    private String normalizarTextoConservador(String texto) {
+        if (texto == null) {
+            return "";
+        }
+
+        // Normalização conservadora: apenas diferenças superficiais
+        texto = java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD);
+        texto = texto.replaceAll("\\p{M}", ""); // Remove acentos
+        texto = texto.toLowerCase(); // Ignora maiúsculas/minúsculas
+        texto = texto.replaceAll("\\s+", " ").trim(); // Remove espaços duplicados
+
+        return texto;
     }
 
     public double similaridade(String descricao1, String descricao2) {

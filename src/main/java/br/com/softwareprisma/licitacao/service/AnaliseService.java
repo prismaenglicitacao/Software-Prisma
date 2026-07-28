@@ -627,8 +627,6 @@ public class AnaliseService {
             List<CatItem> itens) {
 
         CatItem melhor = null;
-        double melhorScore = 0;
-
         for (CatItem item : itens) {
 
             if (!descricaoMatcher.corresponde(
@@ -639,14 +637,8 @@ public class AnaliseService {
                 continue;
             }
 
-            double score = descricaoMatcher.similaridade(
-                    descricao,
-                    item.getDescricao());
-
-            if (score > melhorScore) {
-                melhorScore = score;
-                melhor = item;
-            }
+            // Com a nova lógica de correspondência restritiva, o primeiro match já é o correto
+            return item;
         }
 
         return melhor;
