@@ -19,9 +19,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -41,6 +39,12 @@ public class AnaliseService {
     private final AnaliseRepository analiseRepository;
     private final CatRepository catRepository;
     private final DescricaoMatcher descricaoMatcher;
+    private final br.com.softwareprisma.licitacao.repository.AnaliseResultadoPersistidoRepository resultadoPersistidoRepository;
+
+    @Transactional(readOnly = true)
+    public boolean temSnapshotCompleto(Long id) {
+        return resultadoPersistidoRepository.existsByAnaliseId(id);
+    }
 
     @Transactional(readOnly = true)
     public AnaliseResultado buscarResultadoPersistido(Long id) {
@@ -50,7 +54,56 @@ public class AnaliseService {
             throw new ResponseStatusException(BAD_REQUEST, "Análise ainda não foi processada.");
         }
         
-        // Criar resultado baseado nos dados persistidos
+        // Verificar se existe snapshot persistido
+        java.util.Optional<br.com.softwareprisma.licitacao.domain.AnaliseResultadoPersistido> snapshot = 
+            resultadoPersistidoRepository.findByAnaliseId(id);
+        
+        if (snapshot.isPresent()) {
+            // Retornar resultado do snapshot
+            return criarResultadoAPartirDoSnapshot(snapshot.get());
+        } else {
+            // Análise antiga sem snapshot - usar dados básicos
+            return criarResultadoBasico(analise);
+        }
+    }
+    
+    private AnaliseResultado criarResultadoAPartirDoSnapshot(br.com.softwareprisma.licitacao.domain.AnaliseResultadoPersistido snapshot) {
+        List<AnaliseResultadoItem> itens = new ArrayList<>();
+        
+        for (br.com.softwareprisma.licitacao.domain.AnaliseResultadoItemPersistido itemPersistido : snapshot.getItens()) {
+            List<String> origens = new ArrayList<>();
+            for (br.com.softwareprisma.licitacao.domain.AnaliseResultadoOrigem origemPersistido : itemPersistido.getOrigens()) {
+                String origem = origemPersistido.getCatNome();
+                if (origemPersistido.getEngenheiroNome() != null && !origemPersistido.getEngenheiroNome().isEmpty()) {
+                    origem += " - " + origemPersistido.getEngenheiroNome();
+                }
+                origens.add(origem);
+            }
+            
+            itens.add(new AnaliseResultadoItem(
+                    itemPersistido.getDescricao(),
+                    itemPersistido.getUnidade(),
+                    itemPersistido.getExigido(),
+                    itemPersistido.getEncontrado(),
+                    itemPersistido.getAtende(),
+                    origens));
+        }
+        
+        List<AnaliseResultadoItem> faltantes = itens.stream()
+                .filter(i -> !i.atende())
+                .toList();
+        
+        return new AnaliseResultado(
+                snapshot.getResultado(),
+                List.of(), // Engenheiros não persistidos no snapshot atual
+                List.of(), // CATs não persistidos no snapshot atual
+                itens,
+                faltantes,
+                snapshot.getCobertura() != null ? snapshot.getCobertura() : BigDecimal.ZERO,
+                snapshot.getResultado() == ResultadoAnalise.ATENDE);
+    }
+    
+    private AnaliseResultado criarResultadoBasico(Analise analise) {
         List<AnaliseResultadoItem> itens = criarItensResultadoPersistidos(analise.getItens());
         
         List<AnaliseResultadoItem> faltantes = itens.stream()
@@ -108,7 +161,56 @@ public class AnaliseService {
         analise.setResultado(resultado.resultado());
         analise.setCobertura(resultado.cobertura());
         analiseRepository.save(analise);
+        
+        // Salvar snapshot completo do resultado
+        salvarResultadoPersistido(id, resultado);
+        
         return resultado;
+    }
+    
+    @Transactional
+    private void salvarResultadoPersistido(Long analiseId, AnaliseResultado resultado) {
+        // Remover snapshot anterior se existir
+        resultadoPersistidoRepository.deleteByAnaliseId(analiseId);
+        
+        // Criar novo snapshot
+        br.com.softwareprisma.licitacao.domain.AnaliseResultadoPersistido persistido = 
+            new br.com.softwareprisma.licitacao.domain.AnaliseResultadoPersistido();
+        persistido.setAnaliseId(analiseId);
+        persistido.setResultado(resultado.resultado());
+        persistido.setCobertura(resultado.cobertura());
+        
+        // Salvar itens
+        for (AnaliseResultadoItem item : resultado.itens()) {
+            br.com.softwareprisma.licitacao.domain.AnaliseResultadoItemPersistido itemPersistido = 
+                new br.com.softwareprisma.licitacao.domain.AnaliseResultadoItemPersistido();
+            itemPersistido.setResultadoPersistido(persistido);
+            itemPersistido.setDescricao(item.descricao());
+            itemPersistido.setUnidade(item.unidade());
+            itemPersistido.setExigido(item.exigido());
+            itemPersistido.setEncontrado(item.encontrado());
+            itemPersistido.setAtende(item.atende());
+            
+            // Salvar origens
+            for (String origem : item.origens()) {
+                br.com.softwareprisma.licitacao.domain.AnaliseResultadoOrigem origemPersistido = 
+                    new br.com.softwareprisma.licitacao.domain.AnaliseResultadoOrigem();
+                origemPersistido.setItemPersistido(itemPersistido);
+                
+                // Parsear formato "CAT123 - João"
+                String[] partes = origem.split(" - ");
+                origemPersistido.setCatNome(partes[0].trim());
+                if (partes.length > 1) {
+                    origemPersistido.setEngenheiroNome(partes[1].trim());
+                }
+                
+                itemPersistido.getOrigens().add(origemPersistido);
+            }
+            
+            persistido.getItens().add(itemPersistido);
+        }
+        
+        resultadoPersistidoRepository.save(persistido);
     }
 
     @Transactional(readOnly = true)

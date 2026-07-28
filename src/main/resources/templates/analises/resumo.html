@@ -21,6 +21,12 @@
 
     <div th:if="${mensagemSucesso}" class="alert alert-success" th:text="${mensagemSucesso}"></div>
 
+    <div th:if="${!temSnapshotCompleto}" class="alert alert-warning alert-dismissible fade show" role="alert">
+        <i class="bi bi-info-circle me-2"></i>
+        <strong>Atenção:</strong> Esta análise foi realizada antes da implementação da persistência completa. Os detalhes dos itens (valor encontrado, origem da comprovação) não estão disponíveis.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-start gap-3">

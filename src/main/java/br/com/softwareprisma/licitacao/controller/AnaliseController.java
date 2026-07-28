@@ -66,6 +66,7 @@ public class AnaliseController {
     public String resumo(@PathVariable Long id, Model model) {
         model.addAttribute("analise", analiseService.buscarDetalhadaPorId(id));
         model.addAttribute("analiseResultado", analiseService.buscarResultadoPersistido(id));
+        model.addAttribute("temSnapshotCompleto", analiseService.temSnapshotCompleto(id));
         return "analises/resumo";
     }
 
