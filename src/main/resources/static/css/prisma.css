@@ -570,7 +570,7 @@ body {
 
 /* Itens de resultado do modal de pesquisa global */
 .search-result-item {
-    background-color: var(--prisma-white);
+    background-color: var(--prisma-white) !important;
     border: var(--prisma-border-width) solid var(--prisma-border-color);
     color: var(--prisma-gray-700);
     padding: 0.75rem 1rem;
@@ -578,6 +578,9 @@ body {
     transition: var(--prisma-transition-fast);
     position: relative;
     z-index: 1;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    mix-blend-mode: normal !important;
 }
 
 .search-result-item:hover,
@@ -585,6 +588,9 @@ body {
     background-color: var(--prisma-gray-50) !important;
     color: var(--prisma-gray-800) !important;
     opacity: 1 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    mix-blend-mode: normal !important;
 }
 
 .search-result-item:last-child {
@@ -599,6 +605,19 @@ body {
     border: none;
     border-radius: var(--prisma-border-radius-lg);
     box-shadow: var(--prisma-shadow-lg);
+}
+
+.modal-body {
+    background-color: var(--prisma-white) !important;
+}
+
+/* Modal de pesquisa global específico */
+#globalSearchModal .modal-body {
+    background-color: var(--prisma-white) !important;
+}
+
+#globalSearchModal .modal-content {
+    background-color: var(--prisma-white) !important;
 }
 
 .modal-header {
