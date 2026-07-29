@@ -33,10 +33,11 @@
         <div class="card-body">
             <form th:action="@{${acaoFormulario}}" th:object="${itemForm}" method="post" novalidate>
                 <div class="row g-3 align-items-end">
-                    <div class="col-lg-6">
+                    <div class="col-lg-6 position-relative">
                         <label for="descricao" class="form-label">Descrição</label>
                         <input id="descricao" type="text" class="form-control"
                                th:field="*{descricao}" placeholder="Ex.: Luminária LED 120W" autocomplete="off">
+                        <div id="sugestoesLista" class="list-group position-absolute w-100 shadow-sm mt-1" style="display: none; max-height: 300px; overflow-y: auto;"></div>
                         <div class="text-danger small mt-1"
                              th:if="${#fields.hasErrors('descricao')}"
                              th:errors="*{descricao}"></div>
@@ -189,27 +190,14 @@
 <script th:replace="~{fragments/layout :: scripts}"></script>
 <script>
     const descricaoInput = document.getElementById('descricao');
+    const sugestoesLista = document.getElementById('sugestoesLista');
     const unidadeSelect = document.getElementById('unidade');
     let debounceTimer;
 
-    // Criar dropdown no document.body para evitar problemas de stacking context
-    const sugestoesLista = document.createElement('div');
-    sugestoesLista.className = 'list-group shadow-sm';
-    sugestoesLista.style.display = 'none';
-    sugestoesLista.style.maxHeight = '300px';
-    sugestoesLista.style.overflowY = 'auto';
-    sugestoesLista.style.position = 'fixed';
-    sugestoesLista.style.zIndex = '1050';
-    sugestoesLista.style.backgroundColor = 'var(--prisma-white)';
-    document.body.appendChild(sugestoesLista);
-
-    // Posicionar dropdown abaixo do input
-    function positionDropdown() {
-        const rect = descricaoInput.getBoundingClientRect();
-        sugestoesLista.style.top = (rect.bottom + window.scrollY) + 'px';
-        sugestoesLista.style.left = rect.left + 'px';
-        sugestoesLista.style.width = rect.width + 'px';
-    }
+    console.log('[AUTOCOMPLETE CAT] Inicializando - descricaoInput:', descricaoInput);
+    console.log('[AUTOCOMPLETE CAT] sugestoesLista:', sugestoesLista);
+    console.log('[AUTOCOMPLETE CAT] Parent do sugestoesLista:', sugestoesLista?.parentElement);
+    console.log('[AUTOCOMPLETE CAT] Display inicial:', sugestoesLista?.style.display);
 
     // Autocomplete
     descricaoInput.addEventListener('input', (e) => {
@@ -219,16 +207,18 @@
 
         if (termo.length < 2) {
             sugestoesLista.style.display = 'none';
+            console.log('[AUTOCOMPLETE CAT] Termo < 2, ocultando dropdown');
             return;
         }
 
-        positionDropdown();
-        
         debounceTimer = setTimeout(async () => {
             try {
+                console.log('[AUTOCOMPLETE CAT] Buscando sugestões para:', termo);
                 const response = await fetch(`/api/itens/sugestoes?termo=${encodeURIComponent(termo)}`);
                 const data = await response.json();
-                
+
+                console.log('[AUTOCOMPLETE CAT] Sugestões recebidas:', data.length);
+
                 if (data.length > 0) {
                     sugestoesLista.innerHTML = data.map(item =>
                         `<button type="button" class="list-group-item list-group-item-action"
@@ -236,10 +226,18 @@
                             ${item.descricao} <span class="text-body-secondary">${item.unidade}</span>
                         </button>`
                     ).join('');
-                    positionDropdown();
                     sugestoesLista.style.display = 'block';
+                    console.log('[AUTOCOMPLETE CAT] Dropdown exibido');
+                    console.log('[AUTOCOMPLETE CAT] Display:', sugestoesLista.style.display);
+                    console.log('[AUTOCOMPLETE CAT] Top:', sugestoesLista.style.top);
+                    console.log('[AUTOCOMPLETE CAT] Left:', sugestoesLista.style.left);
+                    console.log('[AUTOCOMPLETE CAT] Width:', sugestoesLista.style.width);
+                    console.log('[AUTOCOMPLETE CAT] Height:', sugestoesLista.style.height);
+                    console.log('[AUTOCOMPLETE CAT] Position:', sugestoesLista.style.position);
+                    console.log('[AUTOCOMPLETE CAT] Z-index:', sugestoesLista.style.zIndex);
                 } else {
                     sugestoesLista.style.display = 'none';
+                    console.log('[AUTOCOMPLETE CAT] Nenhuma sugestão, ocultando dropdown');
                 }
             } catch (error) {
                 console.error('Erro ao buscar sugestões:', error);
@@ -248,6 +246,7 @@
     });
 
     function selecionarSugestao(descricao, unidade) {
+        console.log('[AUTOCOMPLETE CAT] Sugestão selecionada:', descricao);
         descricaoInput.value = descricao;
         unidadeSelect.value = unidade;
         sugestoesLista.style.display = 'none';
@@ -258,20 +257,7 @@
     document.addEventListener('click', (e) => {
         if (!descricaoInput.contains(e.target) && !sugestoesLista.contains(e.target)) {
             sugestoesLista.style.display = 'none';
-        }
-    });
-
-    // Reposicionar dropdown ao redimensionar a janela
-    window.addEventListener('resize', () => {
-        if (sugestoesLista.style.display === 'block') {
-            positionDropdown();
-        }
-    });
-
-    // Reposicionar dropdown ao rolar a página
-    window.addEventListener('scroll', () => {
-        if (sugestoesLista.style.display === 'block') {
-            positionDropdown();
+            console.log('[AUTOCOMPLETE CAT] Clique fora, ocultando dropdown');
         }
     });
 </script>
