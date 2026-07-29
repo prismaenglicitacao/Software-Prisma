@@ -34,11 +34,10 @@
 
             <form th:action="@{${acaoFormulario}}" th:object="${itemForm}" method="post" novalidate>
                 <div class="row g-3 align-items-end">
-                    <div class="col-lg-6 position-relative">
+                    <div class="col-lg-6">
                         <label for="descricao" class="form-label">Descrição</label>
                         <input id="descricao" type="text" class="form-control"
                                th:field="*{descricao}" placeholder="Ex.: Luminária LED 90-120W" autocomplete="off">
-                        <div id="sugestoesLista" class="list-group position-absolute w-100 shadow-sm mt-1" style="display: none; max-height: 300px; overflow-y: auto;"></div>
                         <div class="text-danger small mt-1"
                              th:if="${#fields.hasErrors('descricao')}"
                              th:errors="*{descricao}"></div>
@@ -153,10 +152,28 @@
 </script>
 <script>
     const descricaoInput = document.getElementById('descricao');
-    const sugestoesLista = document.getElementById('sugestoesLista');
     const itensRecentesSection = document.getElementById('itensRecentesSection');
     const itensRecentes = document.getElementById('itensRecentes');
     let debounceTimer;
+
+    // Criar dropdown no document.body para evitar problemas de stacking context
+    const sugestoesLista = document.createElement('div');
+    sugestoesLista.className = 'list-group shadow-sm';
+    sugestoesLista.style.display = 'none';
+    sugestoesLista.style.maxHeight = '300px';
+    sugestoesLista.style.overflowY = 'auto';
+    sugestoesLista.style.position = 'fixed';
+    sugestoesLista.style.zIndex = '1050';
+    sugestoesLista.style.backgroundColor = 'var(--prisma-white)';
+    document.body.appendChild(sugestoesLista);
+
+    // Posicionar dropdown abaixo do input
+    function positionDropdown() {
+        const rect = descricaoInput.getBoundingClientRect();
+        sugestoesLista.style.top = (rect.bottom + window.scrollY) + 'px';
+        sugestoesLista.style.left = rect.left + 'px';
+        sugestoesLista.style.width = rect.width + 'px';
+    }
 
     function montarUrlItens(path, termo) {
         const params = new URLSearchParams();
@@ -216,6 +233,8 @@
             return;
         }
 
+        positionDropdown();
+
         debounceTimer = setTimeout(async () => {
             try {
                 const response = await fetch(montarUrlItens('/api/itens/sugestoes', termo));
@@ -250,6 +269,7 @@
                         });
                         sugestoesLista.appendChild(button);
                     });
+                    positionDropdown();
                     sugestoesLista.style.display = 'block';
                 } else {
                     sugestoesLista.style.display = 'none';
@@ -271,6 +291,20 @@
     document.addEventListener('click', (e) => {
         if (!descricaoInput.contains(e.target) && !sugestoesLista.contains(e.target)) {
             sugestoesLista.style.display = 'none';
+        }
+    });
+
+    // Reposicionar dropdown ao redimensionar a janela
+    window.addEventListener('resize', () => {
+        if (sugestoesLista.style.display === 'block') {
+            positionDropdown();
+        }
+    });
+
+    // Reposicionar dropdown ao rolar a página
+    window.addEventListener('scroll', () => {
+        if (sugestoesLista.style.display === 'block') {
+            positionDropdown();
         }
     });
 
