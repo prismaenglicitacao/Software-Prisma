@@ -33,12 +33,19 @@ public class AnaliseItemController {
                          BindingResult bindingResult,
                          Model model,
                          RedirectAttributes redirectAttributes) {
+        System.out.println("=== AnaliseItemController.salvar() INICIO ===");
+        System.out.println("Analise ID: " + analiseId);
+        System.out.println("ItemForm: " + itemForm.getDescricao() + ", " + itemForm.getQuantidade() + ", " + itemForm.getUnidade());
+        
         if (bindingResult.hasErrors()) {
+            System.out.println("Erros de validação encontrados");
             carregarTela(analiseId, model, itemForm, false, null);
             return "analises/detalhe";
         }
 
+        System.out.println("Chamando analiseItemService.salvar()");
         analiseItemService.salvar(analiseId, itemForm.toEntity());
+        System.out.println("=== AnaliseItemController.salvar() FIM ===");
         redirectAttributes.addFlashAttribute("mensagemSucesso", "Item adicionado com sucesso.");
         return "redirect:/analises/" + analiseId;
     }
@@ -58,15 +65,23 @@ public class AnaliseItemController {
                             BindingResult bindingResult,
                             Model model,
                             RedirectAttributes redirectAttributes) {
+        System.out.println("=== AnaliseItemController.atualizar() INICIO ===");
+        System.out.println("Analise ID: " + analiseId);
+        System.out.println("Item ID: " + itemId);
+        System.out.println("ItemForm: " + itemForm.getDescricao() + ", " + itemForm.getQuantidade() + ", " + itemForm.getUnidade());
+        
         AnaliseItem item = analiseItemService.buscarDetalhadoPorId(itemId);
         validarPertencimento(analiseId, item);
 
         if (bindingResult.hasErrors()) {
+            System.out.println("Erros de validação encontrados");
             carregarTela(analiseId, model, itemForm, true, itemId);
             return "analises/detalhe";
         }
 
+        System.out.println("Chamando analiseItemService.atualizar()");
         analiseItemService.atualizar(itemId, itemForm.toEntity());
+        System.out.println("=== AnaliseItemController.atualizar() FIM ===");
         redirectAttributes.addFlashAttribute("mensagemSucesso", "Item atualizado com sucesso.");
         return "redirect:/analises/" + analiseId;
     }
@@ -75,9 +90,17 @@ public class AnaliseItemController {
     public String excluir(@PathVariable Long analiseId,
                           @PathVariable Long itemId,
                           RedirectAttributes redirectAttributes) {
+        System.out.println("=== AnaliseItemController.excluir() INICIO ===");
+        System.out.println("Analise ID: " + analiseId);
+        System.out.println("Item ID: " + itemId);
+        
         AnaliseItem item = analiseItemService.buscarDetalhadoPorId(itemId);
+        System.out.println("Item encontrado: " + item.getDescricao() + ", " + item.getQuantidade() + ", " + item.getUnidade());
         validarPertencimento(analiseId, item);
+        
+        System.out.println("Chamando analiseItemService.excluir()");
         analiseItemService.excluir(itemId);
+        System.out.println("=== AnaliseItemController.excluir() FIM ===");
         redirectAttributes.addFlashAttribute("mensagemSucesso", "Item excluido com sucesso.");
         return "redirect:/analises/" + analiseId;
     }
