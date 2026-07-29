@@ -558,6 +558,40 @@ body {
 }
 
 /* ============================================
+   GLOBAL SEARCH MODAL
+   ============================================ */
+
+/* Container de resultados do modal de pesquisa global */
+#searchResults {
+    position: relative;
+    z-index: 1;
+    background-color: var(--prisma-white);
+}
+
+/* Itens de resultado do modal de pesquisa global */
+.search-result-item {
+    background-color: var(--prisma-white);
+    border: var(--prisma-border-width) solid var(--prisma-border-color);
+    color: var(--prisma-gray-700);
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: var(--prisma-transition-fast);
+    position: relative;
+    z-index: 1;
+}
+
+.search-result-item:hover,
+.search-result-item.active {
+    background-color: var(--prisma-gray-50) !important;
+    color: var(--prisma-gray-800) !important;
+    opacity: 1 !important;
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+/* ============================================
    MODAL
    ============================================ */
 

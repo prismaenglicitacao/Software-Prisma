@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             data.engenheiros.forEach(eng => {
                 html += `
-                    <div class="search-result-item p-3 border-bottom cursor-pointer hover-bg-light rounded"
+                    <div class="search-result-item"
                          data-type="engenheiro"
                          data-id="${eng.id}"
                          onclick="window.location.href='/engenheiros/${eng.id}'">
@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             data.cats.forEach(cat => {
                 html += `
-                    <div class="search-result-item p-3 border-bottom cursor-pointer hover-bg-light rounded"
+                    <div class="search-result-item"
                          data-type="cat"
                          data-id="${cat.id}"
                          onclick="window.location.href='/cats/${cat.id}'">
@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             data.itens.forEach(item => {
                 html += `
-                    <div class="search-result-item p-3 border-bottom cursor-pointer hover-bg-light rounded"
+                    <div class="search-result-item"
                          data-type="item"
                          data-id="${item.id}"
                          onclick="window.location.href='/cats/${item.catId}/itens'">
