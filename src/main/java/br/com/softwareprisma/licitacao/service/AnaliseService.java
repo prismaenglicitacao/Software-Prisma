@@ -221,16 +221,20 @@ public class AnaliseService {
         
         System.out.println("Snapshot existente: " + existente.isPresent());
         
+        br.com.softwareprisma.licitacao.domain.AnaliseResultadoPersistido persistido;
+        
         if (existente.isPresent()) {
-            System.out.println("Deletando snapshot existente com ID: " + existente.get().getId());
-            resultadoPersistidoRepository.delete(existente.get());
-            System.out.println("Snapshot deletado");
+            System.out.println("Atualizando snapshot existente com ID: " + existente.get().getId());
+            persistido = existente.get();
+            // Limpar itens antigos (orphanRemoval vai deletar do banco)
+            persistido.getItens().clear();
+        } else {
+            System.out.println("Criando novo snapshot");
+            persistido = new br.com.softwareprisma.licitacao.domain.AnaliseResultadoPersistido();
+            persistido.setAnaliseId(analiseId);
         }
         
-        // Criar novo snapshot
-        br.com.softwareprisma.licitacao.domain.AnaliseResultadoPersistido persistido = 
-            new br.com.softwareprisma.licitacao.domain.AnaliseResultadoPersistido();
-        persistido.setAnaliseId(analiseId);
+        // Atualizar campos
         persistido.setResultado(resultado.resultado());
         persistido.setCobertura(resultado.cobertura());
         
@@ -268,7 +272,7 @@ public class AnaliseService {
             persistido.getItens().add(itemPersistido);
         }
         
-        System.out.println("Salvando novo snapshot");
+        System.out.println("Salvando snapshot (UPDATE se existente, INSERT se novo)");
         resultadoPersistidoRepository.save(persistido);
         System.out.println("=== salvarResultadoPersistido() FIM ===");
     }
