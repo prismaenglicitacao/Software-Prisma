@@ -158,11 +158,6 @@
     const itensRecentes = document.getElementById('itensRecentes');
     let debounceTimer;
 
-    console.log('[AUTOCOMPLETE] Inicializando - descricaoInput:', descricaoInput);
-    console.log('[AUTOCOMPLETE] sugestoesLista:', sugestoesLista);
-    console.log('[AUTOCOMPLETE] Parent do sugestoesLista:', sugestoesLista?.parentElement);
-    console.log('[AUTOCOMPLETE] Display inicial:', sugestoesLista?.style.display);
-
     function montarUrlItens(path, termo) {
         const params = new URLSearchParams();
         if (termo) {
@@ -218,17 +213,13 @@
 
         if (termo.length < 2) {
             sugestoesLista.style.display = 'none';
-            console.log('[AUTOCOMPLETE] Termo < 2, ocultando dropdown');
             return;
         }
 
         debounceTimer = setTimeout(async () => {
             try {
-                console.log('[AUTOCOMPLETE] Buscando sugestões para:', termo);
                 const response = await fetch(montarUrlItens('/api/itens/sugestoes', termo));
                 const data = await response.json();
-
-                console.log('[AUTOCOMPLETE] Sugestões recebidas:', data.length);
 
                 if (data.length > 0) {
                     sugestoesLista.innerHTML = '';
@@ -260,17 +251,8 @@
                         sugestoesLista.appendChild(button);
                     });
                     sugestoesLista.style.display = 'block';
-                    console.log('[AUTOCOMPLETE] Dropdown exibido');
-                    console.log('[AUTOCOMPLETE] Display:', sugestoesLista.style.display);
-                    console.log('[AUTOCOMPLETE] Top:', sugestoesLista.style.top);
-                    console.log('[AUTOCOMPLETE] Left:', sugestoesLista.style.left);
-                    console.log('[AUTOCOMPLETE] Width:', sugestoesLista.style.width);
-                    console.log('[AUTOCOMPLETE] Height:', sugestoesLista.style.height);
-                    console.log('[AUTOCOMPLETE] Position:', sugestoesLista.style.position);
-                    console.log('[AUTOCOMPLETE] Z-index:', sugestoesLista.style.zIndex);
                 } else {
                     sugestoesLista.style.display = 'none';
-                    console.log('[AUTOCOMPLETE] Nenhuma sugestão, ocultando dropdown');
                 }
             } catch (error) {
                 console.error('Erro ao buscar sugestões:', error);
@@ -279,7 +261,6 @@
     });
 
     function selecionarSugestao(descricao, unidade) {
-        console.log('[AUTOCOMPLETE] Sugestão selecionada:', descricao);
         descricaoInput.value = descricao;
         document.getElementById('unidade').value = unidade;
         sugestoesLista.style.display = 'none';
@@ -290,7 +271,6 @@
     document.addEventListener('click', (e) => {
         if (!descricaoInput.contains(e.target) && !sugestoesLista.contains(e.target)) {
             sugestoesLista.style.display = 'none';
-            console.log('[AUTOCOMPLETE] Clique fora, ocultando dropdown');
         }
     });
 

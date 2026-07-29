@@ -194,11 +194,6 @@
     const unidadeSelect = document.getElementById('unidade');
     let debounceTimer;
 
-    console.log('[AUTOCOMPLETE CAT] Inicializando - descricaoInput:', descricaoInput);
-    console.log('[AUTOCOMPLETE CAT] sugestoesLista:', sugestoesLista);
-    console.log('[AUTOCOMPLETE CAT] Parent do sugestoesLista:', sugestoesLista?.parentElement);
-    console.log('[AUTOCOMPLETE CAT] Display inicial:', sugestoesLista?.style.display);
-
     // Autocomplete
     descricaoInput.addEventListener('input', (e) => {
         const termo = e.target.value.trim();
@@ -207,17 +202,13 @@
 
         if (termo.length < 2) {
             sugestoesLista.style.display = 'none';
-            console.log('[AUTOCOMPLETE CAT] Termo < 2, ocultando dropdown');
             return;
         }
 
         debounceTimer = setTimeout(async () => {
             try {
-                console.log('[AUTOCOMPLETE CAT] Buscando sugestões para:', termo);
                 const response = await fetch(`/api/itens/sugestoes?termo=${encodeURIComponent(termo)}`);
                 const data = await response.json();
-
-                console.log('[AUTOCOMPLETE CAT] Sugestões recebidas:', data.length);
 
                 if (data.length > 0) {
                     sugestoesLista.innerHTML = data.map(item =>
@@ -227,17 +218,8 @@
                         </button>`
                     ).join('');
                     sugestoesLista.style.display = 'block';
-                    console.log('[AUTOCOMPLETE CAT] Dropdown exibido');
-                    console.log('[AUTOCOMPLETE CAT] Display:', sugestoesLista.style.display);
-                    console.log('[AUTOCOMPLETE CAT] Top:', sugestoesLista.style.top);
-                    console.log('[AUTOCOMPLETE CAT] Left:', sugestoesLista.style.left);
-                    console.log('[AUTOCOMPLETE CAT] Width:', sugestoesLista.style.width);
-                    console.log('[AUTOCOMPLETE CAT] Height:', sugestoesLista.style.height);
-                    console.log('[AUTOCOMPLETE CAT] Position:', sugestoesLista.style.position);
-                    console.log('[AUTOCOMPLETE CAT] Z-index:', sugestoesLista.style.zIndex);
                 } else {
                     sugestoesLista.style.display = 'none';
-                    console.log('[AUTOCOMPLETE CAT] Nenhuma sugestão, ocultando dropdown');
                 }
             } catch (error) {
                 console.error('Erro ao buscar sugestões:', error);
@@ -246,7 +228,6 @@
     });
 
     function selecionarSugestao(descricao, unidade) {
-        console.log('[AUTOCOMPLETE CAT] Sugestão selecionada:', descricao);
         descricaoInput.value = descricao;
         unidadeSelect.value = unidade;
         sugestoesLista.style.display = 'none';
@@ -257,7 +238,6 @@
     document.addEventListener('click', (e) => {
         if (!descricaoInput.contains(e.target) && !sugestoesLista.contains(e.target)) {
             sugestoesLista.style.display = 'none';
-            console.log('[AUTOCOMPLETE CAT] Clique fora, ocultando dropdown');
         }
     });
 </script>

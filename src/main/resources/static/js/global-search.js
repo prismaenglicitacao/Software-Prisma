@@ -210,7 +210,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         searchResults.innerHTML = html;
-        console.log("Renderização concluída");
 
         // Armazenar referências para navegação por teclado
         const items = searchResults.querySelectorAll('.search-result-item');
