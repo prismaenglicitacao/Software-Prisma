@@ -678,3 +678,21 @@ h6 { font-size: 0.875rem; }
         max-width: 1320px;
     }
 }
+
+/* ============================================
+   PÁGINA NOVA ANÁLISE - LAYOUT OTIMIZADO
+   ============================================ */
+
+#itensRecentes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.5rem;
+}
+
+#itensRecentes .btn {
+    width: 100%;
+    text-align: left;
+    white-space: normal;
+    word-wrap: break-word;
+    min-height: 40px;
+}
