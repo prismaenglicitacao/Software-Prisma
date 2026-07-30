@@ -695,4 +695,11 @@ h6 { font-size: 0.875rem; }
     white-space: normal;
     word-wrap: break-word;
     min-height: 40px;
+    padding: 0.5rem 0.75rem;
+}
+
+#itensRecentes .btn .item-qtd-disponivel {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    opacity: 0.8;
 }

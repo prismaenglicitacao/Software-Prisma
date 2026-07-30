@@ -168,7 +168,22 @@
                         button.className = 'btn btn-sm btn-outline-primary';
                         button.dataset.descricao = item.descricao;
                         button.dataset.unidade = item.unidade;
-                        button.textContent = `${item.descricao} (${item.unidade})`;
+                        
+                        const descricaoText = document.createTextNode(item.descricao);
+                        button.appendChild(descricaoText);
+                        
+                        const unidadeSpan = document.createElement('span');
+                        unidadeSpan.className = 'text-body-secondary';
+                        unidadeSpan.textContent = ` (${item.unidade})`;
+                        button.appendChild(unidadeSpan);
+                        
+                        if (item.quantidadeDisponivel != null) {
+                            const qtdSpan = document.createElement('div');
+                            qtdSpan.className = 'text-body-secondary item-qtd-disponivel';
+                            qtdSpan.textContent = `Disponível: ${item.quantidadeDisponivel}`;
+                            button.appendChild(qtdSpan);
+                        }
+                        
                         button.addEventListener('click', () => {
                             selecionarItemRecente(button.dataset.descricao, button.dataset.unidade);
                         });
