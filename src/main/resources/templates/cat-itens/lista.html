@@ -92,6 +92,9 @@
                             th:text="${modoEdicao} ? 'Atualizar' : 'Adicionar'">
                         Adicionar
                     </button>
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalCadastroLote">
+                        Cadastro em lote
+                    </button>
                     <a th:if="${modoEdicao}" class="btn btn-outline-secondary" th:href="@{/cats/{id}/itens(id=${cat.id})}">
                         Cancelar edição
                     </a>
@@ -99,6 +102,51 @@
             </form>
         </div>
     </div>
+
+    <!-- Modal de Cadastro em Lote -->
+    <div class="modal fade" id="modalCadastroLote" tabindex="-1" aria-labelledby="modalCadastroLoteLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title me-auto" id="modalCadastroLoteLabel">Cadastro em Lote</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <form th:action="@{/cats/{catId}/itens/lote(catId=${cat.id})}" th:object="${loteForm}" method="post" novalidate>
+                        <div class="mb-3">
+                            <label for="itensTexto" class="form-label">Cole os itens abaixo</label>
+                            <textarea id="itensTexto" class="form-control" rows="10" th:field="*{itensTexto}"
+                                      placeholder="Poste de concreto DT 300/10 | UN | 12&#10;Braço galvanizado 3 metros | UN | 24&#10;Cabo PP 2x2,5 | M | 350"></textarea>
+                            <div class="text-danger small mt-1"
+                                 th:if="${#fields.hasErrors('itensTexto')}"
+                                 th:errors="*{itensTexto}"></div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading">Formato esperado:</h6>
+                            <p class="mb-0">Cada linha deve conter: <strong>Descrição | Unidade | Quantidade</strong></p>
+                            <p class="mb-0 small">Também é possível usar <strong>;</strong> como separador.</p>
+                            <hr>
+                            <p class="mb-0 small text-muted">Exemplo:</p>
+                            <code class="small">Poste de concreto DT 300/10 | UN | 12</code><br>
+                            <code class="small">Braço galvanizado 3 metros | UN | 24</code><br>
+                            <code class="small">Cabo PP 2x2,5 | M | 350</code>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">Cadastrar itens</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:if="${mostrarModalLote}">
+        const modalLote = new bootstrap.Modal(document.getElementById('modalCadastroLote'));
+        modalLote.show();
+    </script>
 
     <div class="card shadow-sm">
         <div class="card-header bg-white">

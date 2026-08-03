@@ -10,6 +10,8 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
@@ -38,6 +40,15 @@ public class CatItemService {
         Cat cat = catService.buscarPorId(catId);
         item.setCat(cat);
         return catItemRepository.save(item);
+    }
+
+    @Transactional
+    public List<CatItem> salvarEmLote(Long catId, List<CatItem> itens) {
+        Cat cat = catService.buscarPorId(catId);
+        for (CatItem item : itens) {
+            item.setCat(cat);
+        }
+        return catItemRepository.saveAll(itens);
     }
 
     @Transactional

@@ -1,8 +1,11 @@
 package br.com.softwareprisma.licitacao.controller;
 
 import br.com.softwareprisma.licitacao.controller.form.CatItemForm;
+import br.com.softwareprisma.licitacao.controller.form.CatItemLoteForm;
+import br.com.softwareprisma.licitacao.controller.form.CatItemLoteResultado;
 import br.com.softwareprisma.licitacao.domain.Cat;
 import br.com.softwareprisma.licitacao.domain.CatItem;
+import br.com.softwareprisma.licitacao.service.CatItemLoteParser;
 import br.com.softwareprisma.licitacao.service.CatItemService;
 import br.com.softwareprisma.licitacao.service.CatService;
 import jakarta.validation.Valid;
@@ -32,6 +35,7 @@ public class CatItemController {
 
     private final CatService catService;
     private final CatItemService catItemService;
+    private final CatItemLoteParser catItemLoteParser;
 
     @GetMapping
     public String listar(@PathVariable Long catId,
@@ -102,6 +106,39 @@ public class CatItemController {
         return "redirect:/cats/" + catId + "/itens";
     }
 
+    @PostMapping("/lote")
+    public String salvarLote(@PathVariable Long catId,
+                            @Valid @ModelAttribute("loteForm") CatItemLoteForm loteForm,
+                            BindingResult bindingResult,
+                            Model model,
+                            RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            carregarTela(catId, model, new CatItemForm(), false, null, 0, null);
+            model.addAttribute("loteForm", loteForm);
+            model.addAttribute("mostrarModalLote", true);
+            return "cat-itens/lista";
+        }
+
+        CatItemLoteResultado resultado = catItemLoteParser.parse(loteForm.getItensTexto());
+
+        if (!resultado.getItensValidos().isEmpty()) {
+            catItemService.salvarEmLote(catId, resultado.getItensValidos());
+        }
+
+        StringBuilder mensagem = new StringBuilder();
+        mensagem.append(resultado.getItensCadastrados()).append(" item(ns) cadastrado(s) com sucesso.");
+
+        if (resultado.getItensComErro() > 0) {
+            mensagem.append(" ").append(resultado.getItensComErro()).append(" item(ns) com erro:");
+            for (CatItemLoteResultado.ErroLinha erro : resultado.getErros()) {
+                mensagem.append(" Linha ").append(erro.getNumeroLinha()).append(": ").append(erro.getMotivo()).append(";");
+            }
+        }
+
+        redirectAttributes.addFlashAttribute("mensagemSucesso", mensagem.toString());
+        return "redirect:/cats/" + catId + "/itens";
+    }
+
     private void carregarTela(Long catId,
                               Model model,
                               CatItemForm itemForm,
@@ -125,6 +162,10 @@ public class CatItemController {
         model.addAttribute("acaoFormulario", modoEdicao
                 ? "/cats/" + catId + "/itens/" + itemIdEdicao
                 : "/cats/" + catId + "/itens");
+
+        if (!model.containsAttribute("loteForm")) {
+            model.addAttribute("loteForm", new CatItemLoteForm());
+        }
     }
 
     private void validarPertencimento(Long catId, CatItem item) {
