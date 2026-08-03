@@ -148,20 +148,8 @@ public class AnaliseService {
 
     @Transactional(readOnly = true)
     public Analise buscarDetalhadaPorId(Long id) {
-        System.out.println("=== AnaliseService.buscarDetalhadaPorId() INICIO ===");
-        System.out.println("Buscando Analise ID: " + id);
-        
-        Analise analise = analiseRepository.buscarDetalhadaPorId(id)
+        return analiseRepository.buscarDetalhadaPorId(id)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Analise nao encontrada"));
-        
-        System.out.println("Analise encontrada - Quantidade de itens: " + analise.getItens().size());
-        System.out.println("Itens:");
-        for (AnaliseItem i : analise.getItens()) {
-            System.out.println("  - ID: " + i.getId() + ", Descricao: " + i.getDescricao() + ", Unidade: " + i.getUnidade() + ", Qtd: " + i.getQuantidade());
-        }
-        System.out.println("=== AnaliseService.buscarDetalhadaPorId() FIM ===");
-        
-        return analise;
     }
 
     @Transactional
@@ -173,30 +161,13 @@ public class AnaliseService {
 
     @Transactional
     public AnaliseResultado prepararAnalise(Long id) {
-        System.out.println("=== AnaliseService.prepararAnalise() INICIO ===");
-        System.out.println("Analise ID: " + id);
-        
         Analise analise = buscarDetalhadaPorId(id);
-        
-        System.out.println("Analise object identityHashCode: " + System.identityHashCode(analise));
-        System.out.println("Após buscarDetalhadaPorId - Quantidade de itens: " + analise.getItens().size());
-        System.out.println("Itens:");
-        for (AnaliseItem i : analise.getItens()) {
-            System.out.println("  - ID: " + i.getId() + ", Descricao: " + i.getDescricao() + ", Unidade: " + i.getUnidade() + ", Qtd: " + i.getQuantidade());
-        }
         
         if (analise.getItens().isEmpty()) {
             throw new ResponseStatusException(BAD_REQUEST, "Adicione ao menos um item antes de analisar.");
         }
 
-        System.out.println("Chamando comparar(analise) com identityHashCode: " + System.identityHashCode(analise));
         AnaliseResultado resultado = comparar(analise);
-        
-        System.out.println("Após comparar - Quantidade de itens no resultado: " + resultado.itens().size());
-        System.out.println("Itens no resultado:");
-        for (AnaliseResultadoItem i : resultado.itens()) {
-            System.out.println("  - Descricao: " + i.descricao() + ", Unidade: " + i.unidade() + ", Exigido: " + i.exigido());
-        }
         
         analise.setResultado(resultado.resultado());
         analise.setCobertura(resultado.cobertura());
@@ -205,31 +176,22 @@ public class AnaliseService {
         // Salvar snapshot completo do resultado
         salvarResultadoPersistido(id, resultado);
         
-        System.out.println("=== AnaliseService.prepararAnalise() FIM ===");
-        
         return resultado;
     }
     
     @Transactional
     private void salvarResultadoPersistido(Long analiseId, AnaliseResultado resultado) {
-        System.out.println("=== salvarResultadoPersistido() INICIO ===");
-        System.out.println("Analise ID: " + analiseId);
-        
         // Verificar se já existe snapshot
         java.util.Optional<br.com.softwareprisma.licitacao.domain.AnaliseResultadoPersistido> existente = 
             resultadoPersistidoRepository.findByAnaliseId(analiseId);
         
-        System.out.println("Snapshot existente: " + existente.isPresent());
-        
         br.com.softwareprisma.licitacao.domain.AnaliseResultadoPersistido persistido;
         
         if (existente.isPresent()) {
-            System.out.println("Atualizando snapshot existente com ID: " + existente.get().getId());
             persistido = existente.get();
             // Limpar itens antigos (orphanRemoval vai deletar do banco)
             persistido.getItens().clear();
         } else {
-            System.out.println("Criando novo snapshot");
             persistido = new br.com.softwareprisma.licitacao.domain.AnaliseResultadoPersistido();
             persistido.setAnaliseId(analiseId);
         }
@@ -272,9 +234,7 @@ public class AnaliseService {
             persistido.getItens().add(itemPersistido);
         }
         
-        System.out.println("Salvando snapshot (UPDATE se existente, INSERT se novo)");
         resultadoPersistidoRepository.save(persistido);
-        System.out.println("=== salvarResultadoPersistido() FIM ===");
     }
 
     @Transactional(readOnly = true)
@@ -284,21 +244,10 @@ public class AnaliseService {
     }
 
     private AnaliseResultado comparar(Analise analise) {
-        System.out.println("=== AnaliseService.comparar() INICIO ===");
-        System.out.println("Analise ID: " + analise.getId());
-        System.out.println("Analise object identityHashCode: " + System.identityHashCode(analise));
-        System.out.println("Quantidade de itens recebida: " + analise.getItens().size());
-        System.out.println("Itens recebidos:");
-        for (AnaliseItem i : analise.getItens()) {
-            System.out.println("  - ID: " + i.getId() + ", Descricao: " + i.getDescricao() + ", Unidade: " + i.getUnidade() + ", Qtd: " + i.getQuantidade());
-        }
-
         BigDecimal totalExigido = analise.getItens()
                 .stream()
                 .map(AnaliseItem::getQuantidade)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        
-        System.out.println("Total exigido: " + totalExigido);
 
         List<EngenheiroInfo> engenheiros = agruparEngenheirosPorArea(analise.getArea());
 
@@ -316,18 +265,13 @@ public class AnaliseService {
                 analise.getItens());
 
         if (buscaCompleta.isPresent()) {
-            System.out.println("=== AnaliseService.comparar() FIM (busca completa) ===");
             return buscaCompleta.get();
         }
 
-        System.out.println("Busca completa não encontrada, buscando melhor combinação inválida");
-        AnaliseResultado resultado = buscarMelhorCombinacaoInvalida(
+        return buscarMelhorCombinacaoInvalida(
                 engenheiros,
                 totalExigido,
                 analise.getItens());
-        
-        System.out.println("=== AnaliseService.comparar() FIM (busca inválida) ===");
-        return resultado;
     }
 
     private List<RequisicaoAnalise> criarRequisicoes(List<AnaliseItem> itens) {
@@ -601,9 +545,19 @@ public class AnaliseService {
             List<AnaliseItem> itensAnalise,
             List<CatItem> itensCat) {
 
+        // Agrupar itens equivalentes da análise por chave normalizada
+        Map<String, AnaliseItemAgrupado> itensAgrupados = new java.util.LinkedHashMap<>();
+        
+        for (AnaliseItem item : itensAnalise) {
+            String chave = descricaoMatcher.gerarChave(item.getDescricao(), item.getUnidade());
+            AnaliseItemAgrupado agrupado = itensAgrupados.computeIfAbsent(chave, k -> 
+                new AnaliseItemAgrupado(item.getDescricao(), item.getUnidade(), BigDecimal.ZERO));
+            agrupado.quantidade = agrupado.quantidade.add(item.getQuantidade());
+        }
+
         List<AnaliseResultadoItem> resultado = new ArrayList<>();
 
-        for (AnaliseItem requisito : itensAnalise) {
+        for (AnaliseItemAgrupado requisito : itensAgrupados.values()) {
 
             BigDecimal encontrado = BigDecimal.ZERO;
             List<String> origens = new ArrayList<>();
@@ -611,8 +565,8 @@ public class AnaliseService {
             for (CatItem item : itensCat) {
 
                 if (!descricaoMatcher.corresponde(
-                        requisito.getDescricao(),
-                        requisito.getUnidade(),
+                        requisito.descricao,
+                        requisito.unidade,
                         item.getDescricao(),
                         item.getUnidade())) {
                     continue;
@@ -636,17 +590,29 @@ public class AnaliseService {
 
             resultado.add(
                     new AnaliseResultadoItem(
-                            requisito.getDescricao(),
-                            requisito.getUnidade(),
-                            requisito.getQuantidade(),
+                            requisito.descricao,
+                            requisito.unidade,
+                            requisito.quantidade,
                             encontrado,
-                            encontrado.compareTo(requisito.getQuantidade()) >= 0,
+                            encontrado.compareTo(requisito.quantidade) >= 0,
                             origens));
 
         }
 
         return resultado;
 
+    }
+
+    private static class AnaliseItemAgrupado {
+        String descricao;
+        String unidade;
+        BigDecimal quantidade;
+
+        AnaliseItemAgrupado(String descricao, String unidade, BigDecimal quantidade) {
+            this.descricao = descricao;
+            this.unidade = unidade;
+            this.quantidade = quantidade;
+        }
     }
 
     private BigDecimal calcularCobertura(
