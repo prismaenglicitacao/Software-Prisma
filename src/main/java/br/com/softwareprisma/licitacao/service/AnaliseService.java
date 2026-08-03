@@ -545,19 +545,9 @@ public class AnaliseService {
             List<AnaliseItem> itensAnalise,
             List<CatItem> itensCat) {
 
-        // Agrupar itens equivalentes da análise por chave normalizada
-        Map<String, AnaliseItemAgrupado> itensAgrupados = new java.util.LinkedHashMap<>();
-        
-        for (AnaliseItem item : itensAnalise) {
-            String chave = descricaoMatcher.gerarChave(item.getDescricao(), item.getUnidade());
-            AnaliseItemAgrupado agrupado = itensAgrupados.computeIfAbsent(chave, k -> 
-                new AnaliseItemAgrupado(item.getDescricao(), item.getUnidade(), BigDecimal.ZERO));
-            agrupado.quantidade = agrupado.quantidade.add(item.getQuantidade());
-        }
-
         List<AnaliseResultadoItem> resultado = new ArrayList<>();
 
-        for (AnaliseItemAgrupado requisito : itensAgrupados.values()) {
+        for (AnaliseItem requisito : itensAnalise) {
 
             BigDecimal encontrado = BigDecimal.ZERO;
             List<String> origens = new ArrayList<>();
@@ -565,8 +555,8 @@ public class AnaliseService {
             for (CatItem item : itensCat) {
 
                 if (!descricaoMatcher.corresponde(
-                        requisito.descricao,
-                        requisito.unidade,
+                        requisito.getDescricao(),
+                        requisito.getUnidade(),
                         item.getDescricao(),
                         item.getUnidade())) {
                     continue;
@@ -590,29 +580,17 @@ public class AnaliseService {
 
             resultado.add(
                     new AnaliseResultadoItem(
-                            requisito.descricao,
-                            requisito.unidade,
-                            requisito.quantidade,
+                            requisito.getDescricao(),
+                            requisito.getUnidade(),
+                            requisito.getQuantidade(),
                             encontrado,
-                            encontrado.compareTo(requisito.quantidade) >= 0,
+                            encontrado.compareTo(requisito.getQuantidade()) >= 0,
                             origens));
 
         }
 
         return resultado;
 
-    }
-
-    private static class AnaliseItemAgrupado {
-        String descricao;
-        String unidade;
-        BigDecimal quantidade;
-
-        AnaliseItemAgrupado(String descricao, String unidade, BigDecimal quantidade) {
-            this.descricao = descricao;
-            this.unidade = unidade;
-            this.quantidade = quantidade;
-        }
     }
 
     private BigDecimal calcularCobertura(
