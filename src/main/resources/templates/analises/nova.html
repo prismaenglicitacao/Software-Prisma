@@ -50,7 +50,7 @@
                                             <input id="novaItemDescricao" type="text" class="form-control"
                                                 placeholder="Ex.: Luminária LED 90-120W" autocomplete="off">
                                             <div id="sugestoesLista"
-                                                class="list-group position-absolute w-100 shadow-sm mt-1"
+                                                class="list-group shadow-sm mt-1"
                                                 style="display: none; max-height: 300px; overflow-y: auto;">
                                             </div>
                                         </div>
@@ -204,6 +204,17 @@
             document.getElementById('novaItemQuantidade').focus();
         }
 
+        // Função para posicionar o dropdown
+        function posicionarDropdown() {
+            if (sugestoesLista.style.display === 'none') return;
+            
+            const inputRect = descricaoInput.getBoundingClientRect();
+            sugestoesLista.style.position = 'fixed';
+            sugestoesLista.style.top = (inputRect.bottom + window.scrollY) + 'px';
+            sugestoesLista.style.left = inputRect.left + 'px';
+            sugestoesLista.style.width = inputRect.width + 'px';
+        }
+
         // Autocomplete
         descricaoInput.addEventListener('input', (e) => {
             const termo = e.target.value.trim();
@@ -255,6 +266,7 @@
                             });
                             sugestoesLista.appendChild(button);
                         });
+                        posicionarDropdown();
                         sugestoesLista.style.display = 'block';
                     } else {
                         sugestoesLista.style.display = 'none';
@@ -278,6 +290,10 @@
                 sugestoesLista.style.display = 'none';
             }
         });
+
+        // Reposicionar dropdown ao scrollar ou redimensionar
+        window.addEventListener('scroll', posicionarDropdown);
+        window.addEventListener('resize', posicionarDropdown);
 
         areaSelect.addEventListener('change', () => {
             sugestoesLista.style.display = 'none';

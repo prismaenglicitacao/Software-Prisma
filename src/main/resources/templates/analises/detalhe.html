@@ -34,11 +34,11 @@
 
             <form th:action="@{${acaoFormulario}}" th:object="${itemForm}" method="post" novalidate>
                 <div class="row g-3 align-items-end">
-                    <div class="col-lg-6 position-relative">
+                    <div class="col-lg-6">
                         <label for="descricao" class="form-label">Descrição</label>
                         <input id="descricao" type="text" class="form-control"
                                th:field="*{descricao}" placeholder="Ex.: Luminária LED 90-120W" autocomplete="off">
-                        <div id="sugestoesLista" class="list-group position-absolute w-100 shadow-sm mt-1" style="display: none; max-height: 300px; overflow-y: auto; z-index: 1050;"></div>
+                        <div id="sugestoesLista" class="list-group shadow-sm mt-1" style="display: none; max-height: 300px; overflow-y: auto;"></div>
                         <div class="text-danger small mt-1"
                              th:if="${#fields.hasErrors('descricao')}"
                              th:errors="*{descricao}"></div>
@@ -206,6 +206,17 @@
         document.getElementById('quantidade').focus();
     }
 
+    // Função para posicionar o dropdown
+    function posicionarDropdown() {
+        if (sugestoesLista.style.display === 'none') return;
+        
+        const inputRect = descricaoInput.getBoundingClientRect();
+        sugestoesLista.style.position = 'fixed';
+        sugestoesLista.style.top = (inputRect.bottom + window.scrollY) + 'px';
+        sugestoesLista.style.left = inputRect.left + 'px';
+        sugestoesLista.style.width = inputRect.width + 'px';
+    }
+
     // Autocomplete
     descricaoInput.addEventListener('input', (e) => {
         const termo = e.target.value.trim();
@@ -227,13 +238,7 @@
                     data.forEach(item => {
                         const button = document.createElement('button');
                         button.type = 'button';
-                        button.className = 'list-group-item';
-                        button.style.cursor = 'pointer';
-                        button.style.background = 'transparent';
-                        button.style.border = 'none';
-                        button.style.padding = '0.5rem 0.75rem';
-                        button.style.textAlign = 'left';
-                        button.style.width = '100%';
+                        button.className = 'list-group-item list-group-item-action';
                         button.dataset.descricao = item.descricao;
                         button.dataset.unidade = item.unidade;
 
@@ -257,6 +262,8 @@
                         });
                         sugestoesLista.appendChild(button);
                     });
+                    
+                    posicionarDropdown();
                     sugestoesLista.style.display = 'block';
                 } else {
                     sugestoesLista.style.display = 'none';
@@ -280,6 +287,10 @@
             sugestoesLista.style.display = 'none';
         }
     });
+
+    // Reposicionar dropdown ao scrollar ou redimensionar
+    window.addEventListener('scroll', posicionarDropdown);
+    window.addEventListener('resize', posicionarDropdown);
 
     carregarItensRecentes();
 </script>
