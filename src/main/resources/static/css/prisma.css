@@ -703,3 +703,26 @@ h6 { font-size: 0.875rem; }
     margin-top: 0.25rem;
     opacity: 0.8;
 }
+
+/* ============================================
+   AUTOCOMPLETE - SEM EFEITOS DE HOVER
+   ============================================ */
+
+#sugestoesLista button {
+    background: transparent !important;
+    border: none !important;
+    cursor: pointer;
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    width: 100%;
+}
+
+#sugestoesLista button:hover,
+#sugestoesLista button:focus,
+#sugestoesLista button:active {
+    background: transparent !important;
+    color: inherit !important;
+    box-shadow: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+}

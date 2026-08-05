@@ -38,7 +38,7 @@
                         <label for="descricao" class="form-label">Descrição</label>
                         <input id="descricao" type="text" class="form-control"
                                th:field="*{descricao}" placeholder="Ex.: Luminária LED 90-120W" autocomplete="off">
-                        <div id="sugestoesLista" class="list-group position-absolute w-100 shadow-sm mt-1" style="display: none; max-height: 300px; overflow-y: auto;"></div>
+                        <div id="sugestoesLista" class="list-group position-absolute w-100 shadow-sm mt-1" style="display: none; max-height: 300px; overflow-y: auto; z-index: 1050;"></div>
                         <div class="text-danger small mt-1"
                              th:if="${#fields.hasErrors('descricao')}"
                              th:errors="*{descricao}"></div>
@@ -227,7 +227,13 @@
                     data.forEach(item => {
                         const button = document.createElement('button');
                         button.type = 'button';
-                        button.className = 'list-group-item list-group-item-action';
+                        button.className = 'list-group-item';
+                        button.style.cursor = 'pointer';
+                        button.style.background = 'transparent';
+                        button.style.border = 'none';
+                        button.style.padding = '0.5rem 0.75rem';
+                        button.style.textAlign = 'left';
+                        button.style.width = '100%';
                         button.dataset.descricao = item.descricao;
                         button.dataset.unidade = item.unidade;
 
