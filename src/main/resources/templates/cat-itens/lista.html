@@ -241,6 +241,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const descricaoSelect = new TomSelect('#descricao', {
             create: false,
+            maxItems: 1,
             valueField: 'descricao',
             labelField: 'descricao',
             searchField: 'descricao',
@@ -280,6 +281,16 @@
                 const selectedOption = this.options[value];
                 if (selectedOption && selectedOption.unidade) {
                     document.getElementById('unidade').value = selectedOption.unidade;
+                }
+            },
+            onDropdownOpen: function() {
+                const dropdown = this.dropdown_content;
+                const resultsCount = this.options.length;
+                if (resultsCount > 0) {
+                    const countDiv = document.createElement('div');
+                    countDiv.className = 'px-3 py-2 text-body-secondary small border-bottom';
+                    countDiv.textContent = `${resultsCount} item(s) encontrado(s)`;
+                    dropdown.insertBefore(countDiv, dropdown.firstChild);
                 }
             }
         });

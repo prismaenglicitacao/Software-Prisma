@@ -133,6 +133,7 @@
         const descricaoInput = document.getElementById('novaItemDescricao');
         const itensRecentesSection = document.getElementById('itensRecentesSection');
         const itensRecentes = document.getElementById('itensRecentes');
+        let descricaoSelect;
 
         function montarUrlItens(path, termo) {
             const params = new URLSearchParams();
@@ -204,8 +205,9 @@
 
         // Inicializar Tom Select para autocomplete
         document.addEventListener('DOMContentLoaded', function() {
-            const descricaoSelect = new TomSelect('#novaItemDescricao', {
+            descricaoSelect = new TomSelect('#novaItemDescricao', {
                 create: false,
+                maxItems: 1,
                 valueField: 'descricao',
                 labelField: 'descricao',
                 searchField: 'descricao',
@@ -262,8 +264,26 @@
                     if (selectedOption && selectedOption.unidade) {
                         document.getElementById('novaItemUnidade').value = selectedOption.unidade;
                     }
+                },
+                onDropdownOpen: function() {
+                    const dropdown = this.dropdown_content;
+                    const resultsCount = this.options.length;
+                    if (resultsCount > 0) {
+                        const countDiv = document.createElement('div');
+                        countDiv.className = 'px-3 py-2 text-body-secondary small border-bottom';
+                        countDiv.textContent = `${resultsCount} item(s) encontrado(s)`;
+                        dropdown.insertBefore(countDiv, dropdown.firstChild);
+                    }
                 }
             });
+        });
+
+        // Event listener Enter no campo quantidade
+        document.getElementById('novaItemQuantidade').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('botaoAdicionarItem').click();
+            }
         });
 
         function atualizarItens() {
@@ -323,8 +343,10 @@
             const quantidadeRaw = document.getElementById('novaItemQuantidade').value.trim();
             const unidade = document.getElementById('novaItemUnidade').value.trim();
 
-            if (!descricao) {
-                novoItemErro.textContent = 'Informe a descrição do item.';
+            // Validar se item foi selecionado do Tom Select (deve existir nas opções)
+            const selectedValue = descricaoSelect.getValue();
+            if (!selectedValue || !descricaoSelect.options[selectedValue]) {
+                novoItemErro.textContent = 'Selecione um item da lista de sugestões.';
                 return;
             }
 
@@ -351,7 +373,8 @@
                 unidade
             });
 
-            descricaoInput.value = '';
+            descricaoSelect.clear();
+            descricaoSelect.focus();
             document.getElementById('novaItemQuantidade').value = '';
             document.getElementById('novaItemUnidade').value = '';
             atualizarItens();
