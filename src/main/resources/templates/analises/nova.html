@@ -49,10 +49,6 @@
                                             <label for="novaItemDescricao" class="form-label">Descrição</label>
                                             <input id="novaItemDescricao" type="text" class="form-control"
                                                 placeholder="Ex.: Luminária LED 90-120W" autocomplete="off">
-                                            <div id="sugestoesLista"
-                                                class="list-group shadow-sm mt-1"
-                                                style="display: none; max-height: 300px; overflow-y: auto;">
-                                            </div>
                                         </div>
 
                                         <div class="col-lg-2">
@@ -135,10 +131,8 @@
         const analisarBtn = document.getElementById('analisarBtn');
         const areaSelect = document.getElementById('area');
         const descricaoInput = document.getElementById('novaItemDescricao');
-        const sugestoesLista = document.getElementById('sugestoesLista');
         const itensRecentesSection = document.getElementById('itensRecentesSection');
         const itensRecentes = document.getElementById('itensRecentes');
-        let debounceTimer;
 
         function montarUrlItens(path, termo) {
             const params = new URLSearchParams();
@@ -204,100 +198,72 @@
             document.getElementById('novaItemQuantidade').focus();
         }
 
-        // Função para posicionar o dropdown
-        function posicionarDropdown() {
-            if (sugestoesLista.style.display === 'none') return;
-            
-            const inputRect = descricaoInput.getBoundingClientRect();
-            sugestoesLista.style.position = 'fixed';
-            sugestoesLista.style.top = (inputRect.bottom + window.scrollY) + 'px';
-            sugestoesLista.style.left = inputRect.left + 'px';
-            sugestoesLista.style.width = inputRect.width + 'px';
-        }
-
-        // Autocomplete
-        descricaoInput.addEventListener('input', (e) => {
-            const termo = e.target.value.trim();
-
-            clearTimeout(debounceTimer);
-
-            if (termo.length < 2) {
-                sugestoesLista.style.display = 'none';
-                return;
-            }
-
-            debounceTimer = setTimeout(async () => {
-                try {
-                    const response = await fetch(montarUrlItens('/api/itens/sugestoes', termo));
-                    const data = await response.json();
-
-                    // Filtrar itens já adicionados à análise
-                    const itensJaAdicionados = new Set(
-                        itens.map(item => `${item.descricao}|${item.unidade}`)
-                    );
-                    const dataFiltrada = data.filter(item => 
-                        !itensJaAdicionados.has(`${item.descricao}|${item.unidade}`)
-                    );
-
-                    if (dataFiltrada.length > 0) {
-                        sugestoesLista.innerHTML = '';
-                        dataFiltrada.forEach(item => {
-                            const button = document.createElement('button');
-                            button.type = 'button';
-                            button.className = 'list-group-item list-group-item-action';
-                            button.dataset.descricao = item.descricao;
-                            button.dataset.unidade = item.unidade;
-                            button.append(document.createTextNode(`${item.descricao} `));
-
-                            const unidadeSpan = document.createElement('span');
-                            unidadeSpan.className = 'text-body-secondary';
-                            unidadeSpan.textContent = item.unidade;
-                            button.appendChild(unidadeSpan);
-
-                            if (item.quantidadeDisponivel != null) {
-                                const qtdSpan = document.createElement('span');
-                                qtdSpan.className = 'text-body-secondary ms-2';
-                                qtdSpan.textContent = 'Qtd: ' + item.quantidadeDisponivel;
-                                button.appendChild(qtdSpan);
-                            }
-
-                            button.addEventListener('click', () => {
-                                selecionarSugestao(button.dataset.descricao, button.dataset.unidade);
-                            });
-                            sugestoesLista.appendChild(button);
-                        });
-                        posicionarDropdown();
-                        sugestoesLista.style.display = 'block';
-                    } else {
-                        sugestoesLista.style.display = 'none';
-                    }
-                } catch (error) {
-                    console.error('Erro ao buscar sugestões:', error);
-                }
-            }, 300);
-        });
-
-        function selecionarSugestao(descricao, unidade) {
-            descricaoInput.value = descricao;
-            document.getElementById('novaItemUnidade').value = unidade;
-            sugestoesLista.style.display = 'none';
-            document.getElementById('novaItemQuantidade').focus();
-        }
-
-        // Fechar sugestões ao clicar fora
-        document.addEventListener('click', (e) => {
-            if (!descricaoInput.contains(e.target) && !sugestoesLista.contains(e.target)) {
-                sugestoesLista.style.display = 'none';
-            }
-        });
-
-        // Reposicionar dropdown ao scrollar ou redimensionar
-        window.addEventListener('scroll', posicionarDropdown);
-        window.addEventListener('resize', posicionarDropdown);
-
         areaSelect.addEventListener('change', () => {
-            sugestoesLista.style.display = 'none';
             carregarItensRecentes();
+        });
+
+        // Inicializar Tom Select para autocomplete
+        document.addEventListener('DOMContentLoaded', function() {
+            const descricaoSelect = new TomSelect('#novaItemDescricao', {
+                create: false,
+                valueField: 'descricao',
+                labelField: 'descricao',
+                searchField: 'descricao',
+                load: async function(query, callback) {
+                    if (query.length < 2) {
+                        callback();
+                        return;
+                    }
+
+                    const params = new URLSearchParams();
+                    params.set('termo', query);
+                    const area = areaSelect.value.trim();
+                    if (area) {
+                        params.set('area', area);
+                    }
+
+                    try {
+                        const response = await fetch('/api/itens/sugestoes?' + params.toString());
+                        const data = await response.json();
+
+                        // Filtrar itens já adicionados à análise
+                        const itensJaAdicionados = new Set(
+                            itens.map(item => `${item.descricao}|${item.unidade}`)
+                        );
+                        const dataFiltrada = data.filter(item => 
+                            !itensJaAdicionados.has(`${item.descricao}|${item.unidade}`)
+                        );
+
+                        callback(dataFiltrada);
+                    } catch (error) {
+                        console.error('Erro ao buscar sugestões:', error);
+                        callback();
+                    }
+                },
+                render: {
+                    option: function(item, escape) {
+                        let html = '<div class="py-2">';
+                        html += '<div class="fw-semibold">' + escape(item.descricao) + '</div>';
+                        html += '<div class="text-body-secondary small">';
+                        html += escape(item.unidade);
+                        if (item.quantidadeDisponivel != null) {
+                            html += ' • Qtd: ' + escape(item.quantidadeDisponivel);
+                        }
+                        html += '</div>';
+                        html += '</div>';
+                        return html;
+                    },
+                    item: function(item, escape) {
+                        return '<div>' + escape(item.descricao) + '</div>';
+                    }
+                },
+                onChange: function(value) {
+                    const selectedOption = this.options[value];
+                    if (selectedOption && selectedOption.unidade) {
+                        document.getElementById('novaItemUnidade').value = selectedOption.unidade;
+                    }
+                }
+            });
         });
 
         function atualizarItens() {
