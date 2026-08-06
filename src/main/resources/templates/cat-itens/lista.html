@@ -236,8 +236,8 @@
 </main>
 
 <script th:replace="~{fragments/layout :: scripts}"></script>
-<script>
-    // Inicializar Tom Select para autocomplete
+<script th:if="${!modoEdicao}">
+    // Inicializar Tom Select para autocomplete apenas no modo de cadastro
     document.addEventListener('DOMContentLoaded', function() {
         const descricaoSelect = new TomSelect('#descricao', {
             create: false,

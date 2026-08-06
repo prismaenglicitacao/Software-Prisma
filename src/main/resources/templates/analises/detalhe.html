@@ -151,7 +151,7 @@
 <script th:inline="javascript">
     const areaAnalise = /*[[${analise.area}]]*/ null;
 </script>
-<script>
+<script th:if="${!modoEdicao}">
     const descricaoInput = document.getElementById('descricao');
     const itensRecentesSection = document.getElementById('itensRecentesSection');
     const itensRecentes = document.getElementById('itensRecentes');
