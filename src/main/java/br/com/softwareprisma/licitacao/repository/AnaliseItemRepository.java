@@ -18,11 +18,12 @@ public interface AnaliseItemRepository extends JpaRepository<AnaliseItem, Long> 
     Optional<AnaliseItem> buscarDetalhadoPorId(Long id);
 
     @Query("""
-            select i.descricao, i.unidade, sum(i.quantidade)
-            from AnaliseItem i
-            join i.analise a
+            select ai.descricao, ai.unidade, coalesce(sum(ci.quantidade), 0)
+            from AnaliseItem ai
+            join ai.analise a
+            left join CatItem ci on ai.descricao = ci.descricao and ai.unidade = ci.unidade
             where (:area is null or a.area = :area)
-            group by i.descricao, i.unidade
+            group by ai.descricao, ai.unidade
             order by max(a.dataCriacao) desc
             """)
     List<Object[]> buscarDescricoesRecentesUtilizadas(br.com.softwareprisma.licitacao.domain.enums.Area area);

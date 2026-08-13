@@ -200,7 +200,14 @@
         }
 
         function selecionarItemRecente(descricao, unidade) {
-            descricaoInput.value = descricao;
+            // Adicionar a opção ao Tom Select se ainda não existir
+            if (!descricaoSelect.options[descricao]) {
+                descricaoSelect.addOption({
+                    descricao: descricao,
+                    unidade: unidade
+                });
+            }
+            descricaoSelect.setValue(descricao);
             document.getElementById('novaItemUnidade').value = unidade;
             document.getElementById('novaItemQuantidade').focus();
         }
