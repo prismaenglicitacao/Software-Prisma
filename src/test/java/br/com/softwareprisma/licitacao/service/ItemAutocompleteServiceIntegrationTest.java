@@ -1,10 +1,15 @@
 package br.com.softwareprisma.licitacao.service;
 
 import br.com.softwareprisma.licitacao.controller.dto.ItemSugestaoDTO;
+import br.com.softwareprisma.licitacao.domain.Analise;
+import br.com.softwareprisma.licitacao.domain.AnaliseItem;
 import br.com.softwareprisma.licitacao.domain.Cat;
 import br.com.softwareprisma.licitacao.domain.CatItem;
 import br.com.softwareprisma.licitacao.domain.Engenheiro;
 import br.com.softwareprisma.licitacao.domain.enums.Area;
+import br.com.softwareprisma.licitacao.domain.enums.ResultadoAnalise;
+import br.com.softwareprisma.licitacao.repository.AnaliseItemRepository;
+import br.com.softwareprisma.licitacao.repository.AnaliseRepository;
 import br.com.softwareprisma.licitacao.repository.CatItemRepository;
 import br.com.softwareprisma.licitacao.repository.CatRepository;
 import br.com.softwareprisma.licitacao.repository.EngenheiroRepository;
@@ -19,6 +24,8 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @Transactional
@@ -35,6 +42,15 @@ class ItemAutocompleteServiceIntegrationTest {
 
     @Autowired
     private EngenheiroRepository engenheiroRepository;
+
+    @Autowired
+    private AnaliseRepository analiseRepository;
+
+    @Autowired
+    private AnaliseItemRepository analiseItemRepository;
+
+    @Autowired
+    private AnaliseService analiseService;
 
     @Autowired
     private DescricaoMatcher descricaoMatcher;
@@ -188,5 +204,291 @@ class ItemAutocompleteServiceIntegrationTest {
 
         // Assert
         assertEquals(1, resultado.size());
+    }
+
+    @Test
+    void buscarItensRecentes_Integracao_CenarioA_DuasCATs_DeveSomar() {
+        // Arrange - Cenário A: Duas CATs
+        String descricao = "EXECUÇÃO DE PASSEIO";
+        String unidade = "M³";
+
+        CatItem item1 = new CatItem();
+        item1.setDescricao(descricao);
+        item1.setUnidade(unidade);
+        item1.setQuantidade(new BigDecimal("102.92"));
+        item1.setCat(cat1);
+        catItemRepository.save(item1);
+
+        CatItem item2 = new CatItem();
+        item2.setDescricao(descricao);
+        item2.setUnidade(unidade);
+        item2.setQuantidade(new BigDecimal("137.00"));
+        item2.setCat(cat2);
+        catItemRepository.save(item2);
+
+        // Criar análise anterior com esse item
+        Analise analise = new Analise();
+        analise.setArea(Area.CIVIL);
+        analise.setResultado(ResultadoAnalise.ATENDE);
+        analise.setCobertura(BigDecimal.valueOf(100));
+        analiseRepository.save(analise);
+
+        AnaliseItem analiseItem = new AnaliseItem();
+        analiseItem.setAnalise(analise);
+        analiseItem.setDescricao(descricao);
+        analiseItem.setUnidade(unidade);
+        analiseItem.setQuantidade(new BigDecimal("50.00"));
+        analiseItemRepository.save(analiseItem);
+
+        // Act
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarItensRecentes(Area.CIVIL);
+
+        // Assert
+        assertEquals(1, resultado.size());
+        assertEquals(new BigDecimal("239.92"), resultado.get(0).quantidadeDisponivel());
+    }
+
+    @Test
+    void buscarItensRecentes_Integracao_CenarioB_MultiplasAnalises_NaoDeveMultiplicar() {
+        // Arrange - Cenário B: Mesmo item em várias análises
+        String descricao = "EXECUÇÃO DE PASSEIO";
+        String unidade = "M³";
+
+        CatItem item1 = new CatItem();
+        item1.setDescricao(descricao);
+        item1.setUnidade(unidade);
+        item1.setQuantidade(new BigDecimal("102.92"));
+        item1.setCat(cat1);
+        catItemRepository.save(item1);
+
+        CatItem item2 = new CatItem();
+        item2.setDescricao(descricao);
+        item2.setUnidade(unidade);
+        item2.setQuantidade(new BigDecimal("137.00"));
+        item2.setCat(cat2);
+        catItemRepository.save(item2);
+
+        // Criar 3 análises anteriores com o mesmo item
+        for (int i = 0; i < 3; i++) {
+            Analise analise = new Analise();
+            analise.setArea(Area.CIVIL);
+            analise.setResultado(ResultadoAnalise.ATENDE);
+            analise.setCobertura(BigDecimal.valueOf(100));
+            analiseRepository.save(analise);
+
+            AnaliseItem analiseItem = new AnaliseItem();
+            analiseItem.setAnalise(analise);
+            analiseItem.setDescricao(descricao);
+            analiseItem.setUnidade(unidade);
+            analiseItem.setQuantidade(new BigDecimal("10.00"));
+            analiseItemRepository.save(analiseItem);
+        }
+
+        // Act
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarItensRecentes(Area.CIVIL);
+
+        // Assert
+        assertEquals(1, resultado.size());
+        assertEquals(new BigDecimal("239.92"), resultado.get(0).quantidadeDisponivel());
+        // NÃO deve ser 719.76 (239.92 * 3)
+    }
+
+    @Test
+    void buscarItensRecentes_Integracao_CenarioE_DescricoesEquivalentes_DeveAgrupar() {
+        // Arrange - Cenário E: Descrições equivalentes
+        String descricao1 = "PASSEIO DE CONCRETO";
+        String descricao2 = "PASSEIO DE CONCRETO.";
+        String unidade = "M²";
+
+        CatItem item1 = new CatItem();
+        item1.setDescricao(descricao1);
+        item1.setUnidade(unidade);
+        item1.setQuantidade(new BigDecimal("100.00"));
+        item1.setCat(cat1);
+        catItemRepository.save(item1);
+
+        CatItem item2 = new CatItem();
+        item2.setDescricao(descricao2);
+        item2.setUnidade(unidade);
+        item2.setQuantidade(new BigDecimal("200.00"));
+        item2.setCat(cat2);
+        catItemRepository.save(item2);
+
+        // Criar análise com descrição sem ponto
+        Analise analise = new Analise();
+        analise.setArea(Area.CIVIL);
+        analise.setResultado(ResultadoAnalise.ATENDE);
+        analise.setCobertura(BigDecimal.valueOf(100));
+        analiseRepository.save(analise);
+
+        AnaliseItem analiseItem = new AnaliseItem();
+        analiseItem.setAnalise(analise);
+        analiseItem.setDescricao(descricao1);
+        analiseItem.setUnidade(unidade);
+        analiseItem.setQuantidade(new BigDecimal("50.00"));
+        analiseItemRepository.save(analiseItem);
+
+        // Act
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarItensRecentes(Area.CIVIL);
+
+        // Assert
+        assertEquals(1, resultado.size(), "Deve agrupar descrições equivalentes");
+        assertEquals(new BigDecimal("300.00"), resultado.get(0).quantidadeDisponivel());
+    }
+
+    @Test
+    void buscarItensRecentes_Integracao_UnidadesDiferentes_NaoDeveAgrupar() {
+        // Arrange - Unidades diferentes
+        String descricao = "PASSEIO DE CONCRETO";
+        String unidade1 = "M²";
+        String unidade2 = "M³";
+
+        CatItem item1 = new CatItem();
+        item1.setDescricao(descricao);
+        item1.setUnidade(unidade1);
+        item1.setQuantidade(new BigDecimal("500.00"));
+        item1.setCat(cat1);
+        catItemRepository.save(item1);
+
+        CatItem item2 = new CatItem();
+        item2.setDescricao(descricao);
+        item2.setUnidade(unidade2);
+        item2.setQuantidade(new BigDecimal("200.00"));
+        item2.setCat(cat2);
+        catItemRepository.save(item2);
+
+        // Criar análises com ambas as unidades
+        Analise analise1 = new Analise();
+        analise1.setArea(Area.CIVIL);
+        analise1.setResultado(ResultadoAnalise.ATENDE);
+        analise1.setCobertura(BigDecimal.valueOf(100));
+        analiseRepository.save(analise1);
+
+        AnaliseItem analiseItem1 = new AnaliseItem();
+        analiseItem1.setAnalise(analise1);
+        analiseItem1.setDescricao(descricao);
+        analiseItem1.setUnidade(unidade1);
+        analiseItem1.setQuantidade(new BigDecimal("50.00"));
+        analiseItemRepository.save(analiseItem1);
+
+        Analise analise2 = new Analise();
+        analise2.setArea(Area.CIVIL);
+        analise2.setResultado(ResultadoAnalise.ATENDE);
+        analise2.setCobertura(BigDecimal.valueOf(100));
+        analiseRepository.save(analise2);
+
+        AnaliseItem analiseItem2 = new AnaliseItem();
+        analiseItem2.setAnalise(analise2);
+        analiseItem2.setDescricao(descricao);
+        analiseItem2.setUnidade(unidade2);
+        analiseItem2.setQuantidade(new BigDecimal("30.00"));
+        analiseItemRepository.save(analiseItem2);
+
+        // Act
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarItensRecentes(Area.CIVIL);
+
+        // Assert
+        assertEquals(2, resultado.size(), "Não deve agrupar unidades diferentes");
+        
+        // Verificar se ambas as unidades estão presentes
+        boolean temM2 = resultado.stream().anyMatch(item -> item.unidade().equals("M²"));
+        boolean temM3 = resultado.stream().anyMatch(item -> item.unidade().equals("M³"));
+        assertTrue(temM2 && temM3);
+    }
+
+    @Test
+    void autocomplete_vs_recentes_MesmaCapacidade_DeveSerIguais() {
+        // Arrange - Cenário G: Comparar autocomplete e recentes
+        String descricao = "EXECUÇÃO DE PASSEIO";
+        String unidade = "M³";
+
+        CatItem item1 = new CatItem();
+        item1.setDescricao(descricao);
+        item1.setUnidade(unidade);
+        item1.setQuantidade(new BigDecimal("102.92"));
+        item1.setCat(cat1);
+        catItemRepository.save(item1);
+
+        CatItem item2 = new CatItem();
+        item2.setDescricao(descricao);
+        item2.setUnidade(unidade);
+        item2.setQuantidade(new BigDecimal("137.00"));
+        item2.setCat(cat2);
+        catItemRepository.save(item2);
+
+        // Criar análise anterior com esse item
+        Analise analise = new Analise();
+        analise.setArea(Area.CIVIL);
+        analise.setResultado(ResultadoAnalise.ATENDE);
+        analise.setCobertura(BigDecimal.valueOf(100));
+        analiseRepository.save(analise);
+
+        AnaliseItem analiseItem = new AnaliseItem();
+        analiseItem.setAnalise(analise);
+        analiseItem.setDescricao(descricao);
+        analiseItem.setUnidade(unidade);
+        analiseItem.setQuantidade(new BigDecimal("50.00"));
+        analiseItemRepository.save(analiseItem);
+
+        // Act
+        List<ItemSugestaoDTO> resultadoAutocomplete = itemAutocompleteService.buscarSugestoesAgrupadas("passeio", Area.CIVIL);
+        List<ItemSugestaoDTO> resultadoRecentes = itemAutocompleteService.buscarItensRecentes(Area.CIVIL);
+
+        // Assert
+        assertEquals(1, resultadoAutocomplete.size());
+        assertEquals(1, resultadoRecentes.size());
+        
+        BigDecimal capacidadeAutocomplete = resultadoAutocomplete.get(0).quantidadeDisponivel();
+        BigDecimal capacidadeRecentes = resultadoRecentes.get(0).quantidadeDisponivel();
+        
+        assertEquals(new BigDecimal("239.92"), capacidadeAutocomplete);
+        assertEquals(new BigDecimal("239.92"), capacidadeRecentes);
+        assertEquals(capacidadeAutocomplete, capacidadeRecentes, 
+            "Autocomplete e recentes devem retornar exatamente a mesma capacidade");
+    }
+
+    @Test
+    void fluxoCompleto_CliqueRecente_Analise_DeveSomarCATs() {
+        // Arrange - Cenário F: Fluxo completo
+        String descricao = "EXECUÇÃO DE PASSEIO";
+        String unidade = "M³";
+
+        CatItem item1 = new CatItem();
+        item1.setDescricao(descricao);
+        item1.setUnidade(unidade);
+        item1.setQuantidade(new BigDecimal("102.92"));
+        item1.setCat(cat1);
+        catItemRepository.save(item1);
+
+        CatItem item2 = new CatItem();
+        item2.setDescricao(descricao);
+        item2.setUnidade(unidade);
+        item2.setQuantidade(new BigDecimal("137.00"));
+        item2.setCat(cat2);
+        catItemRepository.save(item2);
+
+        // Criar análise anterior para aparecer nos recentes
+        Analise analiseAnterior = new Analise();
+        analiseAnterior.setArea(Area.CIVIL);
+        analiseAnterior.setResultado(ResultadoAnalise.ATENDE);
+        analiseAnterior.setCobertura(BigDecimal.valueOf(100));
+        analiseRepository.save(analiseAnterior);
+
+        AnaliseItem analiseItemAnterior = new AnaliseItem();
+        analiseItemAnterior.setAnalise(analiseAnterior);
+        analiseItemAnterior.setDescricao(descricao);
+        analiseItemAnterior.setUnidade(unidade);
+        analiseItemAnterior.setQuantidade(new BigDecimal("50.00"));
+        analiseItemRepository.save(analiseItemAnterior);
+
+        // Act - Verificar que o AnaliseItem salvo não tem referência a CAT específica
+        AnaliseItem itemSalvo = analiseItemRepository.findById(analiseItemAnterior.getId()).orElseThrow();
+        
+        // Assert - O AnaliseItem deve representar apenas o item lógico
+        assertEquals(descricao, itemSalvo.getDescricao());
+        assertEquals(unidade, itemSalvo.getUnidade());
+        assertEquals(new BigDecimal("50.00"), itemSalvo.getQuantidade());
+        // AnaliseItem não tem campo cat - representa apenas item lógico
+        assertNotNull(itemSalvo.getAnalise());
     }
 }

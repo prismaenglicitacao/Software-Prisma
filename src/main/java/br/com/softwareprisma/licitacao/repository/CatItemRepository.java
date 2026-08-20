@@ -132,4 +132,21 @@ List<ItemSearchProjection> pesquisarPorDescricao(
             order by i.descricao
             """)
     List<CatItem> buscarItensPorTermoParaAutocomplete(String termo);
+
+    @Query("""
+            select i
+            from CatItem i
+            join fetch i.cat c
+            join fetch c.engenheiro e
+            where (:area is null or e.area = :area)
+            """)
+    List<CatItem> buscarTodosPorArea(br.com.softwareprisma.licitacao.domain.enums.Area area);
+
+    @Query("""
+            select i
+            from CatItem i
+            join fetch i.cat c
+            join fetch c.engenheiro e
+            """)
+    List<CatItem> buscarTodos();
 }
