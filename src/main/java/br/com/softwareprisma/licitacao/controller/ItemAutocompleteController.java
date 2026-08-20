@@ -23,8 +23,9 @@ public class ItemAutocompleteController {
 
     @GetMapping("/sugestoes")
     public List<ItemSugestaoDTO> buscarSugestoes(@RequestParam String termo,
-                                                 @RequestParam(required = false) Area area) {
-        return itemAutocompleteService.buscarSugestoesAgrupadas(termo, area);
+                                                 @RequestParam(required = false) Area area,
+                                                 @RequestParam(required = false) List<String> itensJaAdicionados) {
+        return itemAutocompleteService.buscarSugestoesAgrupadas(termo, area, itensJaAdicionados);
     }
 
     @GetMapping("/recentes")

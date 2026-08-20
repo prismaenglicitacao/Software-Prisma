@@ -237,19 +237,16 @@
                         params.set('area', area);
                     }
 
+                    // Enviar itens já adicionados para filtro no backend
+                    if (itens.length > 0) {
+                        const itensJaAdicionados = itens.map(item => `${item.descricao}|${item.unidade}`);
+                        itensJaAdicionados.forEach(item => params.append('itensJaAdicionados', item));
+                    }
+
                     try {
                         const response = await fetch('/api/itens/sugestoes?' + params.toString());
                         const data = await response.json();
-
-                        // Filtrar itens já adicionados à análise
-                        const itensJaAdicionados = new Set(
-                            itens.map(item => `${item.descricao}|${item.unidade}`)
-                        );
-                        const dataFiltrada = data.filter(item => 
-                            !itensJaAdicionados.has(`${item.descricao}|${item.unidade}`)
-                        );
-
-                        callback(dataFiltrada);
+                        callback(data);
                     } catch (error) {
                         console.error('Erro ao buscar sugestões:', error);
                         callback();

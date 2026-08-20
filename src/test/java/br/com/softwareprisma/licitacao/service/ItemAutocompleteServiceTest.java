@@ -181,4 +181,59 @@ class ItemAutocompleteServiceTest {
         // Assert
         assertEquals(1, resultado.size());
     }
+
+    @Test
+    void buscarSugestoesAgrupadas_ComItensJaAdicionados_DeveFiltrar() {
+        // Arrange
+        String termo = "passeio";
+        String chaveNormalizada = "passeio de concreto 1 3 5 com 5 0 cm de espessura e juntas riscadas em quadros de 1 0 x 2 0 m|M2";
+        
+        when(catItemRepository.buscarItensPorTermoParaAutocomplete(eq(termo), any()))
+                .thenReturn(List.of(catItem1, catItem2));
+        when(descricaoMatcher.gerarChave(catItem1.getDescricao(), catItem1.getUnidade()))
+                .thenReturn(chaveNormalizada);
+        when(descricaoMatcher.gerarChave(catItem2.getDescricao(), catItem2.getUnidade()))
+                .thenReturn(chaveNormalizada);
+        
+        // Item já adicionado com descrição equivalente (com ponto no final)
+        List<String> itensJaAdicionados = List.of(
+            "PASSEIO DE CONCRETO 1:3:5 COM 5,0 CM DE ESPESSURA E JUNTAS RISCADAS EM QUADROS DE 1,0 X 2,0 M.|M²"
+        );
+        when(descricaoMatcher.gerarChave(
+            "PASSEIO DE CONCRETO 1:3:5 COM 5,0 CM DE ESPESSURA E JUNTAS RISCADAS EM QUADROS DE 1,0 X 2,0 M.", 
+            "M²"
+        )).thenReturn(chaveNormalizada);
+
+        // Act
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, Area.CIVIL, itensJaAdicionados);
+
+        // Assert
+        assertEquals(0, resultado.size(), "Deve filtrar itens com chave normalizada equivalente");
+    }
+
+    @Test
+    void buscarSugestoesAgrupadas_ComItensJaAdicionados_Diferentes_DeveManter() {
+        // Arrange
+        String termo = "passeio";
+        String chave1 = "passeio tipo a|M2";
+        String chave2 = "passeio tipo b|M2";
+        
+        when(catItemRepository.buscarItensPorTermoParaAutocomplete(eq(termo), any()))
+                .thenReturn(List.of(catItem1, catItem2));
+        when(descricaoMatcher.gerarChave(catItem1.getDescricao(), catItem1.getUnidade()))
+                .thenReturn(chave1);
+        when(descricaoMatcher.gerarChave(catItem2.getDescricao(), catItem2.getUnidade()))
+                .thenReturn(chave2);
+        
+        // Item já adicionado com chave diferente
+        List<String> itensJaAdicionados = List.of("OUTRO ITEM|M²");
+        when(descricaoMatcher.gerarChave("OUTRO ITEM", "M²"))
+                .thenReturn("outro item|M2");
+
+        // Act
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, Area.CIVIL, itensJaAdicionados);
+
+        // Assert
+        assertEquals(2, resultado.size(), "Deve manter itens com chaves diferentes");
+    }
 }

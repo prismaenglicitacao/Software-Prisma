@@ -24,6 +24,11 @@ public class ItemAutocompleteService {
 
     @Transactional(readOnly = true)
     public List<ItemSugestaoDTO> buscarSugestoesAgrupadas(String termo, Area area) {
+        return buscarSugestoesAgrupadas(termo, area, null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ItemSugestaoDTO> buscarSugestoesAgrupadas(String termo, Area area, List<String> itensJaAdicionados) {
         if (termo == null || termo.trim().length() < 2) {
             return List.of();
         }
@@ -32,11 +37,28 @@ public class ItemAutocompleteService {
                 ? catItemRepository.buscarItensPorTermoParaAutocomplete(termo, area)
                 : catItemRepository.buscarItensPorTermoParaAutocomplete(termo);
 
+        // Gerar chaves normalizadas dos itens já adicionados
+        java.util.Set<String> chavesJaAdicionadas = new java.util.HashSet<>();
+        if (itensJaAdicionados != null) {
+            for (String itemJaAdicionado : itensJaAdicionados) {
+                String[] partes = itemJaAdicionado.split("\\|");
+                if (partes.length == 2) {
+                    String chave = descricaoMatcher.gerarChave(partes[0], partes[1]);
+                    chavesJaAdicionadas.add(chave);
+                }
+            }
+        }
+
         // Agrupar por chave normalizada (descricao normalizada | unidade normalizada)
         Map<String, GrupoItemSugestao> grupos = new LinkedHashMap<>();
 
         for (CatItem item : itens) {
             String chave = descricaoMatcher.gerarChave(item.getDescricao(), item.getUnidade());
+            
+            // Pular se já foi adicionado à análise
+            if (chavesJaAdicionadas.contains(chave)) {
+                continue;
+            }
             
             GrupoItemSugestao grupo = grupos.computeIfAbsent(chave, k -> {
                 // Usar a descrição original do primeiro item do grupo
