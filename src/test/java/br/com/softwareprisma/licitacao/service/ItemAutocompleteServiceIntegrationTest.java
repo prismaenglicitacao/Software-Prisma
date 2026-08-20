@@ -491,4 +491,188 @@ class ItemAutocompleteServiceIntegrationTest {
         // AnaliseItem não tem campo cat - representa apenas item lógico
         assertNotNull(itemSalvo.getAnalise());
     }
+
+    @Test
+    void selecaoMultipla_TresItensMesmaUnidade_DeveAdicionarTodos() {
+        // Arrange - Teste B: Seleção múltipla com 3 itens
+        String descricao1 = "INTERTRAVADO 8 CM COLORIDO";
+        String descricao2 = "INTERTRAVADO 8 CM COR NATURAL";
+        String descricao3 = "EXECUÇÃO DE PAVIMENTO INTERTRAVADO 8 CM";
+        String unidade = "M²";
+
+        CatItem item1 = new CatItem();
+        item1.setDescricao(descricao1);
+        item1.setUnidade(unidade);
+        item1.setQuantidade(new BigDecimal("300.00"));
+        item1.setCat(cat1);
+        catItemRepository.save(item1);
+
+        CatItem item2 = new CatItem();
+        item2.setDescricao(descricao2);
+        item2.setUnidade(unidade);
+        item2.setQuantidade(new BigDecimal("250.00"));
+        item2.setCat(cat2);
+        catItemRepository.save(item2);
+
+        CatItem item3 = new CatItem();
+        item3.setDescricao(descricao3);
+        item3.setUnidade(unidade);
+        item3.setQuantidade(new BigDecimal("400.00"));
+        item3.setCat(cat1);
+        catItemRepository.save(item3);
+
+        // Criar análise
+        Analise analise = new Analise();
+        analise.setArea(Area.CIVIL);
+        analise = analiseRepository.save(analise);
+
+        // Act - Simular adição de múltiplos itens (como seria no frontend)
+        AnaliseItem analiseItem1 = new AnaliseItem();
+        analiseItem1.setAnalise(analise);
+        analiseItem1.setDescricao(descricao1);
+        analiseItem1.setUnidade(unidade);
+        analiseItem1.setQuantidade(new BigDecimal("300.00"));
+        analiseItemRepository.save(analiseItem1);
+
+        AnaliseItem analiseItem2 = new AnaliseItem();
+        analiseItem2.setAnalise(analise);
+        analiseItem2.setDescricao(descricao2);
+        analiseItem2.setUnidade(unidade);
+        analiseItem2.setQuantidade(new BigDecimal("250.00"));
+        analiseItemRepository.save(analiseItem2);
+
+        AnaliseItem analiseItem3 = new AnaliseItem();
+        analiseItem3.setAnalise(analise);
+        analiseItem3.setDescricao(descricao3);
+        analiseItem3.setUnidade(unidade);
+        analiseItem3.setQuantidade(new BigDecimal("400.00"));
+        analiseItemRepository.save(analiseItem3);
+
+        // Assert - Verificar que os 3 itens foram persistidos individualmente
+        List<AnaliseItem> itensSalvos = analiseItemRepository.findByAnalise(analise);
+        assertEquals(3, itensSalvos.size());
+        
+        // Verificar quantidades
+        BigDecimal total = itensSalvos.stream()
+            .map(AnaliseItem::getQuantidade)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        assertEquals(new BigDecimal("950.00"), total);
+    }
+
+    @Test
+    void selecaoMultipla_UnidadesDiferentes_NaoDevePermitir() {
+        // Arrange - Teste E: Unidades diferentes
+        String descricao1 = "INTERTRAVADO 8 CM";
+        String descricao2 = "INTERTRAVADO 8 CM";
+        String unidade1 = "M²";
+        String unidade2 = "M³";
+
+        CatItem item1 = new CatItem();
+        item1.setDescricao(descricao1);
+        item1.setUnidade(unidade1);
+        item1.setQuantidade(new BigDecimal("300.00"));
+        item1.setCat(cat1);
+        catItemRepository.save(item1);
+
+        CatItem item2 = new CatItem();
+        item2.setDescricao(descricao2);
+        item2.setUnidade(unidade2);
+        item2.setQuantidade(new BigDecimal("50.00"));
+        item2.setCat(cat2);
+        catItemRepository.save(item2);
+
+        // Act - Buscar sugestões
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("intertravado", Area.CIVIL);
+
+        // Assert - Deve retornar 2 itens separados (unidades diferentes)
+        assertEquals(2, resultado.size());
+        
+        boolean temM2 = resultado.stream().anyMatch(item -> item.unidade().equals("M²"));
+        boolean temM3 = resultado.stream().anyMatch(item -> item.unidade().equals("M³"));
+        assertTrue(temM2 && temM3);
+    }
+
+    @Test
+    void selecaoMultipla_ItemJaAdicionado_NaoDeveDuplicar() {
+        // Arrange - Teste D: Não duplicar item já adicionado
+        String descricao = "INTERTRAVADO 8 CM";
+        String unidade = "M²";
+
+        CatItem item1 = new CatItem();
+        item1.setDescricao(descricao);
+        item1.setUnidade(unidade);
+        item1.setQuantidade(new BigDecimal("300.00"));
+        item1.setCat(cat1);
+        catItemRepository.save(item1);
+
+        // Criar análise e adicionar item
+        Analise analise = new Analise();
+        analise.setArea(Area.CIVIL);
+        analise = analiseRepository.save(analise);
+
+        AnaliseItem analiseItem = new AnaliseItem();
+        analiseItem.setAnalise(analise);
+        analiseItem.setDescricao(descricao);
+        analiseItem.setUnidade(unidade);
+        analiseItem.setQuantidade(new BigDecimal("300.00"));
+        analiseItemRepository.save(analiseItem);
+
+        // Act - Buscar sugestões com item já adicionado
+        List<String> itensJaAdicionados = List.of(descricao + "|" + unidade);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(
+            "intertravado", Area.CIVIL, itensJaAdicionados);
+
+        // Assert - Item não deve aparecer nas sugestões
+        assertEquals(0, resultado.size());
+    }
+
+    @Test
+    void selecaoMultipla_QuantidadeMaxima_DeveUsarDisponivel() {
+        // Arrange - Teste F: Quantidade máxima
+        String descricao = "INTERTRAVADO 8 CM";
+        String unidade = "M²";
+        BigDecimal quantidadeDisponivel = new BigDecimal("300.00");
+
+        CatItem item1 = new CatItem();
+        item1.setDescricao(descricao);
+        item1.setUnidade(unidade);
+        item1.setQuantidade(quantidadeDisponivel);
+        item1.setCat(cat1);
+        catItemRepository.save(item1);
+
+        // Act - Buscar sugestões
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("intertravado", Area.CIVIL);
+
+        // Assert - Quantidade disponível deve ser exatamente a do CatItem
+        assertEquals(1, resultado.size());
+        assertEquals(quantidadeDisponivel, resultado.get(0).quantidadeDisponivel());
+    }
+
+    @Test
+    void selecaoMultipla_CatsDiferentesMesmoItemLogico_DeveSomar() {
+        // Arrange - Teste F (CATs diferentes): CATs que formam mesmo item lógico
+        String descricao = "INTERTRAVADO 8 CM";
+        String unidade = "M²";
+
+        CatItem item1 = new CatItem();
+        item1.setDescricao(descricao);
+        item1.setUnidade(unidade);
+        item1.setQuantidade(new BigDecimal("150.00"));
+        item1.setCat(cat1);
+        catItemRepository.save(item1);
+
+        CatItem item2 = new CatItem();
+        item2.setDescricao(descricao);
+        item2.setUnidade(unidade);
+        item2.setQuantidade(new BigDecimal("150.00"));
+        item2.setCat(cat2);
+        catItemRepository.save(item2);
+
+        // Act - Buscar sugestões
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("intertravado", Area.CIVIL);
+
+        // Assert - Deve somar as quantidades das duas CATs
+        assertEquals(1, resultado.size());
+        assertEquals(new BigDecimal("300.00"), resultado.get(0).quantidadeDisponivel());
+    }
 }

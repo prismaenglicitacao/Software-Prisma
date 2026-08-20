@@ -34,8 +34,12 @@
                             </div>
 
                             <div class="card shadow-sm mb-4">
-                                <div class="card-header bg-white">
+                                <div class="card-header bg-white d-flex justify-content-between align-items-center">
                                     <h2 class="h5 mb-0">Itens do Edital</h2>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="modoSelecaoMultipla">
+                                        <label class="form-check-label small" for="modoSelecaoMultipla">Seleção múltipla</label>
+                                    </div>
                                 </div>
                                 <div class="card-body">
                                     <!-- Itens utilizados recentemente -->
@@ -51,7 +55,7 @@
                                                 placeholder="Ex.: Luminária LED 90-120W" autocomplete="off">
                                         </div>
 
-                                        <div class="col-lg-2">
+                                        <div class="col-lg-2" id="quantidadeField">
                                             <label for="novaItemQuantidade" class="form-label">Quantidade</label>
                                             <input id="novaItemQuantidade" type="number" step="0.01" min="0.01"
                                                 class="form-control" placeholder="0">
@@ -101,6 +105,26 @@
 
                                     <div id="novoItemErro" class="text-danger small mt-2"></div>
 
+                                    <!-- Área de seleção múltipla -->
+                                    <div id="selecaoMultiplaArea" class="mt-4" style="display: none;">
+                                        <div class="card bg-light">
+                                            <div class="card-body">
+                                                <h4 class="h6 mb-3">Itens selecionados para adição</h4>
+                                                <div id="itensSelecionadosLista" class="list-group mb-3"></div>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <strong id="totalItensSelecionados">0 itens selecionados</strong>
+                                                        <span class="text-body-secondary">— Capacidade máxima: <span id="totalCapacidadeSelecionada">0,00</span></span>
+                                                    </div>
+                                                    <button type="button" class="btn btn-success" id="botaoAdicionarSelecionados">
+                                                        Adicionar itens à análise
+                                                    </button>
+                                                </div>
+                                                <div id="erroSelecaoMultipla" class="text-danger small mt-2"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="mt-4">
                                         <div class="d-flex justify-content-between align-items-center mb-2">
                                             <h3 class="h6 mb-0">Lista</h3>
@@ -139,7 +163,16 @@
         const descricaoInput = document.getElementById('novaItemDescricao');
         const itensRecentesSection = document.getElementById('itensRecentesSection');
         const itensRecentes = document.getElementById('itensRecentes');
+        const modoSelecaoMultipla = document.getElementById('modoSelecaoMultipla');
+        const selecaoMultiplaArea = document.getElementById('selecaoMultiplaArea');
+        const itensSelecionadosLista = document.getElementById('itensSelecionadosLista');
+        const totalItensSelecionados = document.getElementById('totalItensSelecionados');
+        const totalCapacidadeSelecionada = document.getElementById('totalCapacidadeSelecionada');
+        const erroSelecaoMultipla = document.getElementById('erroSelecaoMultipla');
+        const quantidadeField = document.getElementById('quantidadeField');
         let descricaoSelect;
+        let itensSelecionadosMultipla = [];
+        let modoMultiplaAtivo = false;
 
         function montarUrlItens(path, termo) {
             const params = new URLSearchParams();
@@ -216,6 +249,148 @@
             carregarItensRecentes();
         });
 
+        // Toggle do modo de seleção
+        modoSelecaoMultipla.addEventListener('change', () => {
+            modoMultiplaAtivo = modoSelecaoMultipla.checked;
+            
+            if (modoMultiplaAtivo) {
+                // Ativar modo múltiplo
+                selecaoMultiplaArea.style.display = 'block';
+                quantidadeField.style.display = 'none';
+                document.getElementById('botaoAdicionarItem').style.display = 'none';
+                descricaoSelect.settings.maxItems = null; // Permitir múltipla seleção
+                itensSelecionadosMultipla = [];
+                atualizarListaSelecionados();
+            } else {
+                // Voltar ao modo individual
+                selecaoMultiplaArea.style.display = 'none';
+                quantidadeField.style.display = 'block';
+                document.getElementById('botaoAdicionarItem').style.display = 'block';
+                descricaoSelect.settings.maxItems = 1;
+                descricaoSelect.clear();
+                itensSelecionadosMultipla = [];
+            }
+            
+            // Reconfigurar Tom Select
+            descricaoSelect.settings.maxItems = modoMultiplaAtivo ? null : 1;
+            descricaoSelect.sync();
+        });
+
+        // Função para toggle de item selecionado
+        window.toggleItemSelecionado = function(checkbox) {
+            const descricao = checkbox.dataset.descricao;
+            const unidade = checkbox.dataset.unidade;
+            const quantidade = parseFloat(checkbox.dataset.quantidade);
+            
+            if (checkbox.checked) {
+                // Validar unidade
+                if (itensSelecionadosMultipla.length > 0) {
+                    const primeiraUnidade = itensSelecionadosMultipla[0].unidade;
+                    if (unidade !== primeiraUnidade) {
+                        checkbox.checked = false;
+                        erroSelecaoMultipla.textContent = 'Não é possível selecionar itens com unidades diferentes. Todos os itens selecionados devem ter a mesma unidade.';
+                        return;
+                    }
+                }
+                
+                itensSelecionadosMultipla.push({
+                    descricao: descricao,
+                    unidade: unidade,
+                    quantidade: quantidade
+                });
+                erroSelecaoMultipla.textContent = '';
+            } else {
+                itensSelecionadosMultipla = itensSelecionadosMultipla.filter(
+                    item => item.descricao !== descricao || item.unidade !== unidade
+                );
+            }
+            
+            atualizarListaSelecionados();
+        };
+
+        // Atualizar lista de itens selecionados
+        function atualizarListaSelecionados() {
+            itensSelecionadosLista.innerHTML = '';
+            
+            if (itensSelecionadosMultipla.length === 0) {
+                totalItensSelecionados.textContent = '0 itens selecionados';
+                totalCapacidadeSelecionada.textContent = '0,00';
+                return;
+            }
+            
+            let totalQuantidade = 0;
+            
+            itensSelecionadosMultipla.forEach((item, index) => {
+                totalQuantidade += item.quantidade;
+                
+                const itemElement = document.createElement('div');
+                itemElement.className = 'list-group-item d-flex justify-content-between align-items-center';
+                itemElement.innerHTML = `
+                    <div>
+                        <div class="fw-semibold">${item.descricao}</div>
+                        <div class="text-body-secondary small">${item.quantidade} ${item.unidade}</div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removerItemSelecionado(${index})">Remover</button>
+                `;
+                itensSelecionadosLista.appendChild(itemElement);
+            });
+            
+            totalItensSelecionados.textContent = `${itensSelecionadosMultipla.length} itens selecionados`;
+            totalCapacidadeSelecionada.textContent = totalQuantidade.toFixed(2).replace('.', ',');
+        }
+
+        // Remover item da seleção
+        window.removerItemSelecionado = function(index) {
+            itensSelecionadosMultipla.splice(index, 1);
+            atualizarListaSelecionados();
+            
+            // Desmarcar checkbox correspondente
+            const checkboxes = document.querySelectorAll('input[type="checkbox"][data-descricao]');
+            checkboxes.forEach(checkbox => {
+                const item = itensSelecionadosMultipla.find(
+                    i => i.descricao === checkbox.dataset.descricao && i.unidade === checkbox.dataset.unidade
+                );
+                checkbox.checked = !!item;
+            });
+        };
+
+        // Adicionar itens selecionados à análise
+        document.getElementById('botaoAdicionarSelecionados').addEventListener('click', () => {
+            erroSelecaoMultipla.textContent = '';
+            
+            if (itensSelecionadosMultipla.length === 0) {
+                erroSelecaoMultipla.textContent = 'Selecione ao menos um item para adicionar.';
+                return;
+            }
+            
+            // Validar unidade
+            const unidades = [...new Set(itensSelecionadosMultipla.map(item => item.unidade))];
+            if (unidades.length > 1) {
+                erroSelecaoMultipla.textContent = 'Não é possível adicionar itens com unidades diferentes. Todos os itens devem ter a mesma unidade.';
+                return;
+            }
+            
+            // Adicionar cada item selecionado
+            itensSelecionadosMultipla.forEach(item => {
+                itens.push({
+                    descricao: item.descricao,
+                    quantidade: item.quantidade.toString(),
+                    quantidadeNormalized: item.quantidade.toString(),
+                    unidade: item.unidade
+                });
+            });
+            
+            // Limpar seleção
+            itensSelecionadosMultipla = [];
+            descricaoSelect.clear();
+            atualizarListaSelecionados();
+            atualizarItens();
+            
+            // Voltar ao modo individual
+            modoSelecaoMultipla.checked = false;
+            modoSelecaoMultipla.dispatchEvent(new Event('change'));
+        });
+
         // Inicializar Tom Select para autocomplete
         document.addEventListener('DOMContentLoaded', function() {
             descricaoSelect = new TomSelect('#novaItemDescricao', {
@@ -255,13 +430,22 @@
                 render: {
                     option: function(item, escape) {
                         let html = '<div class="py-2">';
+                        if (modoMultiplaAtivo) {
+                            html += '<div class="form-check">';
+                            html += '<input class="form-check-input" type="checkbox" data-descricao="' + escape(item.descricao) + '" data-unidade="' + escape(item.unidade) + '" data-quantidade="' + escape(item.quantidadeDisponivel || 0) + '" onchange="toggleItemSelecionado(this)">';
+                            html += '<label class="form-check-label">';
+                        }
                         html += '<div class="fw-semibold">' + escape(item.descricao) + '</div>';
                         html += '<div class="text-body-secondary small">';
                         html += escape(item.unidade);
                         if (item.quantidadeDisponivel != null) {
-                            html += ' • Qtd: ' + escape(item.quantidadeDisponivel);
+                            html += ' • Disponível: ' + escape(item.quantidadeDisponivel);
                         }
                         html += '</div>';
+                        if (modoMultiplaAtivo) {
+                            html += '</label>';
+                            html += '</div>';
+                        }
                         html += '</div>';
                         return html;
                     },
@@ -270,9 +454,11 @@
                     }
                 },
                 onChange: function(value) {
-                    const selectedOption = this.options[value];
-                    if (selectedOption && selectedOption.unidade) {
-                        document.getElementById('novaItemUnidade').value = selectedOption.unidade;
+                    if (!modoMultiplaAtivo) {
+                        const selectedOption = this.options[value];
+                        if (selectedOption && selectedOption.unidade) {
+                            document.getElementById('novaItemUnidade').value = selectedOption.unidade;
+                        }
                     }
                 },
                 onDropdownOpen: function() {

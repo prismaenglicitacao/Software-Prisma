@@ -1,5 +1,6 @@
 package br.com.softwareprisma.licitacao.repository;
 
+import br.com.softwareprisma.licitacao.domain.Analise;
 import br.com.softwareprisma.licitacao.domain.AnaliseItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -25,6 +26,8 @@ public interface AnaliseItemRepository extends JpaRepository<AnaliseItem, Long> 
             order by a.dataCriacao desc
             """)
     List<AnaliseItem> buscarRecentes(br.com.softwareprisma.licitacao.domain.enums.Area area);
+
+    List<AnaliseItem> findByAnalise(Analise analise);
 
     @Deprecated
     @Query("""
