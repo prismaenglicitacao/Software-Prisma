@@ -30,7 +30,11 @@ public class HistoricoService {
         int page = pagina != null ? pagina : 0;
         int size = 10;
 
-        Sort sort = switch (ordenarPor) {
+        String ordenarPorSafe = (ordenarPor == null || ordenarPor.isBlank())
+                ? "data"
+                : ordenarPor;
+
+        Sort sort = switch (ordenarPorSafe) {
             case "data" -> Sort.by("dataCriacao").descending();
             case "resultado" -> Sort.by("resultado").ascending();
             case "area" -> Sort.by("area").ascending();
