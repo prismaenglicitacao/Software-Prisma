@@ -219,7 +219,8 @@
                         }
                         
                         button.addEventListener('click', () => {
-                            selecionarItemRecente(button.dataset.descricao, button.dataset.unidade);
+                            const quantidadeDisponivel = item.quantidadeDisponivel;
+                            selecionarItemRecente(button.dataset.descricao, button.dataset.unidade, quantidadeDisponivel);
                         });
                         itensRecentes.appendChild(button);
                     });
@@ -232,17 +233,46 @@
             }
         }
 
-        function selecionarItemRecente(descricao, unidade) {
-            // Adicionar a opção ao Tom Select se ainda não existir
-            if (!descricaoSelect.options[descricao]) {
-                descricaoSelect.addOption({
-                    descricao: descricao,
-                    unidade: unidade
-                });
+        function selecionarItemRecente(descricao, unidade, quantidadeDisponivel) {
+            if (modoMultiplaAtivo) {
+                // Modo múltiplo: adicionar à seleção temporária
+                const quantidade = quantidadeDisponivel || 0;
+                
+                // Validar unidade
+                if (itensSelecionadosMultipla.length > 0) {
+                    const primeiraUnidade = itensSelecionadosMultipla[0].unidade;
+                    if (unidade !== primeiraUnidade) {
+                        erroSelecaoMultipla.textContent = 'Não é possível selecionar itens com unidades diferentes. Todos os itens selecionados devem ter a mesma unidade.';
+                        return;
+                    }
+                }
+                
+                // Verificar se já está selecionado
+                const jaSelecionado = itensSelecionadosMultipla.find(
+                    item => item.descricao === descricao && item.unidade === unidade
+                );
+                
+                if (!jaSelecionado) {
+                    itensSelecionadosMultipla.push({
+                        descricao: descricao,
+                        unidade: unidade,
+                        quantidade: quantidade
+                    });
+                    erroSelecaoMultipla.textContent = '';
+                    atualizarListaSelecionados();
+                }
+            } else {
+                // Modo individual: comportamento atual
+                if (!descricaoSelect.options[descricao]) {
+                    descricaoSelect.addOption({
+                        descricao: descricao,
+                        unidade: unidade
+                    });
+                }
+                descricaoSelect.setValue(descricao);
+                document.getElementById('novaItemUnidade').value = unidade;
+                document.getElementById('novaItemQuantidade').focus();
             }
-            descricaoSelect.setValue(descricao);
-            document.getElementById('novaItemUnidade').value = unidade;
-            document.getElementById('novaItemQuantidade').focus();
         }
 
         areaSelect.addEventListener('change', () => {
@@ -257,23 +287,23 @@
                 // Ativar modo múltiplo
                 selecaoMultiplaArea.style.display = 'block';
                 quantidadeField.style.display = 'none';
+                document.getElementById('novaItemUnidade').value = '';
                 document.getElementById('botaoAdicionarItem').style.display = 'none';
-                descricaoSelect.settings.maxItems = null; // Permitir múltipla seleção
+                descricaoSelect.clear();
                 itensSelecionadosMultipla = [];
                 atualizarListaSelecionados();
+                // Re-renderizar dropdown para mostrar checkboxes
+                descricaoSelect.sync();
             } else {
                 // Voltar ao modo individual
                 selecaoMultiplaArea.style.display = 'none';
                 quantidadeField.style.display = 'block';
                 document.getElementById('botaoAdicionarItem').style.display = 'block';
-                descricaoSelect.settings.maxItems = 1;
                 descricaoSelect.clear();
                 itensSelecionadosMultipla = [];
+                // Re-renderizar dropdown para esconder checkboxes
+                descricaoSelect.sync();
             }
-            
-            // Reconfigurar Tom Select
-            descricaoSelect.settings.maxItems = modoMultiplaAtivo ? null : 1;
-            descricaoSelect.sync();
         });
 
         // Função para toggle de item selecionado
@@ -282,12 +312,22 @@
             const unidade = checkbox.dataset.unidade;
             const quantidade = parseFloat(checkbox.dataset.quantidade);
             
-            if (checkbox.checked) {
+            // Verificar se item já está selecionado
+            const jaSelecionado = itensSelecionadosMultipla.find(
+                item => item.descricao === descricao && item.unidade === unidade
+            );
+            
+            if (jaSelecionado) {
+                // Remover item
+                itensSelecionadosMultipla = itensSelecionadosMultipla.filter(
+                    item => item.descricao !== descricao || item.unidade !== unidade
+                );
+                checkbox.checked = false;
+            } else {
                 // Validar unidade
                 if (itensSelecionadosMultipla.length > 0) {
                     const primeiraUnidade = itensSelecionadosMultipla[0].unidade;
                     if (unidade !== primeiraUnidade) {
-                        checkbox.checked = false;
                         erroSelecaoMultipla.textContent = 'Não é possível selecionar itens com unidades diferentes. Todos os itens selecionados devem ter a mesma unidade.';
                         return;
                     }
@@ -298,11 +338,8 @@
                     unidade: unidade,
                     quantidade: quantidade
                 });
+                checkbox.checked = true;
                 erroSelecaoMultipla.textContent = '';
-            } else {
-                itensSelecionadosMultipla = itensSelecionadosMultipla.filter(
-                    item => item.descricao !== descricao || item.unidade !== unidade
-                );
             }
             
             atualizarListaSelecionados();
@@ -319,6 +356,7 @@
             }
             
             let totalQuantidade = 0;
+            const unidade = itensSelecionadosMultipla[0].unidade;
             
             itensSelecionadosMultipla.forEach((item, index) => {
                 totalQuantidade += item.quantidade;
@@ -336,22 +374,13 @@
             });
             
             totalItensSelecionados.textContent = `${itensSelecionadosMultipla.length} itens selecionados`;
-            totalCapacidadeSelecionada.textContent = totalQuantidade.toFixed(2).replace('.', ',');
+            totalCapacidadeSelecionada.textContent = `${totalQuantidade.toFixed(2).replace('.', ',')} ${unidade}`;
         }
 
         // Remover item da seleção
         window.removerItemSelecionado = function(index) {
             itensSelecionadosMultipla.splice(index, 1);
             atualizarListaSelecionados();
-            
-            // Desmarcar checkbox correspondente
-            const checkboxes = document.querySelectorAll('input[type="checkbox"][data-descricao]');
-            checkboxes.forEach(checkbox => {
-                const item = itensSelecionadosMultipla.find(
-                    i => i.descricao === checkbox.dataset.descricao && i.unidade === checkbox.dataset.unidade
-                );
-                checkbox.checked = !!item;
-            });
         };
 
         // Adicionar itens selecionados à análise
@@ -431,9 +460,9 @@
                     option: function(item, escape) {
                         let html = '<div class="py-2">';
                         if (modoMultiplaAtivo) {
-                            html += '<div class="form-check">';
+                            html += '<div class="form-check" onclick="event.stopPropagation()">';
                             html += '<input class="form-check-input" type="checkbox" data-descricao="' + escape(item.descricao) + '" data-unidade="' + escape(item.unidade) + '" data-quantidade="' + escape(item.quantidadeDisponivel || 0) + '" onchange="toggleItemSelecionado(this)">';
-                            html += '<label class="form-check-label">';
+                            html += '<label class="form-check-label" onclick="event.stopPropagation()">';
                         }
                         html += '<div class="fw-semibold">' + escape(item.descricao) + '</div>';
                         html += '<div class="text-body-secondary small">';
@@ -454,7 +483,7 @@
                     }
                 },
                 onChange: function(value) {
-                    if (!modoMultiplaAtivo) {
+                    if (!modoMultiplaAtivo && value) {
                         const selectedOption = this.options[value];
                         if (selectedOption && selectedOption.unidade) {
                             document.getElementById('novaItemUnidade').value = selectedOption.unidade;
