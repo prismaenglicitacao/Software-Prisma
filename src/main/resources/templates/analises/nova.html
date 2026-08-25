@@ -114,7 +114,7 @@
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <div>
                                                         <strong id="totalItensSelecionados">0 itens selecionados</strong>
-                                                        <span class="text-body-secondary">— Capacidade máxima: <span id="totalCapacidadeSelecionada">0,00</span></span>
+                                                        <span id="capacidadeMaximaLabel" class="text-body-secondary">— Capacidade máxima: <span id="totalCapacidadeSelecionada">0,00</span></span>
                                                     </div>
                                                     <button type="button" class="btn btn-success" id="botaoAdicionarSelecionados">
                                                         Adicionar itens à análise
@@ -238,15 +238,6 @@
                 // Modo múltiplo: adicionar à seleção temporária
                 const quantidade = quantidadeDisponivel || 0;
                 
-                // Validar unidade
-                if (itensSelecionadosMultipla.length > 0) {
-                    const primeiraUnidade = itensSelecionadosMultipla[0].unidade;
-                    if (unidade !== primeiraUnidade) {
-                        erroSelecaoMultipla.textContent = 'Não é possível selecionar itens com unidades diferentes. Todos os itens selecionados devem ter a mesma unidade.';
-                        return;
-                    }
-                }
-                
                 // Verificar se já está selecionado
                 const jaSelecionado = itensSelecionadosMultipla.find(
                     item => item.descricao === descricao && item.unidade === unidade
@@ -324,15 +315,6 @@
                 );
                 checkbox.checked = false;
             } else {
-                // Validar unidade
-                if (itensSelecionadosMultipla.length > 0) {
-                    const primeiraUnidade = itensSelecionadosMultipla[0].unidade;
-                    if (unidade !== primeiraUnidade) {
-                        erroSelecaoMultipla.textContent = 'Não é possível selecionar itens com unidades diferentes. Todos os itens selecionados devem ter a mesma unidade.';
-                        return;
-                    }
-                }
-                
                 itensSelecionadosMultipla.push({
                     descricao: descricao,
                     unidade: unidade,
@@ -351,16 +333,12 @@
             
             if (itensSelecionadosMultipla.length === 0) {
                 totalItensSelecionados.textContent = '0 itens selecionados';
-                totalCapacidadeSelecionada.textContent = '0,00';
+                totalCapacidadeSelecionada.textContent = '';
+                document.getElementById('capacidadeMaximaLabel').style.display = 'none';
                 return;
             }
             
-            let totalQuantidade = 0;
-            const unidade = itensSelecionadosMultipla[0].unidade;
-            
             itensSelecionadosMultipla.forEach((item, index) => {
-                totalQuantidade += item.quantidade;
-                
                 const itemElement = document.createElement('div');
                 itemElement.className = 'list-group-item d-flex justify-content-between align-items-center';
                 itemElement.innerHTML = `
@@ -374,7 +352,32 @@
             });
             
             totalItensSelecionados.textContent = `${itensSelecionadosMultipla.length} itens selecionados`;
-            totalCapacidadeSelecionada.textContent = `${totalQuantidade.toFixed(2).replace('.', ',')} ${unidade}`;
+            
+            // Calcular soma por unidade
+            const somaPorUnidade = {};
+            itensSelecionadosMultipla.forEach(item => {
+                if (!somaPorUnidade[item.unidade]) {
+                    somaPorUnidade[item.unidade] = 0;
+                }
+                somaPorUnidade[item.unidade] += item.quantidade;
+            });
+            
+            const unidades = Object.keys(somaPorUnidade);
+            
+            if (unidades.length === 1) {
+                // Uma única unidade - mostrar total
+                const unidade = unidades[0];
+                const total = somaPorUnidade[unidade];
+                totalCapacidadeSelecionada.textContent = `${total.toFixed(2).replace('.', ',')} ${unidade}`;
+                document.getElementById('capacidadeMaximaLabel').style.display = 'inline';
+            } else {
+                // Múltiplas unidades - mostrar somas separadas
+                const somasTexto = unidades.map(unidade => 
+                    `${unidade}: ${somaPorUnidade[unidade].toFixed(2).replace('.', ',')}`
+                ).join(', ');
+                totalCapacidadeSelecionada.textContent = somasTexto;
+                document.getElementById('capacidadeMaximaLabel').style.display = 'inline';
+            }
         }
 
         // Remover item da seleção
@@ -386,20 +389,13 @@
         // Adicionar itens selecionados à análise
         document.getElementById('botaoAdicionarSelecionados').addEventListener('click', () => {
             erroSelecaoMultipla.textContent = '';
-            
+
             if (itensSelecionadosMultipla.length === 0) {
                 erroSelecaoMultipla.textContent = 'Selecione ao menos um item para adicionar.';
                 return;
             }
-            
-            // Validar unidade
-            const unidades = [...new Set(itensSelecionadosMultipla.map(item => item.unidade))];
-            if (unidades.length > 1) {
-                erroSelecaoMultipla.textContent = 'Não é possível adicionar itens com unidades diferentes. Todos os itens devem ter a mesma unidade.';
-                return;
-            }
-            
-            // Adicionar cada item selecionado
+
+            // Adicionar cada item selecionado individualmente
             itensSelecionadosMultipla.forEach(item => {
                 itens.push({
                     descricao: item.descricao,
@@ -408,13 +404,13 @@
                     unidade: item.unidade
                 });
             });
-            
+
             // Limpar seleção
             itensSelecionadosMultipla = [];
             descricaoSelect.clear();
             atualizarListaSelecionados();
             atualizarItens();
-            
+
             // Voltar ao modo individual
             modoSelecaoMultipla.checked = false;
             modoSelecaoMultipla.dispatchEvent(new Event('change'));
