@@ -4,6 +4,7 @@ import br.com.softwareprisma.licitacao.domain.Analise;
 import br.com.softwareprisma.licitacao.domain.enums.Area;
 import br.com.softwareprisma.licitacao.domain.enums.ResultadoAnalise;
 import br.com.softwareprisma.licitacao.repository.AnaliseRepository;
+import br.com.softwareprisma.licitacao.repository.AnaliseResultadoPersistidoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class HistoricoService {
 
     private final AnaliseRepository analiseRepository;
+    private final AnaliseResultadoPersistidoRepository analiseResultadoPersistidoRepository;
 
     @Transactional(readOnly = true)
     public Page<Analise> buscarAnalises(Integer pagina, String ordenarPor, String area, String resultado) {
@@ -43,6 +45,11 @@ public class HistoricoService {
         if (id == null) {
             throw new IllegalArgumentException("ID não pode ser nulo");
         }
+        
+        // Excluir resultado persistido relacionado (cascade cuida dos itens e origens)
+        analiseResultadoPersistidoRepository.deleteByAnaliseId(id);
+        
+        // Excluir análise (cascade cuida dos AnaliseItem)
         analiseRepository.deleteById(id);
     }
 }
