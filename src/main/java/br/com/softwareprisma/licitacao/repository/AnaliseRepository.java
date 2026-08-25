@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface AnaliseRepository extends JpaRepository<Analise, Long> {
@@ -43,7 +44,6 @@ public interface AnaliseRepository extends JpaRepository<Analise, Long> {
             """)
     Page<AnaliseResumoDTO> findRecentes(Pageable pageable);
 
-    @EntityGraph(attributePaths = "itens")
     @Query("""
             select a
             from Analise a
@@ -52,4 +52,12 @@ public interface AnaliseRepository extends JpaRepository<Analise, Long> {
             order by a.dataCriacao desc
             """)
     Page<Analise> buscarComFiltros(Area area, ResultadoAnalise resultado, Pageable pageable);
+
+    @Query("""
+            select a
+            from Analise a
+            left join fetch a.itens
+            where a.id in :ids
+            """)
+    List<Analise> buscarComItensPorIds(List<Long> ids);
 }
