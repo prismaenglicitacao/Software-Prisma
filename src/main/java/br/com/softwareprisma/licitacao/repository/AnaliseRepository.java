@@ -54,7 +54,7 @@ public interface AnaliseRepository extends JpaRepository<Analise, Long> {
     Page<Analise> buscarComFiltros(Area area, ResultadoAnalise resultado, Pageable pageable);
 
     @Query("""
-            select a
+            select distinct a
             from Analise a
             left join fetch a.itens
             where a.id in :ids
