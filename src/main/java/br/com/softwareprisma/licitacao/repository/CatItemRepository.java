@@ -111,4 +111,42 @@ List<ItemSearchProjection> pesquisarPorDescricao(
 
     @Query("SELECT i FROM CatItem i WHERE i.cat.id = :catId AND LOWER(i.descricao) LIKE LOWER(CONCAT('%', :descricao, '%')) ORDER BY i.id ASC")
     Page<CatItem> findByCatIdAndDescricaoContainingIgnoreCase(@Param("catId") Long catId, @Param("descricao") String descricao, Pageable pageable);
+
+    @Query("""
+            select i
+            from CatItem i
+            join fetch i.cat c
+            join fetch c.engenheiro e
+            where (:area is null or e.area = :area)
+              and lower(i.descricao) like lower(concat('%', :termo, '%'))
+            order by i.descricao
+            """)
+    List<CatItem> buscarItensPorTermoParaAutocomplete(String termo, br.com.softwareprisma.licitacao.domain.enums.Area area);
+
+    @Query("""
+            select i
+            from CatItem i
+            join fetch i.cat c
+            join fetch c.engenheiro e
+            where lower(i.descricao) like lower(concat('%', :termo, '%'))
+            order by i.descricao
+            """)
+    List<CatItem> buscarItensPorTermoParaAutocomplete(String termo);
+
+    @Query("""
+            select i
+            from CatItem i
+            join fetch i.cat c
+            join fetch c.engenheiro e
+            where (:area is null or e.area = :area)
+            """)
+    List<CatItem> buscarTodosPorArea(br.com.softwareprisma.licitacao.domain.enums.Area area);
+
+    @Query("""
+            select i
+            from CatItem i
+            join fetch i.cat c
+            join fetch c.engenheiro e
+            """)
+    List<CatItem> buscarTodos();
 }

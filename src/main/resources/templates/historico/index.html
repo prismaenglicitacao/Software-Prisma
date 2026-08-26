@@ -66,6 +66,7 @@
                                 <th>Área</th>
                                 <th>Resultado</th>
                                 <th>Cobertura</th>
+                                <th>Itens</th>
                                 <th class="text-end">Ações</th>
                             </tr>
                         </thead>
@@ -82,6 +83,7 @@
                                     </span>
                                 </td>
                                 <td th:text="${analise.cobertura != null ? #numbers.formatDecimal(analise.cobertura.multiply(1), 1, 'POINT', 2, 'COMMA') + '%' : '-'}">0%</td>
+                                <td th:text="${#lists.size(analise.itens)}">0</td>
                                 <td class="text-end">
                                     <a class="btn btn-sm btn-outline-primary me-1"
                                         th:href="@{/analises/{id}/resumo(id=${analise.id})}">

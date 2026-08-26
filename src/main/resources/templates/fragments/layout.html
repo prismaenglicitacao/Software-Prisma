@@ -83,7 +83,7 @@
                         <input type="text" 
                                class="form-control form-control-sm" 
                                style="width: 200px; background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;"
-                               placeholder="Pesquisar... (Ctrl+K)"
+                               placeholder="Pesquisar..."
                                id="globalSearchInput"
                                autocomplete="off">
                         <kbd class="position-absolute top-50 end-0 translate-middle-y me-2 bg-secondary border-0" style="font-size: 10px; opacity: 0.7;">⌘K</kbd>
@@ -152,6 +152,34 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
     <script th:src="@{/js/global-search.js}"></script>
+    <script>
+        // Preservar posição de scroll ao navegar entre páginas
+        (function() {
+            const SCROLL_POSITION_KEY = 'scrollPosition';
+            const SCROLL_URL_KEY = 'scrollUrl';
+
+            // Salvar posição de scroll antes de navegar
+            document.addEventListener('click', function(e) {
+                const link = e.target.closest('a.page-link');
+                if (link && link.href) {
+                    sessionStorage.setItem(SCROLL_POSITION_KEY, window.scrollY);
+                    sessionStorage.setItem(SCROLL_URL_KEY, window.location.pathname);
+                }
+            });
+
+            // Restaurar posição de scroll após carregar a página
+            window.addEventListener('load', function() {
+                const savedPosition = sessionStorage.getItem(SCROLL_POSITION_KEY);
+                const savedUrl = sessionStorage.getItem(SCROLL_URL_KEY);
+
+                if (savedPosition && savedUrl === window.location.pathname) {
+                    window.scrollTo(0, parseInt(savedPosition, 10));
+                    sessionStorage.removeItem(SCROLL_POSITION_KEY);
+                    sessionStorage.removeItem(SCROLL_URL_KEY);
+                }
+            });
+        })();
+    </script>
 </th:block>
 </body>
 
