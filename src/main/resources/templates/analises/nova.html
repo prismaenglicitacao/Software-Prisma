@@ -273,7 +273,10 @@
         // Toggle do modo de seleção
         modoSelecaoMultipla.addEventListener('change', () => {
             modoMultiplaAtivo = modoSelecaoMultipla.checked;
-            
+
+            // Preservar o termo atual digitado
+            const termoAtual = descricaoSelect.control_input.value.trim();
+
             if (modoMultiplaAtivo) {
                 // Ativar modo múltiplo
                 selecaoMultiplaArea.style.display = 'block';
@@ -284,7 +287,10 @@
                 itensSelecionadosMultipla = [];
                 atualizarListaSelecionados();
                 // Re-renderizar dropdown para mostrar checkboxes
-                descricaoSelect.sync();
+                descricaoSelect.clearOptions();
+                if (termoAtual.length >= 2) {
+                    descricaoSelect.load(termoAtual);
+                }
             } else {
                 // Voltar ao modo individual
                 selecaoMultiplaArea.style.display = 'none';
@@ -293,7 +299,10 @@
                 descricaoSelect.clear();
                 itensSelecionadosMultipla = [];
                 // Re-renderizar dropdown para esconder checkboxes
-                descricaoSelect.sync();
+                descricaoSelect.clearOptions();
+                if (termoAtual.length >= 2) {
+                    descricaoSelect.load(termoAtual);
+                }
             }
         });
 
