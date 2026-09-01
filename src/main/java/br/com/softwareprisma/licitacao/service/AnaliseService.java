@@ -4,6 +4,8 @@ import br.com.softwareprisma.licitacao.domain.Analise;
 import br.com.softwareprisma.licitacao.domain.Cat;
 import br.com.softwareprisma.licitacao.domain.CatItem;
 import br.com.softwareprisma.licitacao.domain.AnaliseItem;
+import br.com.softwareprisma.licitacao.domain.Empresa;
+import br.com.softwareprisma.licitacao.domain.Usuario;
 import br.com.softwareprisma.licitacao.domain.enums.Area;
 import br.com.softwareprisma.licitacao.domain.enums.ResultadoAnalise;
 import br.com.softwareprisma.licitacao.repository.AnaliseRepository;
@@ -152,6 +154,27 @@ public class AnaliseService {
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Analise nao encontrada"));
     }
 
+    @Transactional(readOnly = true)
+    public Analise buscarDetalhadaPorIdEEmpresa(Long id, Empresa empresa) {
+        return analiseRepository.buscarDetalhadaPorIdEEmpresa(id, empresa)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Analise nao encontrada ou acesso negado"));
+    }
+
+    public void validarAcessoEmpresa(Long analiseId, Empresa empresa) {
+        analiseRepository.buscarDetalhadaPorIdEEmpresa(analiseId, empresa)
+                .orElseThrow(() -> new ResponseStatusException(
+                        org.springframework.http.HttpStatus.FORBIDDEN, "Acesso negado a esta análise"));
+    }
+
+    @Transactional
+    public Analise criar(Area area, Empresa empresa, Usuario usuario) {
+        Analise analise = new Analise();
+        analise.setArea(area);
+        analise.setEmpresa(empresa);
+        analise.setUsuarioCriador(usuario);
+        return analiseRepository.save(analise);
+    }
+
     @Transactional
     public Analise criar(Area area) {
         Analise analise = new Analise();
@@ -249,7 +272,15 @@ public class AnaliseService {
                 .map(AnaliseItem::getQuantidade)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        List<EngenheiroInfo> engenheiros = agruparEngenheirosPorArea(analise.getArea());
+        Empresa empresaAnalise = analise.getEmpresa();
+        if (empresaAnalise == null) {
+            return criarResultado(
+                    Collections.emptyList(),
+                    Collections.emptyList(),
+                    totalExigido,
+                    analise.getItens());
+        }
+        List<EngenheiroInfo> engenheiros = agruparEngenheirosPorArea(analise.getArea(), empresaAnalise);
 
         if (engenheiros.isEmpty()) {
             return criarResultado(
@@ -289,9 +320,9 @@ public class AnaliseService {
         return lista;
     }
 
-    private List<EngenheiroInfo> agruparEngenheirosPorArea(Area area) {
+    private List<EngenheiroInfo> agruparEngenheirosPorArea(Area area, Empresa empresa) {
         Map<Long, EngenheiroInfo> lista = new TreeMap<>();
-        for (Cat cat : catRepository.listarTodasComEngenheiroEItens()) {
+        for (Cat cat : catRepository.listarPorEmpresa(empresa)) {
             if (cat.getEngenheiro() == null || cat.getEngenheiro().getArea() == null) {
                 continue;
             }

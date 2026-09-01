@@ -1,6 +1,7 @@
 package br.com.softwareprisma.licitacao.controller;
 
 import br.com.softwareprisma.licitacao.domain.Analise;
+import br.com.softwareprisma.licitacao.domain.Usuario;
 import br.com.softwareprisma.licitacao.domain.enums.Area;
 import br.com.softwareprisma.licitacao.service.AnaliseItemService;
 import br.com.softwareprisma.licitacao.service.AnaliseResultado;
@@ -16,6 +17,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -28,8 +30,7 @@ class AnaliseControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-   
-@MockBean
+    @MockBean
     private AnaliseService analiseService;
 
     @MockBean
@@ -41,8 +42,8 @@ class AnaliseControllerTest {
         analise.setId(10L);
         analise.setArea(Area.ELETRICA);
 
-        when(analiseService.criar(any())).thenReturn(analise);
-        when(analiseService.prepararAnalise(10L)).thenReturn(new AnaliseResultado(
+        when(analiseService.criar(any(Area.class))).thenReturn(analise);
+        when(analiseService.prepararAnalise(eq(10L))).thenReturn(new AnaliseResultado(
                 null,
                 List.of(),
                 List.of(),

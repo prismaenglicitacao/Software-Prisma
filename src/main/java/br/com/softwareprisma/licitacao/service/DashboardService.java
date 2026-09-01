@@ -2,6 +2,7 @@ package br.com.softwareprisma.licitacao.service;
 
 import br.com.softwareprisma.licitacao.controller.dto.AnaliseResumoDTO;
 import br.com.softwareprisma.licitacao.controller.dto.EstatisticasGeraisDTO;
+import br.com.softwareprisma.licitacao.domain.Empresa;
 import br.com.softwareprisma.licitacao.domain.enums.Area;
 import br.com.softwareprisma.licitacao.repository.AnaliseRepository;
 import br.com.softwareprisma.licitacao.repository.CatItemRepository;
@@ -26,15 +27,15 @@ public class DashboardService {
     private final CatItemRepository catItemRepository;
     private final AnaliseRepository analiseRepository;
 
-    public EstatisticasGeraisDTO getEstatisticasGerais() {
-        long quantidadeEngenheiros = engenheiroRepository.countTotal();
-        long quantidadeCats = catRepository.countTotal();
-        long quantidadeItens = catItemRepository.countTotal();
-        long quantidadeAnalises = analiseRepository.countTotal();
-        long quantidadeAnalisesAtenderam = analiseRepository.countAtenderam();
-        long quantidadeAnalisesNaoAtenderam = analiseRepository.countNaoAtenderam();
-        
-        BigDecimal coberturaMedia = analiseRepository.avgCobertura();
+    public EstatisticasGeraisDTO getEstatisticasGerais(Empresa empresa) {
+        long quantidadeEngenheiros = engenheiroRepository.countByEmpresa(empresa);
+        long quantidadeCats = catRepository.countByEmpresa(empresa);
+        long quantidadeItens = catItemRepository.countByEmpresa(empresa);
+        long quantidadeAnalises = analiseRepository.countByEmpresa(empresa);
+        long quantidadeAnalisesAtenderam = analiseRepository.countAtenderamByEmpresa(empresa);
+        long quantidadeAnalisesNaoAtenderam = analiseRepository.countNaoAtenderamByEmpresa(empresa);
+
+        BigDecimal coberturaMedia = analiseRepository.avgCoberturaByEmpresa(empresa);
         if (coberturaMedia == null) {
             coberturaMedia = BigDecimal.ZERO;
         } else {
@@ -53,22 +54,22 @@ public class DashboardService {
         );
     }
 
-    public Page<AnaliseResumoDTO> getUltimasAnalises(int page) {
+    public Page<AnaliseResumoDTO> getUltimasAnalises(int page, Empresa empresa) {
         PageRequest pageRequest = PageRequest.of(page, 5, Sort.by("dataCriacao").descending());
-        return analiseRepository.findRecentes(pageRequest);
+        return analiseRepository.findRecentesByEmpresa(empresa, pageRequest);
     }
 
-    public Map<String, Long> getCatsPorArea() {
+    public Map<String, Long> getCatsPorArea(Empresa empresa) {
         return Map.of(
-            "ELETRICA", catRepository.countByArea(Area.ELETRICA),
-            "CIVIL", catRepository.countByArea(Area.CIVIL)
+            "ELETRICA", catRepository.countByEmpresaEEmpresa(empresa, Area.ELETRICA),
+            "CIVIL", catRepository.countByEmpresaEEmpresa(empresa, Area.CIVIL)
         );
     }
 
-    public Map<String, Long> getItensPorArea() {
+    public Map<String, Long> getItensPorArea(Empresa empresa) {
         return Map.of(
-            "ELETRICA", catItemRepository.countByArea(Area.ELETRICA),
-            "CIVIL", catItemRepository.countByArea(Area.CIVIL)
+            "ELETRICA", catItemRepository.countByEmpresaAndArea(empresa, Area.ELETRICA),
+            "CIVIL", catItemRepository.countByEmpresaAndArea(empresa, Area.CIVIL)
         );
     }
 }

@@ -23,12 +23,12 @@ public class UsuarioEmpresaService {
 
     @Transactional(readOnly = true)
     public List<UsuarioEmpresa> listarPorUsuario(Usuario usuario) {
-        return usuarioEmpresaRepository.findByUsuarioAndAtivoTrueOrderByEmpresaNomeAsc(usuario);
+        return usuarioEmpresaRepository.findByUsuarioAtivoTrueComEmpresa(usuario);
     }
 
     @Transactional(readOnly = true)
     public List<UsuarioEmpresa> listarPorEmpresa(Empresa empresa) {
-        return usuarioEmpresaRepository.findByEmpresaAndAtivoTrueOrderByUsuarioNomeAsc(empresa);
+        return usuarioEmpresaRepository.findByEmpresaAtivoTrueComUsuario(empresa);
     }
 
     @Transactional(readOnly = true)

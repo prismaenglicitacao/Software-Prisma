@@ -241,7 +241,7 @@ class ItemAutocompleteServiceIntegrationTest {
         analiseItemRepository.save(analiseItem);
 
         // Act
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarItensRecentes(Area.CIVIL);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService. (Area.CIVIL);
 
         // Assert
         assertEquals(1, resultado.size());

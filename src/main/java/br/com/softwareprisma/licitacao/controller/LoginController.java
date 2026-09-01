@@ -1,5 +1,6 @@
 package br.com.softwareprisma.licitacao.controller;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,11 +13,13 @@ public class LoginController {
     public String login(@RequestParam(value = "error", required = false) String error,
                        @RequestParam(value = "logout", required = false) String logout,
                        @RequestParam(value = "expired", required = false) String expired,
+                       HttpSession session,
                        Model model) {
         if (error != null) {
-            String lockError = (String) model.getAttribute("lockError");
+            String lockError = (String) session.getAttribute("lockError");
             if (lockError != null) {
                 model.addAttribute("error", lockError);
+                session.removeAttribute("lockError");
             } else {
                 model.addAttribute("error", "Usuário ou senha inválidos");
             }

@@ -3,6 +3,7 @@ package br.com.softwareprisma.licitacao.service;
 import br.com.softwareprisma.licitacao.controller.dto.ItemSugestaoDTO;
 import br.com.softwareprisma.licitacao.domain.AnaliseItem;
 import br.com.softwareprisma.licitacao.domain.CatItem;
+import br.com.softwareprisma.licitacao.domain.Empresa;
 import br.com.softwareprisma.licitacao.domain.enums.Area;
 import br.com.softwareprisma.licitacao.repository.AnaliseItemRepository;
 import br.com.softwareprisma.licitacao.repository.CatItemRepository;
@@ -28,71 +29,50 @@ public class ItemAutocompleteService {
     private final DescricaoMatcher descricaoMatcher;
 
     @Transactional(readOnly = true)
-    public List<ItemSugestaoDTO> buscarSugestoesAgrupadas(String termo, Area area) {
-        return buscarSugestoesAgrupadas(termo, area, null);
-    }
-
-    @Transactional(readOnly = true)
-    public List<ItemSugestaoDTO> buscarSugestoesAgrupadas(String termo, Area area, List<String> itensJaAdicionados) {
+    public List<ItemSugestaoDTO> buscarSugestoesAgrupadas(String termo, Area area,
+                                                           List<String> itensJaAdicionados, Empresa empresa) {
         if (termo == null || termo.trim().length() < 2) {
             return List.of();
         }
 
-        List<CatItem> itens = area != null
-                ? catItemRepository.buscarItensPorTermoParaAutocomplete(termo, area)
-                : catItemRepository.buscarItensPorTermoParaAutocomplete(termo);
+        List<CatItem> itens;
+        if (empresa != null) {
+            itens = catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(termo, area, empresa);
+        } else if (area != null) {
+            itens = catItemRepository.buscarItensPorTermoParaAutocomplete(termo, area);
+        } else {
+            itens = catItemRepository.buscarItensPorTermoParaAutocomplete(termo);
+        }
 
-        // Gerar chaves normalizadas dos itens já adicionados
-        java.util.Set<String> chavesJaAdicionadas = new java.util.HashSet<>();
+        Set<String> chavesJaAdicionadas = new HashSet<>();
         if (itensJaAdicionados != null) {
             for (String itemJaAdicionado : itensJaAdicionados) {
                 String[] partes = itemJaAdicionado.split("\\|");
                 if (partes.length == 2) {
-                    String chave = descricaoMatcher.gerarChave(partes[0], partes[1]);
-                    chavesJaAdicionadas.add(chave);
+                    chavesJaAdicionadas.add(descricaoMatcher.gerarChave(partes[0], partes[1]));
                 }
             }
         }
 
-        // Agrupar por chave normalizada (descricao normalizada | unidade normalizada)
         Map<String, GrupoItemSugestao> grupos = new LinkedHashMap<>();
-
         for (CatItem item : itens) {
             String chave = descricaoMatcher.gerarChave(item.getDescricao(), item.getUnidade());
-            
-            // Pular se já foi adicionado à análise
-            if (chavesJaAdicionadas.contains(chave)) {
-                continue;
-            }
-            
-            GrupoItemSugestao grupo = grupos.computeIfAbsent(chave, k -> {
-                // Usar a descrição original do primeiro item do grupo
-                return new GrupoItemSugestao(item.getDescricao(), item.getUnidade());
-            });
-            
-            // Somar quantidade
-            grupo.adicionarQuantidade(item.getQuantidade());
+            if (chavesJaAdicionadas.contains(chave)) continue;
+            grupos.computeIfAbsent(chave, k -> new GrupoItemSugestao(item.getDescricao(), item.getUnidade()))
+                  .adicionarQuantidade(item.getQuantidade());
         }
 
-        // Converter para DTOs
         List<ItemSugestaoDTO> resultado = new ArrayList<>();
         for (GrupoItemSugestao grupo : grupos.values()) {
-            resultado.add(new ItemSugestaoDTO(
-                    grupo.descricao(),
-                    grupo.unidade(),
-                    grupo.quantidadeTotal()
-            ));
+            resultado.add(new ItemSugestaoDTO(grupo.descricao(), grupo.unidade(), grupo.quantidadeTotal()));
         }
 
-        // Ordenar por relevância (começa com o termo primeiro)
         resultado.sort((a, b) -> {
             String termoLower = termo.toLowerCase();
-            boolean aComecaCom = a.descricao().toLowerCase().startsWith(termoLower);
-            boolean bComecaCom = b.descricao().toLowerCase().startsWith(termoLower);
-            
-            if (aComecaCom && !bComecaCom) return -1;
-            if (!aComecaCom && bComecaCom) return 1;
-            
+            boolean aComeca = a.descricao().toLowerCase().startsWith(termoLower);
+            boolean bComeca = b.descricao().toLowerCase().startsWith(termoLower);
+            if (aComeca && !bComeca) return -1;
+            if (!aComeca && bComeca) return 1;
             return a.descricao().compareToIgnoreCase(b.descricao());
         });
 
@@ -100,98 +80,71 @@ public class ItemAutocompleteService {
     }
 
     @Transactional(readOnly = true)
-    public List<ItemSugestaoDTO> buscarItensRecentes(Area area) {
-        // 1. Buscar AnaliseItems recentes (apenas para identificar quais itens foram usados)
-        List<AnaliseItem> analiseItemsRecentes = analiseItemRepository.buscarRecentes(area);
-        
-        if (analiseItemsRecentes.isEmpty()) {
-            return List.of();
-        }
-        
-        // 2. Extrair itens lógicos únicos usando DescricaoMatcher
+    public List<ItemSugestaoDTO> buscarItensRecentes(Area area, Empresa empresa) {
+        List<AnaliseItem> analiseItemsRecentes = empresa != null
+                ? analiseItemRepository.buscarRecentesPorEmpresa(area, empresa)
+                : analiseItemRepository.buscarRecentes(area);
+
+        if (analiseItemsRecentes.isEmpty()) return List.of();
+
         Set<String> chavesUnicas = new HashSet<>();
         for (AnaliseItem ai : analiseItemsRecentes) {
-            String chave = descricaoMatcher.gerarChave(ai.getDescricao(), ai.getUnidade());
-            chavesUnicas.add(chave);
+            chavesUnicas.add(descricaoMatcher.gerarChave(ai.getDescricao(), ai.getUnidade()));
         }
-        
-        // 3. Buscar TODOS os CatItems da área
-        List<CatItem> todosCatItems = area != null
-                ? catItemRepository.buscarTodosPorArea(area)
-                : catItemRepository.buscarTodos();
-        
-        // 4. Agrupar por chave normalizada e somar
+
+        List<CatItem> todosCatItems;
+        if (empresa != null) {
+            todosCatItems = catItemRepository.buscarTodosPorAreaEEmpresa(area, empresa);
+        } else if (area != null) {
+            todosCatItems = catItemRepository.buscarTodosPorArea(area);
+        } else {
+            todosCatItems = catItemRepository.buscarTodos();
+        }
+
         Map<String, GrupoItemSugestao> grupos = new LinkedHashMap<>();
         for (CatItem item : todosCatItems) {
             String chave = descricaoMatcher.gerarChave(item.getDescricao(), item.getUnidade());
-            
-            // Incluir apenas se está nos itens recentes
-            if (!chavesUnicas.contains(chave)) {
-                continue;
-            }
-            
-            GrupoItemSugestao grupo = grupos.computeIfAbsent(chave, k -> 
-                new GrupoItemSugestao(item.getDescricao(), item.getUnidade()));
-            grupo.adicionarQuantidade(item.getQuantidade());
+            if (!chavesUnicas.contains(chave)) continue;
+            grupos.computeIfAbsent(chave, k -> new GrupoItemSugestao(item.getDescricao(), item.getUnidade()))
+                  .adicionarQuantidade(item.getQuantidade());
         }
-        
-        // 5. Converter para DTOs
+
         List<ItemSugestaoDTO> resultado = new ArrayList<>();
         for (GrupoItemSugestao grupo : grupos.values()) {
-            resultado.add(new ItemSugestaoDTO(
-                    grupo.descricao(),
-                    grupo.unidade(),
-                    grupo.quantidadeTotal()
-            ));
+            resultado.add(new ItemSugestaoDTO(grupo.descricao(), grupo.unidade(), grupo.quantidadeTotal()));
         }
-        
-        // 6. Ordenar por data de criação da análise mais recente
-        // Usamos a ordem dos AnaliseItems recentes como referência
+
         resultado.sort((a, b) -> {
-            int indexA = -1;
-            int indexB = -1;
+            int indexA = -1, indexB = -1;
             for (int i = 0; i < analiseItemsRecentes.size(); i++) {
                 AnaliseItem ai = analiseItemsRecentes.get(i);
-                String chaveA = descricaoMatcher.gerarChave(a.descricao(), a.unidade());
-                String chaveB = descricaoMatcher.gerarChave(b.descricao(), b.unidade());
                 String chaveAi = descricaoMatcher.gerarChave(ai.getDescricao(), ai.getUnidade());
-                if (indexA == -1 && chaveA.equals(chaveAi)) indexA = i;
-                if (indexB == -1 && chaveB.equals(chaveAi)) indexB = i;
+                if (indexA == -1 && descricaoMatcher.gerarChave(a.descricao(), a.unidade()).equals(chaveAi)) indexA = i;
+                if (indexB == -1 && descricaoMatcher.gerarChave(b.descricao(), b.unidade()).equals(chaveAi)) indexB = i;
                 if (indexA != -1 && indexB != -1) break;
             }
             return Integer.compare(indexA, indexB);
         });
-        
+
         return resultado.stream().limit(10).toList();
     }
 
     private static class GrupoItemSugestao {
         private final String descricao;
         private final String unidade;
-        private BigDecimal quantidadeTotal;
+        private BigDecimal quantidadeTotal = BigDecimal.ZERO;
 
         GrupoItemSugestao(String descricao, String unidade) {
             this.descricao = descricao;
             this.unidade = unidade;
-            this.quantidadeTotal = BigDecimal.ZERO;
         }
 
-        String descricao() {
-            return descricao;
-        }
-
-        String unidade() {
-            return unidade;
-        }
-
-        BigDecimal quantidadeTotal() {
-            return quantidadeTotal;
-        }
+        String descricao() { return descricao; }
+        String unidade() { return unidade; }
+        BigDecimal quantidadeTotal() { return quantidadeTotal; }
 
         void adicionarQuantidade(BigDecimal quantidade) {
-            if (quantidade != null) {
-                this.quantidadeTotal = this.quantidadeTotal.add(quantidade);
-            }
+            if (quantidade != null) this.quantidadeTotal = this.quantidadeTotal.add(quantidade);
         }
     }
 }

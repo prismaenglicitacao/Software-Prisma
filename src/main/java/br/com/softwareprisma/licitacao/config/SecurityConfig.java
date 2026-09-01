@@ -2,6 +2,7 @@ package br.com.softwareprisma.licitacao.config;
 
 import br.com.softwareprisma.licitacao.repository.UsuarioRepository;
 import br.com.softwareprisma.licitacao.security.LoginAttemptService;
+import br.com.softwareprisma.licitacao.security.PostLoginEmpresaHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,33 +25,31 @@ public class SecurityConfig {
 
     private final UsuarioRepository usuarioRepository;
     private final LoginAttemptService loginAttemptService;
+    private final PostLoginEmpresaHandler postLoginEmpresaHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/css/**", "/js/**").permitAll()
-                .requestMatchers("/usuarios/**").hasRole("ADMIN")
+                .requestMatchers("/admin/**", "/usuarios/**", "/empresas/**").hasRole("ADMIN")
+                .requestMatchers("/escolher-empresa").authenticated()
+                .requestMatchers("/empresa-ativa/**").authenticated()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginPage("/login")
-                .defaultSuccessUrl("/", true)
                 .permitAll()
                 .failureHandler((request, response, exception) -> {
                     String login = request.getParameter("username");
                     loginAttemptService.loginFailed(login);
-                    request.getSession().setAttribute("lockError", 
-                        loginAttemptService.isLocked(login) ? 
-                        "Muitas tentativas de login. Tente novamente em " + loginAttemptService.getRemainingLockTimeMinutes(login) + " minutos." : 
+                    request.getSession().setAttribute("lockError",
+                        loginAttemptService.isLocked(login) ?
+                        "Muitas tentativas de login. Tente novamente em " + loginAttemptService.getRemainingLockTimeMinutes(login) + " minutos." :
                         "Usuário ou senha inválidos");
                     response.sendRedirect("/login?error");
                 })
-                .successHandler((request, response, authentication) -> {
-                    String login = request.getParameter("username");
-                    loginAttemptService.loginSucceeded(login);
-                    response.sendRedirect("/");
-                })
+                .successHandler(postLoginEmpresaHandler)
             )
             .logout(logout -> logout
                 .logoutSuccessUrl("/login?logout")

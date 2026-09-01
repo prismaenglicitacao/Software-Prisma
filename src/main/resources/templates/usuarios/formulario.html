@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head(${tituloPagina})}"></head>
+<head th:replace="~{fragments/layout-admin :: head-admin(${tituloPagina})}"></head>
 <body class="bg-body-tertiary">
-<nav th:replace="~{fragments/layout :: topo}"></nav>
-<div th:replace="~{fragments/layout :: modal}"></div>
+<nav th:replace="~{fragments/layout-admin :: topo-admin}"></nav>
 
 <main class="container pb-5">
     <div class="row justify-content-center">
@@ -98,7 +97,7 @@
     </div>
 </main>
 
-<script th:replace="~{fragments/layout :: scripts}"></script>
+<script th:replace="~{fragments/layout-admin :: scripts-admin}"></script>
 <script th:replace="~{fragments/password-toggle :: password-toggle}"></script>
 </body>
 </html>

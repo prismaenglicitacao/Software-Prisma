@@ -77,6 +77,10 @@
                         <i class="bi bi-people"></i>
                         <span>Usuários</span>
                     </a>
+                    <a class="nav-link d-flex align-items-center gap-2" th:href="@{/empresas}" sec:authorize="hasRole('ADMIN')">
+                        <i class="bi bi-building-gear"></i>
+                        <span>Empresas</span>
+                    </a>
                 </div>
                 <div class="navbar-nav ms-auto d-flex align-items-center gap-3">
                     <div class="position-relative">
@@ -87,6 +91,47 @@
                                id="globalSearchInput"
                                autocomplete="off">
                         <kbd class="position-absolute top-50 end-0 translate-middle-y me-2 bg-secondary border-0" style="font-size: 10px; opacity: 0.7;">⌘K</kbd>
+                    </div>
+                    <div class="dropdown" th:if="${empresaAtiva != null}">
+                        <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-building"></i>
+                            <span th:text="${empresaAtiva.nome}">Empresa</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><span class="dropdown-header text-muted">Empresas disponíveis</span></li>
+                            <li th:each="empresa : ${empresasDoUsuario}">
+                                <form th:action="@{/empresa-ativa/selecionar}" method="post" class="d-inline">
+                                    <button type="submit" name="empresaId" th:value="${empresa.id}" 
+                                            class="dropdown-item d-flex align-items-center gap-2"
+                                            th:classappend="${empresa.id == empresaAtiva.id ? 'active' : ''}">
+                                        <i class="bi bi-building"></i>
+                                        <span th:text="${empresa.nome}">Empresa</span>
+                                        <i class="bi bi-check2 ms-auto" th:if="${empresa.id == empresaAtiva.id}"></i>
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="dropdown" th:if="${empresaAtiva == null}">
+                        <button class="btn btn-warning btn-sm dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-building-exclamation"></i>
+                            <span>Selecione uma empresa</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><span class="dropdown-header text-muted">Empresas disponíveis</span></li>
+                            <li th:each="empresa : ${empresasDoUsuario}">
+                                <form th:action="@{/empresa-ativa/selecionar}" method="post" class="d-inline">
+                                    <button type="submit" name="empresaId" th:value="${empresa.id}" 
+                                            class="dropdown-item d-flex align-items-center gap-2">
+                                        <i class="bi bi-building"></i>
+                                        <span th:text="${empresa.nome}">Empresa</span>
+                                    </button>
+                                </form>
+                            </li>
+                            <li th:if="${empresasDoUsuario.isEmpty()}">
+                                <span class="dropdown-item text-muted">Nenhuma empresa disponível</span>
+                            </li>
+                        </ul>
                     </div>
                     <div class="dropdown">
                         <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">

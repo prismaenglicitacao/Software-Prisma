@@ -1,6 +1,7 @@
 package br.com.softwareprisma.licitacao.repository;
 
 import br.com.softwareprisma.licitacao.domain.CatItem;
+import br.com.softwareprisma.licitacao.domain.Empresa;
 import br.com.softwareprisma.licitacao.repository.projection.ItemSearchProjection;
 
 import org.springframework.data.domain.Page;
@@ -22,6 +23,16 @@ public interface CatItemRepository extends JpaRepository<CatItem, Long> {
             where i.id = :id
             """)
     Optional<CatItem> buscarDetalhadoPorId(Long id);
+
+    @Query("""
+            select i
+            from CatItem i
+            join fetch i.cat c
+            join fetch c.engenheiro e
+            where i.id = :id
+              and e.empresa = :empresa
+            """)
+    Optional<CatItem> buscarDetalhadoPorIdEEmpresa(@Param("id") Long id, @Param("empresa") Empresa empresa);
 
     @Query("""
             select distinct i.descricao, i.unidade
@@ -89,6 +100,13 @@ public interface CatItemRepository extends JpaRepository<CatItem, Long> {
     @Query("select count(i) from CatItem i where i.cat.engenheiro.area = :area")
     long countByArea(br.com.softwareprisma.licitacao.domain.enums.Area area);
 
+    @Query("select count(i) from CatItem i where i.cat.engenheiro.empresa = :empresa")
+    long countByEmpresa(@Param("empresa") Empresa empresa);
+
+    @Query("select count(i) from CatItem i where i.cat.engenheiro.empresa = :empresa and i.cat.engenheiro.area = :area")
+    long countByEmpresaAndArea(@Param("empresa") Empresa empresa,
+                               @Param("area") br.com.softwareprisma.licitacao.domain.enums.Area area);
+
    @Query("""
     SELECT new br.com.softwareprisma.licitacao.repository.projection.ItemSearchProjection(
         i.id, c.id, i.descricao, i.unidade, c.nome, e.nome, e.area
@@ -103,14 +121,54 @@ List<ItemSearchProjection> pesquisarPorDescricao(
         @Param("termo") String termo,
         Pageable pageable);
 
+   @Query("""
+    SELECT new br.com.softwareprisma.licitacao.repository.projection.ItemSearchProjection(
+        i.id, c.id, i.descricao, i.unidade, c.nome, e.nome, e.area
+    )
+    FROM CatItem i
+    JOIN i.cat c
+    JOIN c.engenheiro e
+    WHERE e.empresa = :empresa
+      AND LOWER(i.descricao) LIKE LOWER(CONCAT('%', :termo, '%'))
+    ORDER BY i.descricao
+    """)
+List<ItemSearchProjection> pesquisarPorDescricaoEEmpresa(
+        @Param("termo") String termo,
+        @Param("empresa") Empresa empresa,
+        Pageable pageable);
+
     @Query("SELECT ci.cat.id, COUNT(ci) FROM CatItem ci WHERE ci.cat.id IN :catIds GROUP BY ci.cat.id")
     List<Object[]> contarItensPorCatIds(@Param("catIds") List<Long> catIds);
 
     @Query("SELECT i FROM CatItem i WHERE i.cat.id = :catId ORDER BY i.id ASC")
     Page<CatItem> findByCatId(@Param("catId") Long catId, Pageable pageable);
 
+    @Query("""
+            SELECT i FROM CatItem i
+            JOIN i.cat c
+            JOIN c.engenheiro e
+            WHERE c.id = :catId
+              AND e.empresa = :empresa
+            ORDER BY i.id ASC
+            """)
+    Page<CatItem> findByCatIdAndEmpresa(@Param("catId") Long catId, @Param("empresa") Empresa empresa, Pageable pageable);
+
     @Query("SELECT i FROM CatItem i WHERE i.cat.id = :catId AND LOWER(i.descricao) LIKE LOWER(CONCAT('%', :descricao, '%')) ORDER BY i.id ASC")
     Page<CatItem> findByCatIdAndDescricaoContainingIgnoreCase(@Param("catId") Long catId, @Param("descricao") String descricao, Pageable pageable);
+
+    @Query("""
+            SELECT i FROM CatItem i
+            JOIN i.cat c
+            JOIN c.engenheiro e
+            WHERE c.id = :catId
+              AND e.empresa = :empresa
+              AND LOWER(i.descricao) LIKE LOWER(CONCAT('%', :descricao, '%'))
+            ORDER BY i.id ASC
+            """)
+    Page<CatItem> findByCatIdAndDescricaoContainingIgnoreCaseAndEmpresa(@Param("catId") Long catId,
+                                                                          @Param("descricao") String descricao,
+                                                                          @Param("empresa") Empresa empresa,
+                                                                          Pageable pageable);
 
     @Query("""
             select i
@@ -149,4 +207,38 @@ List<ItemSearchProjection> pesquisarPorDescricao(
             join fetch c.engenheiro e
             """)
     List<CatItem> buscarTodos();
+
+    @Query("""
+            select i
+            from CatItem i
+            join fetch i.cat c
+            join fetch c.engenheiro e
+            where e.empresa = :empresa
+              and (:area is null or e.area = :area)
+              and lower(i.descricao) like lower(concat('%', :termo, '%'))
+            order by i.descricao
+            """)
+    List<CatItem> buscarItensPorTermoParaAutocompleteEEmpresa(@Param("termo") String termo,
+                                                               @Param("area") br.com.softwareprisma.licitacao.domain.enums.Area area,
+                                                               @Param("empresa") Empresa empresa);
+
+    @Query("""
+            select i
+            from CatItem i
+            join fetch i.cat c
+            join fetch c.engenheiro e
+            where e.empresa = :empresa
+              and (:area is null or e.area = :area)
+            """)
+    List<CatItem> buscarTodosPorAreaEEmpresa(@Param("area") br.com.softwareprisma.licitacao.domain.enums.Area area,
+                                             @Param("empresa") Empresa empresa);
+
+    @Query("""
+            select i
+            from CatItem i
+            join fetch i.cat c
+            join fetch c.engenheiro e
+            where e.empresa = :empresa
+            """)
+    List<CatItem> buscarTodosPorEmpresa(@Param("empresa") Empresa empresa);
 }

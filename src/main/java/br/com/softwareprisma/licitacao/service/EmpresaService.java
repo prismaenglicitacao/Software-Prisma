@@ -41,6 +41,10 @@ public class EmpresaService {
 
     @Transactional
     public Empresa salvar(Empresa empresa) {
+        // Normalize empty CNPJ to null to avoid unique constraint on empty strings
+        if (empresa.getCnpj() != null && empresa.getCnpj().isBlank()) {
+            empresa.setCnpj(null);
+        }
         if (empresa.getCnpj() != null && empresaRepository.existsByCnpj(empresa.getCnpj())) {
             throw new ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "CNPJ já cadastrado");
         }
