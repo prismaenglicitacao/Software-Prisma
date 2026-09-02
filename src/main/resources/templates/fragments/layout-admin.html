@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+<head th:fragment="head-admin(titulo)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo} + ' | Admin — Software Prisma'">Admin — Software Prisma</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link th:href="@{/css/prisma.css}" rel="stylesheet">
+</head>
+
+<nav th:fragment="topo-admin"
+     class="navbar navbar-expand-lg navbar-dark mb-3 shadow-sm">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2" th:href="@{/admin}">
+            <i class="bi bi-shield-lock"></i>
+            <span>Administração</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarAdmin">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarAdmin">
+            <div class="navbar-nav">
+                <a class="nav-link d-flex align-items-center gap-2" th:href="@{/admin}">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Painel</span>
+                </a>
+                <a class="nav-link d-flex align-items-center gap-2" th:href="@{/empresas}">
+                    <i class="bi bi-building-gear"></i>
+                    <span>Empresas</span>
+                </a>
+                <a class="nav-link d-flex align-items-center gap-2" th:href="@{/usuarios}">
+                    <i class="bi bi-people"></i>
+                    <span>Usuários</span>
+                </a>
+                <a class="nav-link d-flex align-items-center gap-2" th:href="@{/admin/vinculos}">
+                    <i class="bi bi-link-45deg"></i>
+                    <span>Vínculos</span>
+                </a>
+            </div>
+            <div class="navbar-nav ms-auto">
+                <div class="dropdown">
+                    <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center gap-2"
+                            type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i>
+                        <span sec:authentication="name">Admin</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <form th:action="@{/logout}" method="post" class="d-inline">
+                                <button type="submit" class="dropdown-item d-flex align-items-center gap-2">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                    <span>Sair</span>
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<th:block th:fragment="scripts-admin">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+</th:block>
+
+</body>
+</html>

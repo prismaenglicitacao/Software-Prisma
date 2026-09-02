@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout-admin :: head-admin('Vínculos')}"></head>
+<body class="bg-body-tertiary">
+<nav th:replace="~{fragments/layout-admin :: topo-admin}"></nav>
+
+<main class="container pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h4 mb-1">Vínculos Usuário ↔ Empresa</h1>
+            <p class="text-body-secondary mb-0">Defina quais usuários têm acesso a cada empresa.</p>
+        </div>
+        <a class="btn btn-outline-secondary" th:href="@{/admin}">Voltar ao Painel</a>
+    </div>
+
+    <div th:if="${mensagemSucesso}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i>
+        <span th:text="${mensagemSucesso}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${mensagemErro}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <span th:text="${mensagemErro}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${#lists.isEmpty(empresas)}" class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>
+        Nenhuma empresa cadastrada.
+        <a th:href="@{/empresas/nova}" class="alert-link">Cadastrar primeira empresa</a>.
+    </div>
+
+    <div th:each="empresa : ${empresas}" class="card shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+            <span class="fw-semibold d-flex align-items-center gap-2">
+                <i class="bi bi-building text-primary"></i>
+                <span th:text="${empresa.nome}">Empresa</span>
+            </span>
+            <span class="badge text-bg-light border"
+                  th:text="${vinculos[empresa.id] != null ? vinculos[empresa.id].size() : 0} + ' usuário(s) vinculado(s)'">
+                0 usuário(s)
+            </span>
+        </div>
+        <div class="card-body p-0">
+
+            <!-- Usuários vinculados -->
+            <div th:if="${vinculos[empresa.id] != null and !vinculos[empresa.id].isEmpty()}" class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Usuário</th>
+                        <th>Login</th>
+                        <th class="text-end">Ação</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="ue : ${vinculos[empresa.id]}">
+                        <td th:text="${ue.usuario.nome}">Nome</td>
+                        <td>
+                            <code th:text="${ue.usuario.login}">login</code>
+                        </td>
+                        <td class="text-end">
+                            <form th:action="@{/admin/vinculos/revogar}" method="post"
+                                  onsubmit="return confirm('Revogar acesso de ' + this.dataset.nome + '?')"
+                                  th:data-nome="${ue.usuario.nome}">
+                                <input type="hidden" name="usuarioId" th:value="${ue.usuario.id}">
+                                <input type="hidden" name="empresaId" th:value="${empresa.id}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-person-x me-1"></i>Revogar
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div th:if="${vinculos[empresa.id] == null or vinculos[empresa.id].isEmpty()}"
+                 class="px-3 py-2 text-body-secondary small fst-italic">
+                Nenhum usuário vinculado a esta empresa.
+            </div>
+
+            <!-- Conceder acesso -->
+            <div class="p-3 border-top bg-body-secondary bg-opacity-25">
+                <form th:action="@{/admin/vinculos/conceder}" method="post"
+                      class="d-flex gap-2 align-items-end flex-wrap"
+                      onsubmit="return validarSelecao(this)">
+                    <input type="hidden" name="empresaId" th:value="${empresa.id}">
+                    <div class="flex-grow-1" style="min-width: 200px;">
+                        <label class="form-label small mb-1 fw-semibold">
+                            <i class="bi bi-person-plus me-1"></i>Vincular usuário
+                        </label>
+                        <select name="usuarioId" class="form-select form-select-sm">
+                            <option value="">— Selecione um usuário —</option>
+                            <option th:each="u : ${usuarios}"
+                                    th:value="${u.id}"
+                                    th:text="${u.nome + ' (' + u.login + ')'}">
+                                Usuário
+                            </option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="bi bi-link-45deg me-1"></i>Vincular
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<script th:replace="~{fragments/layout-admin :: scripts-admin}"></script>
+<script>
+function validarSelecao(form) {
+    const select = form.querySelector('select[name="usuarioId"]');
+    if (!select.value) {
+        alert('Selecione um usuário antes de vincular.');
+        return false;
+    }
+    return true;
+}
+</script>
+</body>
+</html>
