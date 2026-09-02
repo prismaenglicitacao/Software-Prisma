@@ -33,7 +33,7 @@ public class AnaliseResultadoItemPersistido {
     @JoinColumn(name = "resultado_persistido_id", nullable = false)
     private AnaliseResultadoPersistido resultadoPersistido;
 
-    @Column(name = "descricao", nullable = false, length = 500)
+    @Column(name = "descricao", nullable = false, columnDefinition = "TEXT")
     private String descricao;
 
     @Column(name = "unidade", length = 20)
