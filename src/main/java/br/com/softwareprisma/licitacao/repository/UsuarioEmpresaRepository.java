@@ -27,9 +27,22 @@ public interface UsuarioEmpresaRepository extends JpaRepository<UsuarioEmpresa, 
 
     Optional<UsuarioEmpresa> findByUsuarioAndEmpresa(Usuario usuario, Empresa empresa);
 
+    Optional<UsuarioEmpresa> findByUsuarioIdAndEmpresaAndAtivoTrue(Long usuarioId, Empresa empresa);
+
+    Optional<UsuarioEmpresa> findByUsuarioIdAndEmpresa(Long usuarioId, Empresa empresa);
+
     boolean existsByUsuarioAndEmpresaAndAtivoTrue(Usuario usuario, Empresa empresa);
 
     boolean existsByUsuarioAndEmpresaIdAndAtivoTrue(Usuario usuario, Long empresaId);
+
+    @Query("""
+            select count(ue)
+            from UsuarioEmpresa ue
+            where ue.empresa = :empresa
+              and ue.ativo = true
+              and ue.perfil = br.com.softwareprisma.licitacao.domain.enums.PerfilEmpresa.ADMIN_EMPRESA
+            """)
+    long countAdministradoresAtivosPorEmpresa(Empresa empresa);
 
     List<UsuarioEmpresa> findByEmpresaAndAtivoTrueOrderByUsuarioNomeAsc(Empresa empresa);
 
@@ -43,6 +56,16 @@ public interface UsuarioEmpresaRepository extends JpaRepository<UsuarioEmpresa, 
             order by u.nome asc
             """)
     List<UsuarioEmpresa> findByEmpresaAtivoTrueComUsuario(Empresa empresa);
+
+              @Query("""
+                select ue
+                from UsuarioEmpresa ue
+                join fetch ue.usuario u
+                join fetch ue.empresa e
+                where ue.empresa = :empresa
+                order by u.nome asc
+                """)
+              List<UsuarioEmpresa> findByEmpresaComUsuario(Empresa empresa);
 
     void deleteByUsuarioAndEmpresa(Usuario usuario, Empresa empresa);
 }

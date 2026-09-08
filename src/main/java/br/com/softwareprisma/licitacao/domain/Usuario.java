@@ -49,7 +49,7 @@ public class Usuario implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         if (Boolean.TRUE.equals(administrador)) {
-            return Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN"));
+            return Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN_SISTEMA"));
         }
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
     }

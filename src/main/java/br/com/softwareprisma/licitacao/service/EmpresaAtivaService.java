@@ -45,8 +45,20 @@ public class EmpresaAtivaService {
             }
             return null;
         }
+        boolean temAcesso = usuarioEmpresaRepository
+                .existsByUsuarioAndEmpresaIdAndAtivoTrue(usuario, empresaId);
+        if (!temAcesso) {
+            limparEmpresaAtiva(session);
+            return getEmpresaAtiva(session, usuario);
+        }
+
         // Re-fetch from DB to avoid stale/lazy proxy
-        return empresaRepository.findById(empresaId).orElse(null);
+        Empresa empresa = empresaRepository.findById(empresaId).orElse(null);
+        if (empresa == null || !Boolean.TRUE.equals(empresa.getAtivo())) {
+            limparEmpresaAtiva(session);
+            return getEmpresaAtiva(session, usuario);
+        }
+        return empresa;
     }
 
     public void setEmpresaAtiva(HttpSession session, Empresa empresa) {

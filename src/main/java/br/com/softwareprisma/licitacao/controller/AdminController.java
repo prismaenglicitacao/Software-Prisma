@@ -3,6 +3,7 @@ package br.com.softwareprisma.licitacao.controller;
 import br.com.softwareprisma.licitacao.domain.Empresa;
 import br.com.softwareprisma.licitacao.domain.Usuario;
 import br.com.softwareprisma.licitacao.domain.UsuarioEmpresa;
+import br.com.softwareprisma.licitacao.domain.enums.PerfilEmpresa;
 import br.com.softwareprisma.licitacao.service.EmpresaService;
 import br.com.softwareprisma.licitacao.service.UsuarioEmpresaService;
 import br.com.softwareprisma.licitacao.service.UsuarioService;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -63,6 +65,7 @@ public class AdminController {
 
         model.addAttribute("empresas", empresas);
         model.addAttribute("usuarios", usuarios);
+        model.addAttribute("perfis", PerfilEmpresa.values());
         model.addAttribute("vinculos", vinculos);
         return "admin/vinculos";
     }
@@ -70,6 +73,8 @@ public class AdminController {
     @PostMapping("/vinculos/conceder")
     public String concederAcesso(@RequestParam Long usuarioId,
                                  @RequestParam Long empresaId,
+                                 @RequestParam PerfilEmpresa perfil,
+                                 @AuthenticationPrincipal Usuario administrador,
                                  RedirectAttributes redirectAttributes) {
         if (usuarioId == null) {
             redirectAttributes.addFlashAttribute("mensagemErro", "Selecione um usuário para vincular.");
@@ -78,7 +83,10 @@ public class AdminController {
         try {
             Usuario usuario = usuarioService.buscarPorId(usuarioId);
             Empresa empresa = empresaService.buscarPorId(empresaId);
-            usuarioEmpresaService.concederAcesso(usuario, empresa);
+            if (Boolean.TRUE.equals(usuario.getAdministrador())) {
+                throw new IllegalArgumentException("ADMIN_SISTEMA não pode receber perfil empresarial");
+            }
+            usuarioEmpresaService.concederAcesso(usuario, empresa, perfil, administrador);
             redirectAttributes.addFlashAttribute("mensagemSucesso",
                     "Acesso de \"" + usuario.getNome() + "\" à empresa \"" + empresa.getNome() + "\" concedido com sucesso.");
         } catch (ResponseStatusException e) {
@@ -96,9 +104,28 @@ public class AdminController {
         try {
             Usuario usuario = usuarioService.buscarPorId(usuarioId);
             Empresa empresa = empresaService.buscarPorId(empresaId);
-            usuarioEmpresaService.revogarAcesso(usuario, empresa);
+            usuarioEmpresaService.revogarAcesso(usuarioId, empresa);
             redirectAttributes.addFlashAttribute("mensagemSucesso",
                     "Acesso de \"" + usuario.getNome() + "\" à empresa \"" + empresa.getNome() + "\" revogado.");
+        } catch (ResponseStatusException e) {
+            redirectAttributes.addFlashAttribute("mensagemErro", e.getReason());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("mensagemErro", e.getMessage());
+        }
+        return "redirect:/admin/vinculos";
+    }
+
+    @PostMapping("/vinculos/perfil")
+    public String alterarPerfil(@RequestParam Long usuarioId,
+                                @RequestParam Long empresaId,
+                                @RequestParam PerfilEmpresa perfil,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            Usuario usuario = usuarioService.buscarPorId(usuarioId);
+            Empresa empresa = empresaService.buscarPorId(empresaId);
+            usuarioEmpresaService.alterarPerfil(usuarioId, empresa, perfil);
+            redirectAttributes.addFlashAttribute("mensagemSucesso",
+                    "Perfil de \"" + usuario.getNome() + "\" na empresa \"" + empresa.getNome() + "\" atualizado.");
         } catch (ResponseStatusException e) {
             redirectAttributes.addFlashAttribute("mensagemErro", e.getReason());
         } catch (Exception e) {

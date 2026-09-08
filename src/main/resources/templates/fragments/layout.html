@@ -73,13 +73,19 @@
                             </li>
                         </ul>
                     </div>
-                    <a class="nav-link d-flex align-items-center gap-2" th:href="@{/usuarios}" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link d-flex align-items-center gap-2" th:href="@{/usuarios}" sec:authorize="hasRole('ADMIN_SISTEMA')">
                         <i class="bi bi-people"></i>
                         <span>Usuários</span>
                     </a>
-                    <a class="nav-link d-flex align-items-center gap-2" th:href="@{/empresas}" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link d-flex align-items-center gap-2" th:href="@{/empresas}" sec:authorize="hasRole('ADMIN_SISTEMA')">
                         <i class="bi bi-building-gear"></i>
                         <span>Empresas</span>
+                    </a>
+                    <a class="nav-link d-flex align-items-center gap-2"
+                       th:if="${podeAdministrarEmpresaAtiva}"
+                       th:href="@{/empresa-admin}">
+                        <i class="bi bi-person-gear"></i>
+                        <span>Administração da empresa</span>
                     </a>
                 </div>
                 <div class="navbar-nav ms-auto d-flex align-items-center gap-3">

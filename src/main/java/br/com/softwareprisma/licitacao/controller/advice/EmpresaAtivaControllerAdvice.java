@@ -3,6 +3,7 @@ package br.com.softwareprisma.licitacao.controller.advice;
 import br.com.softwareprisma.licitacao.domain.Empresa;
 import br.com.softwareprisma.licitacao.domain.Usuario;
 import br.com.softwareprisma.licitacao.service.EmpresaAtivaService;
+import br.com.softwareprisma.licitacao.service.UsuarioEmpresaService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,6 +17,7 @@ import java.util.List;
 public class EmpresaAtivaControllerAdvice {
 
     private final EmpresaAtivaService empresaAtivaService;
+    private final UsuarioEmpresaService usuarioEmpresaService;
 
     @ModelAttribute("empresaAtiva")
     public Empresa empresaAtiva(@AuthenticationPrincipal Usuario usuario,
@@ -39,6 +41,20 @@ public class EmpresaAtivaControllerAdvice {
             return empresaAtivaService.listarEmpresasDoUsuario(usuario);
         } catch (Exception e) {
             return List.of();
+        }
+    }
+
+    @ModelAttribute("podeAdministrarEmpresaAtiva")
+    public boolean podeAdministrarEmpresaAtiva(@AuthenticationPrincipal Usuario usuario,
+                                                HttpSession session) {
+        if (usuario == null || Boolean.TRUE.equals(usuario.getAdministrador())) {
+            return false;
+        }
+        try {
+            return usuarioEmpresaService.podeAdministrarEmpresa(
+                    usuario, empresaAtivaService.getEmpresaAtiva(session, usuario));
+        } catch (Exception e) {
+            return false;
         }
     }
 }

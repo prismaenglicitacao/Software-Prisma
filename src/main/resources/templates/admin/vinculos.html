@@ -50,6 +50,7 @@
                     <tr>
                         <th>Usuário</th>
                         <th>Login</th>
+                        <th>Perfil</th>
                         <th class="text-end">Ação</th>
                     </tr>
                     </thead>
@@ -58,6 +59,18 @@
                         <td th:text="${ue.usuario.nome}">Nome</td>
                         <td>
                             <code th:text="${ue.usuario.login}">login</code>
+                        </td>
+                        <td>
+                            <form th:action="@{/admin/vinculos/perfil}" method="post" class="d-flex gap-2">
+                                <input type="hidden" name="usuarioId" th:value="${ue.usuario.id}">
+                                <input type="hidden" name="empresaId" th:value="${empresa.id}">
+                                <select name="perfil" class="form-select form-select-sm">
+                                    <option th:each="perfil : ${perfis}" th:value="${perfil}" th:selected="${ue.perfil == perfil}"
+                                            th:text="${perfil == T(br.com.softwareprisma.licitacao.domain.enums.PerfilEmpresa).ADMIN_EMPRESA ? 'Administrador da empresa' : 'Usuário'}">
+                                    </option>
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-outline-primary">Salvar</button>
+                            </form>
                         </td>
                         <td class="text-end">
                             <form th:action="@{/admin/vinculos/revogar}" method="post"
@@ -90,12 +103,20 @@
                         <label class="form-label small mb-1 fw-semibold">
                             <i class="bi bi-person-plus me-1"></i>Vincular usuário
                         </label>
-                        <select name="usuarioId" class="form-select form-select-sm">
+                            <select name="usuarioId" class="form-select form-select-sm">
                             <option value="">— Selecione um usuário —</option>
                             <option th:each="u : ${usuarios}"
                                     th:value="${u.id}"
                                     th:text="${u.nome + ' (' + u.login + ')'}">
                                 Usuário
+                            </option>
+                        </select>
+                    </div>
+                    <div style="min-width: 180px;">
+                        <label class="form-label small mb-1 fw-semibold">Perfil</label>
+                        <select name="perfil" class="form-select form-select-sm">
+                            <option th:each="perfil : ${perfis}" th:value="${perfil}"
+                                    th:text="${perfil == T(br.com.softwareprisma.licitacao.domain.enums.PerfilEmpresa).ADMIN_EMPRESA ? 'Administrador da empresa' : 'Usuário'}">
                             </option>
                         </select>
                     </div>

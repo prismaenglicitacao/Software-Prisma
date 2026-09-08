@@ -33,6 +33,7 @@ public class PostLoginEmpresaHandler implements AuthenticationSuccessHandler {
 
         HttpSession session = request.getSession();
         Usuario usuario = (Usuario) authentication.getPrincipal();
+        empresaAtivaService.limparEmpresaAtiva(session);
 
         // ADMIN SISTEMA -> area administrativa
         if (Boolean.TRUE.equals(usuario.getAdministrador())) {

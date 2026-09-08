@@ -49,6 +49,14 @@ public class UsuarioService {
     }
 
     @Transactional
+    public Usuario atualizarDadosEmpresa(Long id, String nome, Boolean ativo) {
+        Usuario existente = buscarPorId(id);
+        existente.setNome(nome);
+        existente.setAtivo(ativo);
+        return usuarioRepository.save(existente);
+    }
+
+    @Transactional
     public void alterarSenha(Long id, String novaSenha) {
         Usuario usuario = buscarPorId(id);
         usuario.setSenha(passwordEncoder.encode(novaSenha));

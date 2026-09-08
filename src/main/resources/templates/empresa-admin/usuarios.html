@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout-empresa-admin :: head('Usuários')}" />
+<body class="bg-body-tertiary">
+<nav th:replace="~{fragments/layout-empresa-admin :: topo}" />
+<main class="container pb-5">
+    <div th:if="${mensagemSucesso}" class="alert alert-success" th:text="${mensagemSucesso}"></div>
+    <div th:if="${mensagemErro}" class="alert alert-danger" th:text="${mensagemErro}"></div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Usuários da empresa</h1>
+            <p class="text-body-secondary mb-0" th:text="${empresa.nome}">Empresa</p>
+        </div>
+        <a class="btn btn-primary" th:href="@{/empresa-admin/usuarios/novo}">
+            <i class="bi bi-person-plus me-1"></i>Novo usuário
+        </a>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h2 class="h5">Vincular usuário existente</h2>
+            <form class="row g-2" th:action="@{/empresa-admin/usuarios/vincular}" method="post">
+                <div class="col-md-5">
+                    <label class="form-label" for="login">Login</label>
+                    <input class="form-control" id="login" name="login" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="perfilVinculo">Perfil</label>
+                    <select class="form-select" id="perfilVinculo" name="perfil">
+                        <option th:each="perfil : ${perfis}" th:value="${perfil}" th:text="${perfil == T(br.com.softwareprisma.licitacao.domain.enums.PerfilEmpresa).ADMIN_EMPRESA ? 'Administrador da empresa' : 'Usuário'}"></option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button class="btn btn-outline-primary w-100" type="submit">Vincular</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead><tr><th>Nome</th><th>Login</th><th>Perfil</th><th>Status</th><th class="text-end">Ações</th></tr></thead>
+                <tbody>
+                <tr th:each="vinculo : ${vinculos}">
+                    <td th:text="${vinculo.usuario.nome}">Nome</td>
+                    <td th:text="${vinculo.usuario.login}">login</td>
+                    <td th:text="${vinculo.perfil == T(br.com.softwareprisma.licitacao.domain.enums.PerfilEmpresa).ADMIN_EMPRESA ? 'Administrador da empresa' : 'Usuário'}">Perfil</td>
+                    <td th:text="${vinculo.ativo ? 'Ativo' : 'Revogado'}">Status</td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-secondary" th:if="${vinculo.ativo}" th:href="@{/empresa-admin/usuarios/{id}/editar(id=${vinculo.usuario.id})}">Editar</a>
+                        <form class="d-inline" th:if="${vinculo.ativo}" th:action="@{/empresa-admin/usuarios/{id}/perfil(id=${vinculo.usuario.id})}" method="post">
+                            <input type="hidden" name="perfil" th:value="${vinculo.perfil == T(br.com.softwareprisma.licitacao.domain.enums.PerfilEmpresa).ADMIN_EMPRESA ? 'USUARIO' : 'ADMIN_EMPRESA'}">
+                            <button class="btn btn-sm btn-outline-primary" type="submit" th:text="${vinculo.perfil == T(br.com.softwareprisma.licitacao.domain.enums.PerfilEmpresa).ADMIN_EMPRESA ? 'Tornar usuário' : 'Tornar administrador'}">Alterar perfil</button>
+                        </form>
+                        <form class="d-inline" th:if="${vinculo.ativo}" th:action="@{/empresa-admin/usuarios/{id}/revogar(id=${vinculo.usuario.id})}" method="post">
+                            <button class="btn btn-sm btn-outline-danger" type="submit">Revogar</button>
+                        </form>
+                        <form class="d-inline" th:unless="${vinculo.ativo}" th:action="@{/empresa-admin/usuarios/{id}/reativar(id=${vinculo.usuario.id})}" method="post">
+                            <button class="btn btn-sm btn-outline-success" type="submit">Reativar</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(vinculos)}"><td colspan="5" class="text-center text-body-secondary py-4">Nenhum usuário vinculado.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+<script th:replace="~{fragments/layout-empresa-admin :: scripts}" />
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout-empresa-admin :: head(${vinculo == null ? 'Novo usuário' : 'Editar usuário'})}" />
+<body class="bg-body-tertiary">
+<nav th:replace="~{fragments/layout-empresa-admin :: topo}" />
+<main class="container pb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-6">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div><h1 class="h3 mb-1" th:text="${vinculo == null ? 'Novo usuário' : 'Editar usuário'}">Usuário</h1><p class="text-body-secondary mb-0" th:text="${empresa.nome}">Empresa</p></div>
+                <a class="btn btn-outline-secondary" th:href="@{/empresa-admin/usuarios}">Voltar</a>
+            </div>
+            <div th:if="${mensagemErro}" class="alert alert-danger" th:text="${mensagemErro}"></div>
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <form th:action="${vinculo == null ? '/empresa-admin/usuarios' : '/empresa-admin/usuarios/' + vinculo.usuario.id}" th:object="${usuarioForm}" method="post">
+                        <div class="mb-3"><label class="form-label" for="nome">Nome</label><input class="form-control" id="nome" th:field="*{nome}" required><div class="text-danger small" th:errors="*{nome}"></div></div>
+                        <div class="mb-3"><label class="form-label" for="login">Login</label><input class="form-control" id="login" th:field="*{login}" th:readonly="${vinculo != null}" required><div class="text-danger small" th:errors="*{login}"></div></div>
+                        <div class="mb-3" th:if="${vinculo == null}"><label class="form-label" for="senha">Senha</label><input class="form-control" id="senha" type="password" th:field="*{senha}" required><div class="text-danger small" th:errors="*{senha}"></div></div>
+                        <div class="mb-3" th:if="${vinculo == null}"><label class="form-label" for="perfil">Perfil na empresa</label><select class="form-select" id="perfil" th:field="*{perfil}"><option th:each="perfil : ${perfis}" th:value="${perfil}" th:text="${perfil == T(br.com.softwareprisma.licitacao.domain.enums.PerfilEmpresa).ADMIN_EMPRESA ? 'Administrador da empresa' : 'Usuário'}"></option></select></div>
+                        <div class="form-check mb-3" th:if="${vinculo != null}"><input class="form-check-input" id="ativo" type="checkbox" th:field="*{ativo}"><label class="form-check-label" for="ativo">Usuário ativo</label></div>
+                        <button class="btn btn-primary" type="submit">Salvar</button>
+                    </form>
+                </div>
+            </div>
+            <div class="card shadow-sm mt-4" th:if="${vinculo != null}">
+                <div class="card-body p-4"><h2 class="h5">Alterar senha</h2><form th:action="@{/empresa-admin/usuarios/{id}/senha(id=${vinculo.usuario.id})}" method="post" class="d-flex gap-2"><input class="form-control" type="password" name="novaSenha" placeholder="Nova senha" required><button class="btn btn-warning" type="submit">Alterar</button></form></div>
+            </div>
+        </div>
+    </div>
+</main>
+<script th:replace="~{fragments/layout-empresa-admin :: scripts}" />
+</body>
+</html>
