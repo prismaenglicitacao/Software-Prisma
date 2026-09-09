@@ -29,145 +29,178 @@
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     </head>
 
-  <nav th:fragment="topo"
-     class="navbar navbar-expand-lg navbar-dark mb-3 shadow-sm">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2" th:href="@{/}">
-                <i class="bi bi-building"></i>
-                <span>Software Prisma</span>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <div class="navbar-nav">
-                    <a class="nav-link d-flex align-items-center gap-2" th:href="@{/}">
+    <nav th:fragment="topo" class="prisma-shell" aria-label="Navegação principal">
+        <aside class="prisma-sidebar" id="prismaSidebar">
+            <div class="prisma-sidebar-header">
+                <a class="prisma-brand-side" th:href="@{/}">
+                    <span class="prisma-brand-mark"><i class="bi bi-building"></i></span>
+                    <span class="prisma-brand-text">Software Prisma</span>
+                </a>
+            </div>
+
+            <div class="prisma-sidebar-nav">
+                <div class="prisma-sidebar-section">
+                    <span class="prisma-sidebar-label">Principal</span>
+
+                    <a class="prisma-sidebar-link" th:href="@{/}" data-route="/">
                         <i class="bi bi-speedometer2"></i>
                         <span>Dashboard</span>
                     </a>
-                    <a class="nav-link d-flex align-items-center gap-2" th:href="@{/engenheiros}">
+                    <a class="prisma-sidebar-link" th:href="@{/engenheiros}" data-route="/engenheiros">
                         <i class="bi bi-person-badge"></i>
                         <span>Engenheiros</span>
                     </a>
-                    <a class="nav-link d-flex align-items-center gap-2" th:href="@{/cats}">
+                    <a class="prisma-sidebar-link" th:href="@{/cats}" data-route="/cats">
                         <i class="bi bi-file-earmark-text"></i>
                         <span>CATs</span>
                     </a>
-                    <div class="nav-item dropdown">
-                        <a class="nav-link d-flex align-items-center gap-2 dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-graph-up"></i>
-                            <span>Análises</span>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center gap-2" th:href="@{/analises/nova}">
-                                    <i class="bi bi-plus-circle"></i>
-                                    <span>Nova Análise</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center gap-2" th:href="@{/historico}">
-                                    <i class="bi bi-clock-history"></i>
-                                    <span>Histórico</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                    <a class="nav-link d-flex align-items-center gap-2" th:href="@{/usuarios}" sec:authorize="hasRole('ADMIN_SISTEMA')">
-                        <i class="bi bi-people"></i>
-                        <span>Usuários</span>
+                    <a class="prisma-sidebar-link" th:href="@{/historico}" data-route="/historico">
+                        <i class="bi bi-graph-up"></i>
+                        <span>Análises</span>
                     </a>
-                    <a class="nav-link d-flex align-items-center gap-2" th:href="@{/empresas}" sec:authorize="hasRole('ADMIN_SISTEMA')">
-                        <i class="bi bi-building-gear"></i>
-                        <span>Empresas</span>
-                    </a>
-                    <a class="nav-link d-flex align-items-center gap-2"
+                </div>
+
+                <div class="prisma-sidebar-section"
+                     th:if="${podeAdministrarEmpresaAtiva or #authorization.expression('hasRole(''ADMIN_SISTEMA'')')}">
+                    <span class="prisma-sidebar-label">Administração</span>
+
+                    <a class="prisma-sidebar-link"
                        th:if="${podeAdministrarEmpresaAtiva}"
-                       th:href="@{/empresa-admin}">
+                       th:href="@{/empresa-admin}"
+                       data-route="/empresa-admin">
                         <i class="bi bi-person-gear"></i>
                         <span>Administração da empresa</span>
                     </a>
-                </div>
-                <div class="navbar-nav ms-auto d-flex align-items-center gap-3">
-                    <div class="position-relative">
-                        <input type="text" 
-                               class="form-control form-control-sm" 
-                               style="width: 200px; background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;"
-                               placeholder="Pesquisar..."
-                               id="globalSearchInput"
-                               autocomplete="off">
-                        <kbd class="position-absolute top-50 end-0 translate-middle-y me-2 bg-secondary border-0" style="font-size: 10px; opacity: 0.7;">⌘K</kbd>
-                    </div>
-                    <div class="dropdown" th:if="${empresaAtiva != null}">
-                        <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-building"></i>
-                            <span th:text="${empresaAtiva.nome}">Empresa</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><span class="dropdown-header text-muted">Empresas disponíveis</span></li>
-                            <li th:each="empresa : ${empresasDoUsuario}">
-                                <form th:action="@{/empresa-ativa/selecionar}" method="post" class="d-inline">
-                                    <button type="submit" name="empresaId" th:value="${empresa.id}" 
-                                            class="dropdown-item d-flex align-items-center gap-2"
-                                            th:classappend="${empresa.id == empresaAtiva.id ? 'active' : ''}">
-                                        <i class="bi bi-building"></i>
-                                        <span th:text="${empresa.nome}">Empresa</span>
-                                        <i class="bi bi-check2 ms-auto" th:if="${empresa.id == empresaAtiva.id}"></i>
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="dropdown" th:if="${empresaAtiva == null}">
-                        <button class="btn btn-warning btn-sm dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-building-exclamation"></i>
-                            <span>Selecione uma empresa</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><span class="dropdown-header text-muted">Empresas disponíveis</span></li>
-                            <li th:each="empresa : ${empresasDoUsuario}">
-                                <form th:action="@{/empresa-ativa/selecionar}" method="post" class="d-inline">
-                                    <button type="submit" name="empresaId" th:value="${empresa.id}" 
-                                            class="dropdown-item d-flex align-items-center gap-2">
-                                        <i class="bi bi-building"></i>
-                                        <span th:text="${empresa.nome}">Empresa</span>
-                                    </button>
-                                </form>
-                            </li>
-                            <li th:if="${empresasDoUsuario.isEmpty()}">
-                                <span class="dropdown-item text-muted">Nenhuma empresa disponível</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-circle"></i>
-                            <span sec:authentication="name">Usuário</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item d-flex align-items-center gap-2" th:href="@{/meu-perfil}">
-                                <i class="bi bi-person"></i>
-                                <span>Meu Perfil</span>
-                            </a></li>
-                            <li><a class="dropdown-item d-flex align-items-center gap-2" th:href="@{/alterar-senha}">
-                                <i class="bi bi-key"></i>
-                                <span>Alterar Senha</span>
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <form th:action="@{/logout}" method="post" class="d-inline">
-                                    <button type="submit" class="dropdown-item d-flex align-items-center gap-2">
-                                        <i class="bi bi-box-arrow-right"></i>
-                                        <span>Sair</span>
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
+                    <a class="prisma-sidebar-link"
+                       th:href="@{/usuarios}"
+                       sec:authorize="hasRole('ADMIN_SISTEMA')"
+                       data-route="/usuarios">
+                        <i class="bi bi-people"></i>
+                        <span>Usuários</span>
+                    </a>
+                    <a class="prisma-sidebar-link"
+                       th:href="@{/empresas}"
+                       sec:authorize="hasRole('ADMIN_SISTEMA')"
+                       data-route="/empresas">
+                        <i class="bi bi-building-gear"></i>
+                        <span>Empresas</span>
+                    </a>
                 </div>
             </div>
-        </div>
+
+            <div class="prisma-sidebar-footer">
+                <div class="prisma-user-summary">
+                    <span class="prisma-user-avatar">
+                        <i class="bi bi-person-circle"></i>
+                    </span>
+                    <div class="prisma-user-meta">
+                        <span class="prisma-user-name" sec:authentication="name">Usuário</span>
+                        <small th:if="${empresaAtiva != null}" th:text="${empresaAtiva.nome}">Empresa</small>
+                    </div>
+                </div>
+                <div class="prisma-user-actions">
+                    <a class="prisma-sidebar-action" th:href="@{/meu-perfil}">
+                        <i class="bi bi-person"></i>
+                        <span>Perfil</span>
+                    </a>
+                    <form th:action="@{/logout}" method="post">
+                        <button type="submit" class="prisma-sidebar-action danger">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span>Sair</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </aside>
+
+        <div class="prisma-sidebar-backdrop" id="prismaSidebarBackdrop"></div>
+
+        <header class="prisma-topbar-modern">
+            <div class="prisma-topbar-left">
+                <button type="button" class="prisma-sidebar-toggle" id="prismaSidebarToggle" aria-label="Alternar menu lateral">
+                    <i class="bi bi-list"></i>
+                </button>
+            </div>
+
+            <div class="prisma-topbar-right">
+                <div class="prisma-topbar-search">
+                    <span class="prisma-search-icon"><i class="bi bi-search"></i></span>
+                    <input type="text" id="globalSearchInput" class="form-control prisma-global-search" placeholder="Pesquisar..." autocomplete="off">
+                    <kbd>⌘K</kbd>
+                </div>
+
+                <div class="dropdown prisma-company-switcher" th:if="${empresaAtiva != null}">
+                    <button class="btn btn-prisma-soft dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="prisma-company-name" th:text="${empresaAtiva.nome}">Prisma Empreendimentos</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><span class="dropdown-header text-muted">Empresas disponíveis</span></li>
+                        <li th:each="empresa : ${empresasDoUsuario}">
+                            <form th:action="@{/empresa-ativa/selecionar}" method="post" class="d-inline">
+                                <button type="submit" name="empresaId" th:value="${empresa.id}"
+                                        class="dropdown-item d-flex align-items-center gap-2"
+                                        th:classappend="${empresa.id == empresaAtiva.id ? 'active' : ''}">
+                                    <i class="bi bi-building"></i>
+                                    <span th:text="${empresa.nome}">Empresa</span>
+                                    <i class="bi bi-check2 ms-auto" th:if="${empresa.id == empresaAtiva.id}"></i>
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="dropdown prisma-company-switcher" th:if="${empresaAtiva == null}">
+                    <button class="btn btn-warning dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="prisma-company-name">Selecionar empresa</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><span class="dropdown-header text-muted">Empresas disponíveis</span></li>
+                        <li th:each="empresa : ${empresasDoUsuario}">
+                            <form th:action="@{/empresa-ativa/selecionar}" method="post" class="d-inline">
+                                <button type="submit" name="empresaId" th:value="${empresa.id}"
+                                        class="dropdown-item d-flex align-items-center gap-2">
+                                    <i class="bi bi-building"></i>
+                                    <span th:text="${empresa.nome}">Empresa</span>
+                                </button>
+                            </form>
+                        </li>
+                        <li th:if="${empresasDoUsuario.isEmpty()}">
+                            <span class="dropdown-item text-muted">Nenhuma empresa disponível</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="dropdown prisma-user-menu">
+                    <button class="btn btn-prisma-soft dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="prisma-user-avatar small"><i class="bi bi-person-circle"></i></span>
+                        <span sec:authentication="name">Usuário</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item d-flex align-items-center gap-2" th:href="@{/meu-perfil}">
+                            <i class="bi bi-person"></i>
+                            <span>Meu Perfil</span>
+                        </a></li>
+                        <li><a class="dropdown-item d-flex align-items-center gap-2" th:href="@{/alterar-senha}">
+                            <i class="bi bi-key"></i>
+                            <span>Alterar Senha</span>
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form th:action="@{/logout}" method="post" class="d-inline">
+                                <button type="submit" class="dropdown-item d-flex align-items-center gap-2">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                    <span>Sair</span>
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
     </nav>
+
 
     <!-- Modal de Pesquisa Global -->
     <div th:fragment="modal" class="modal fade" id="globalSearchModal" tabindex="-1" aria-labelledby="globalSearchModalLabel" aria-hidden="true">
@@ -204,6 +237,70 @@
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
     <script th:src="@{/js/global-search.js}"></script>
     <script>
+        (function() {
+            const shell = document.querySelector('.prisma-shell');
+            if (!shell) return;
+
+            const toggle = document.getElementById('prismaSidebarToggle');
+            const sidebar = document.getElementById('prismaSidebar');
+            const STORAGE_KEY = 'prisma-sidebar-collapsed';
+
+            const applyTooltip = () => {
+                document.querySelectorAll('.prisma-sidebar-link, .prisma-sidebar-action').forEach((item) => {
+                    const text = item.innerText.replace(/\s+/g, ' ').trim();
+                    item.setAttribute('data-tooltip', text);
+                });
+            };
+
+            const applyActiveState = () => {
+                const path = window.location.pathname;
+                document.querySelectorAll('.prisma-sidebar-link').forEach((link) => {
+                    const route = link.dataset.route || '';
+                    const matches = route === '/' ? path === '/' : path.startsWith(route);
+                    link.classList.toggle('active', matches);
+                });
+            };
+
+            const applyCollapsedState = () => {
+                const collapsed = localStorage.getItem(STORAGE_KEY) === 'true';
+                shell.classList.toggle('collapsed', collapsed);
+                if (sidebar) {
+                    sidebar.classList.toggle('collapsed', collapsed);
+                }
+            };
+
+            const setCollapsed = (collapsed) => {
+                shell.classList.toggle('collapsed', collapsed);
+                if (sidebar) {
+                    sidebar.classList.toggle('collapsed', collapsed);
+                }
+                localStorage.setItem(STORAGE_KEY, String(collapsed));
+            };
+
+            applyTooltip();
+            applyActiveState();
+            applyCollapsedState();
+
+            if (toggle) {
+                toggle.addEventListener('click', function() {
+                    setCollapsed(!shell.classList.contains('collapsed'));
+                });
+            }
+
+            const backdrop = document.getElementById('prismaSidebarBackdrop');
+            if (backdrop) {
+                backdrop.addEventListener('click', function() {
+                    shell.classList.remove('sidebar-open');
+                });
+            }
+
+            if (window.innerWidth < 992) {
+                toggle?.addEventListener('click', function() {
+                    shell.classList.toggle('sidebar-open');
+                });
+            }
+        })();
+
         // Preservar posição de scroll ao navegar entre páginas
         (function() {
             const SCROLL_POSITION_KEY = 'scrollPosition';

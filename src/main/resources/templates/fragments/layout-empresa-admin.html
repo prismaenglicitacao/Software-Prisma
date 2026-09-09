@@ -9,20 +9,158 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link th:href="@{/css/prisma.css}" rel="stylesheet">
 </head>
-<nav th:fragment="topo" class="navbar navbar-expand-lg navbar-dark mb-3 shadow-sm">
-    <div class="container">
-        <a class="navbar-brand d-flex align-items-center gap-2" th:href="@{/empresa-admin}">
-            <i class="bi bi-person-gear"></i>
-            <span>Administração da empresa</span>
-        </a>
-        <div class="d-flex align-items-center gap-3 text-white">
-            <span><i class="bi bi-building me-1"></i>Empresa ativa: <strong th:text="${empresa.nome}">Empresa</strong></span>
-            <a class="btn btn-outline-light btn-sm" th:href="@{/}"><i class="bi bi-arrow-left me-1"></i>Sistema</a>
+<nav th:fragment="topo" class="prisma-shell prisma-shell-company-admin" aria-label="Navegação da administração da empresa">
+    <aside class="prisma-sidebar prisma-sidebar-company-admin" id="prismaSidebarEmpresaAdmin">
+        <div class="prisma-sidebar-header">
+            <a class="prisma-brand-side" th:href="@{/empresa-admin}">
+                <span class="prisma-brand-mark"><i class="bi bi-person-gear"></i></span>
+                <span class="prisma-brand-text">Software Prisma</span>
+            </a>
         </div>
-    </div>
+
+        <div class="prisma-sidebar-nav">
+            <div class="prisma-sidebar-section">
+                <span class="prisma-sidebar-label">Administração</span>
+                <a class="prisma-sidebar-link" th:href="@{/empresa-admin}" data-route="/empresa-admin">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Painel</span>
+                </a>
+                <a class="prisma-sidebar-link" th:href="@{/empresa-admin/usuarios}" data-route="/empresa-admin/usuarios">
+                    <i class="bi bi-people"></i>
+                    <span>Usuários</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="prisma-sidebar-footer">
+            <div class="prisma-user-summary">
+                <span class="prisma-user-avatar">
+                    <i class="bi bi-person-circle"></i>
+                </span>
+                <div class="prisma-user-meta">
+                    <span class="prisma-user-name" sec:authentication="name">Usuário</span>
+                    <small th:text="${empresa.nome}">Empresa</small>
+                </div>
+            </div>
+            <div class="prisma-user-actions">
+                <a class="prisma-sidebar-action" th:href="@{/}">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>Sistema</span>
+                </a>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="prisma-sidebar-action danger">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>Sair</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </aside>
+
+    <div class="prisma-sidebar-backdrop" id="prismaSidebarBackdropEmpresaAdmin"></div>
+
+    <header class="prisma-topbar-modern prisma-topbar-company-admin">
+        <div class="prisma-topbar-left">
+            <button type="button" class="prisma-sidebar-toggle" id="prismaSidebarToggleEmpresaAdmin" aria-label="Alternar menu lateral">
+                <i class="bi bi-list"></i>
+            </button>
+        </div>
+
+        <div class="prisma-topbar-right">
+            <div class="prisma-company-switcher">
+                <button class="btn btn-prisma-soft dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="prisma-company-name" th:text="${empresa.nome}">Prisma Empreendimentos</span>
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" th:href="@{/}">Voltar ao sistema</a></li>
+                </ul>
+            </div>
+
+            <div class="dropdown prisma-user-menu">
+                <button class="btn btn-prisma-soft dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="prisma-user-avatar small"><i class="bi bi-person-circle"></i></span>
+                    <span sec:authentication="name">Usuário</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <form th:action="@{/logout}" method="post" class="d-inline">
+                            <button type="submit" class="dropdown-item d-flex align-items-center gap-2">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>Sair</span>
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </header>
 </nav>
 <th:block th:fragment="scripts">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function() {
+            const shell = document.querySelector('.prisma-shell-company-admin');
+            if (!shell) return;
+
+            const toggle = document.getElementById('prismaSidebarToggleEmpresaAdmin');
+            const sidebar = document.getElementById('prismaSidebarEmpresaAdmin');
+            const STORAGE_KEY = 'prisma-sidebar-company-admin-collapsed';
+
+            const applyTooltip = () => {
+                document.querySelectorAll('.prisma-sidebar-link, .prisma-sidebar-action').forEach((item) => {
+                    const text = item.innerText.replace(/\s+/g, ' ').trim();
+                    item.setAttribute('data-tooltip', text);
+                });
+            };
+
+            const applyActiveState = () => {
+                const path = window.location.pathname;
+                document.querySelectorAll('.prisma-sidebar-link').forEach((link) => {
+                    const route = link.dataset.route || '';
+                    const matches = route === '/' ? path === '/' : path.startsWith(route);
+                    link.classList.toggle('active', matches);
+                });
+            };
+
+            const applyCollapsedState = () => {
+                const collapsed = localStorage.getItem(STORAGE_KEY) === 'true';
+                shell.classList.toggle('collapsed', collapsed);
+                if (sidebar) {
+                    sidebar.classList.toggle('collapsed', collapsed);
+                }
+            };
+
+            const setCollapsed = (collapsed) => {
+                shell.classList.toggle('collapsed', collapsed);
+                if (sidebar) {
+                    sidebar.classList.toggle('collapsed', collapsed);
+                }
+                localStorage.setItem(STORAGE_KEY, String(collapsed));
+            };
+
+            applyTooltip();
+            applyActiveState();
+            applyCollapsedState();
+
+            if (toggle) {
+                toggle.addEventListener('click', function() {
+                    if (window.innerWidth < 992) {
+                        shell.classList.toggle('sidebar-open');
+                        return;
+                    }
+                    setCollapsed(!shell.classList.contains('collapsed'));
+                });
+            }
+
+            const backdrop = document.getElementById('prismaSidebarBackdropEmpresaAdmin');
+            if (backdrop) {
+                backdrop.addEventListener('click', function() {
+                    shell.classList.remove('sidebar-open');
+                });
+            }
+        })();
+    </script>
 </th:block>
 </body>
 </html>
