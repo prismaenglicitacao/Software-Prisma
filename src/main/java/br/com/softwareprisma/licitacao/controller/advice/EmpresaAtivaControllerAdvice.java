@@ -25,11 +25,7 @@ public class EmpresaAtivaControllerAdvice {
         if (usuario == null || Boolean.TRUE.equals(usuario.getAdministrador())) {
             return null;
         }
-        try {
-            return empresaAtivaService.getEmpresaAtiva(session, usuario);
-        } catch (Exception e) {
-            return null;
-        }
+        return empresaAtivaService.getEmpresaAtiva(session, usuario);
     }
 
     @ModelAttribute("empresasDoUsuario")
@@ -37,11 +33,7 @@ public class EmpresaAtivaControllerAdvice {
         if (usuario == null || Boolean.TRUE.equals(usuario.getAdministrador())) {
             return List.of();
         }
-        try {
-            return empresaAtivaService.listarEmpresasDoUsuario(usuario);
-        } catch (Exception e) {
-            return List.of();
-        }
+        return empresaAtivaService.listarEmpresasDoUsuario(usuario);
     }
 
     @ModelAttribute("podeAdministrarEmpresaAtiva")
@@ -50,11 +42,7 @@ public class EmpresaAtivaControllerAdvice {
         if (usuario == null || Boolean.TRUE.equals(usuario.getAdministrador())) {
             return false;
         }
-        try {
-            return usuarioEmpresaService.podeAdministrarEmpresa(
-                    usuario, empresaAtivaService.getEmpresaAtiva(session, usuario));
-        } catch (Exception e) {
-            return false;
-        }
+        return usuarioEmpresaService.podeAdministrarEmpresa(
+                usuario, empresaAtivaService.getEmpresaAtiva(session, usuario));
     }
 }

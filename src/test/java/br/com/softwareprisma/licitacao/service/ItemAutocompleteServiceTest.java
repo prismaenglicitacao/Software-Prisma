@@ -95,7 +95,7 @@ class ItemAutocompleteServiceTest {
                 .thenReturn(chaveNormalizada);
 
         // Act
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, Area.CIVIL);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, Area.CIVIL, null, null);
 
         // Assert
         assertEquals(1, resultado.size(), "Deve retornar apenas uma sugestão agrupada");
@@ -137,7 +137,7 @@ class ItemAutocompleteServiceTest {
                 .thenReturn(chave2);
 
         // Act
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, Area.CIVIL);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, Area.CIVIL, null, null);
 
         // Assert
         assertEquals(2, resultado.size(), "Deve retornar duas sugestões separadas");
@@ -149,7 +149,7 @@ class ItemAutocompleteServiceTest {
         String termo = "p";
 
         // Act
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, Area.CIVIL);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, Area.CIVIL, null, null);
 
         // Assert
         assertEquals(0, resultado.size());
@@ -158,7 +158,7 @@ class ItemAutocompleteServiceTest {
     @Test
     void buscarSugestoesAgrupadas_TermoNulo_DeveRetornarListaVazia() {
         // Act
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(null, Area.CIVIL);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(null, Area.CIVIL, null, null);
 
         // Assert
         assertEquals(0, resultado.size());
@@ -176,7 +176,7 @@ class ItemAutocompleteServiceTest {
                 .thenReturn(chaveNormalizada);
 
         // Act
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, null);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, null, null, null);
 
         // Assert
         assertEquals(1, resultado.size());
@@ -205,7 +205,7 @@ class ItemAutocompleteServiceTest {
         )).thenReturn(chaveNormalizada);
 
         // Act
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, Area.CIVIL, itensJaAdicionados);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, Area.CIVIL, itensJaAdicionados, null);
 
         // Assert
         assertEquals(0, resultado.size(), "Deve filtrar itens com chave normalizada equivalente");
@@ -231,7 +231,7 @@ class ItemAutocompleteServiceTest {
                 .thenReturn("outro item|M2");
 
         // Act
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, Area.CIVIL, itensJaAdicionados);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, Area.CIVIL, itensJaAdicionados, null);
 
         // Assert
         assertEquals(2, resultado.size(), "Deve manter itens com chaves diferentes");

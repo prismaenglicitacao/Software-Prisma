@@ -108,7 +108,7 @@ class ItemAutocompleteServiceIntegrationTest {
         catItemRepository.save(item2);
 
         // Act
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("passeio", Area.CIVIL);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("passeio", Area.CIVIL, null, null);
 
         // Assert
         assertEquals(1, resultado.size(), "Deve agrupar itens com descrições equivalentes");
@@ -140,7 +140,7 @@ class ItemAutocompleteServiceIntegrationTest {
         item2 = catItemRepository.save(item2);
 
         // Act 1: Antes da edicao - devem aparecer separados
-        List<ItemSugestaoDTO> resultadoAntes = itemAutocompleteService.buscarSugestoesAgrupadas("passeio", Area.CIVIL);
+        List<ItemSugestaoDTO> resultadoAntes = itemAutocompleteService.buscarSugestoesAgrupadas("passeio", Area.CIVIL, null, null);
         assertEquals(2, resultadoAntes.size(), "Antes da edicao devem aparecer separados");
 
         // Act 2: Editar item2 para ter mesma descricao que item1
@@ -148,7 +148,7 @@ class ItemAutocompleteServiceIntegrationTest {
         catItemRepository.save(item2);
 
         // Act 3: Apos edicao - devem aparecer agrupados
-        List<ItemSugestaoDTO> resultadoDepois = itemAutocompleteService.buscarSugestoesAgrupadas("passeio", Area.CIVIL);
+        List<ItemSugestaoDTO> resultadoDepois = itemAutocompleteService.buscarSugestoesAgrupadas("passeio", Area.CIVIL, null, null);
         assertEquals(1, resultadoDepois.size(), "Apos edicao devem aparecer agrupados");
         assertEquals(new BigDecimal("300.00"), resultadoDepois.get(0).quantidadeDisponivel(),
                 "Quantidade deve ser a soma: 100.00 + 200.00 = 300.00");
@@ -175,7 +175,7 @@ class ItemAutocompleteServiceIntegrationTest {
         catItemRepository.save(item2);
 
         // Act
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("passeio", Area.CIVIL);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("passeio", Area.CIVIL, null, null);
 
         // Assert
         assertEquals(1, resultado.size());
@@ -200,7 +200,7 @@ class ItemAutocompleteServiceIntegrationTest {
         catItemRepository.save(item1);
 
         // Act
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("passeio", null);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("passeio", null, null, null);
 
         // Assert
         assertEquals(1, resultado.size());
@@ -241,7 +241,7 @@ class ItemAutocompleteServiceIntegrationTest {
         analiseItemRepository.save(analiseItem);
 
         // Act
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService. (Area.CIVIL);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("passeio", null, null, null);
 
         // Assert
         assertEquals(1, resultado.size());
@@ -285,7 +285,7 @@ class ItemAutocompleteServiceIntegrationTest {
         }
 
         // Act
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarItensRecentes(Area.CIVIL);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarItensRecentes(Area.CIVIL, null);
 
         // Assert
         assertEquals(1, resultado.size());
@@ -329,7 +329,7 @@ class ItemAutocompleteServiceIntegrationTest {
         analiseItemRepository.save(analiseItem);
 
         // Act
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarItensRecentes(Area.CIVIL);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarItensRecentes(Area.CIVIL, null);
 
         // Assert
         assertEquals(1, resultado.size(), "Deve agrupar descrições equivalentes");
@@ -385,7 +385,7 @@ class ItemAutocompleteServiceIntegrationTest {
         analiseItemRepository.save(analiseItem2);
 
         // Act
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarItensRecentes(Area.CIVIL);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarItensRecentes(Area.CIVIL, null);
 
         // Assert
         assertEquals(2, resultado.size(), "Não deve agrupar unidades diferentes");
@@ -431,8 +431,8 @@ class ItemAutocompleteServiceIntegrationTest {
         analiseItemRepository.save(analiseItem);
 
         // Act
-        List<ItemSugestaoDTO> resultadoAutocomplete = itemAutocompleteService.buscarSugestoesAgrupadas("passeio", Area.CIVIL);
-        List<ItemSugestaoDTO> resultadoRecentes = itemAutocompleteService.buscarItensRecentes(Area.CIVIL);
+        List<ItemSugestaoDTO> resultadoAutocomplete = itemAutocompleteService.buscarSugestoesAgrupadas("passeio", Area.CIVIL, null, null);
+        List<ItemSugestaoDTO> resultadoRecentes = itemAutocompleteService.buscarItensRecentes(Area.CIVIL, null);
 
         // Assert
         assertEquals(1, resultadoAutocomplete.size());
@@ -582,7 +582,7 @@ class ItemAutocompleteServiceIntegrationTest {
         catItemRepository.save(item2);
 
         // Act - Buscar sugestões
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("intertravado", Area.CIVIL);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("intertravado", Area.CIVIL, null, null);
 
         // Assert - Deve retornar 2 itens separados (unidades diferentes)
         assertEquals(2, resultado.size());
@@ -620,7 +620,7 @@ class ItemAutocompleteServiceIntegrationTest {
         // Act - Buscar sugestões com item já adicionado
         List<String> itensJaAdicionados = List.of(descricao + "|" + unidade);
         List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(
-            "intertravado", Area.CIVIL, itensJaAdicionados);
+            "intertravado", Area.CIVIL, itensJaAdicionados, null);
 
         // Assert - Item não deve aparecer nas sugestões
         assertEquals(0, resultado.size());
@@ -641,7 +641,7 @@ class ItemAutocompleteServiceIntegrationTest {
         catItemRepository.save(item1);
 
         // Act - Buscar sugestões
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("intertravado", Area.CIVIL);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("intertravado", Area.CIVIL, null, null);
 
         // Assert - Quantidade disponível deve ser exatamente a do CatItem
         assertEquals(1, resultado.size());
@@ -669,7 +669,7 @@ class ItemAutocompleteServiceIntegrationTest {
         catItemRepository.save(item2);
 
         // Act - Buscar sugestões
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("intertravado", Area.CIVIL);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("intertravado", Area.CIVIL, null, null);
 
         // Assert - Deve somar as quantidades das duas CATs
         assertEquals(1, resultado.size());
