@@ -39,8 +39,7 @@ public class DashboardService {
         if (coberturaMedia == null) {
             coberturaMedia = BigDecimal.ZERO;
         } else {
-            coberturaMedia = coberturaMedia.multiply(BigDecimal.valueOf(100))
-                    .setScale(2, RoundingMode.HALF_UP);
+            coberturaMedia = coberturaMedia.setScale(2, RoundingMode.HALF_UP);
         }
 
         return new EstatisticasGeraisDTO(

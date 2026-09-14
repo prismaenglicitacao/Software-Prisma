@@ -129,6 +129,7 @@
                 if (sidebar) {
                     sidebar.classList.toggle('collapsed', collapsed);
                 }
+                document.body.classList.toggle('sidebar-collapsed', collapsed);
             };
 
             const setCollapsed = (collapsed) => {
@@ -136,6 +137,7 @@
                 if (sidebar) {
                     sidebar.classList.toggle('collapsed', collapsed);
                 }
+                document.body.classList.toggle('sidebar-collapsed', collapsed);
                 localStorage.setItem(STORAGE_KEY, String(collapsed));
             };
 
@@ -152,6 +154,17 @@
                     setCollapsed(!shell.classList.contains('collapsed'));
                 });
             }
+
+            // Clique fora do Sidebar para recolher (desktop)
+            document.addEventListener('click', function(e) {
+                if (window.innerWidth >= 992 && shell.classList.contains('collapsed') === false) {
+                    const isClickInsideSidebar = sidebar?.contains(e.target);
+                    const isClickOnToggle = toggle?.contains(e.target);
+                    if (!isClickInsideSidebar && !isClickOnToggle) {
+                        setCollapsed(true);
+                    }
+                }
+            });
 
             const backdrop = document.getElementById('prismaSidebarBackdropEmpresaAdmin');
             if (backdrop) {

@@ -8,196 +8,178 @@
     <nav th:replace="~{fragments/layout :: topo}"></nav>
     <div th:replace="~{fragments/layout :: modal}"></div>
 
-    <main class="container pb-5">
-        <div class="mb-4">
-            <h1 class="h4 mb-1">Dashboard</h1>
-            <p class="text-body-secondary mb-0">Visão geral do sistema</p>
-        </div>
+    <main class="container dashboard-shell pb-5">
+        <div class="dashboard-header mb-4">
+            <div>
+                <p class="dashboard-eyebrow">Visão geral</p>
+                <h1 class="h3 mb-1">Dashboard</h1>
+            </div>
 
-        <!-- Estatísticas Gerais -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-6 col-lg-3">
-                <div class="dashboard-card">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="dashboard-stat-label">Engenheiros</span>
-                            <i class="bi bi-person-badge text-body-secondary fs-5"></i>
-                        </div>
-                        <div class="dashboard-stat" th:text="${estatisticas.quantidadeEngenheiros}">0</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-3">
-                <div class="dashboard-card">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="dashboard-stat-label">CATs</span>
-                            <i class="bi bi-file-earmark-text text-body-secondary fs-5"></i>
-                        </div>
-                        <div class="dashboard-stat" th:text="${estatisticas.quantidadeCats}">0</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-3">
-                <div class="dashboard-card">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="dashboard-stat-label">Itens</span>
-                            <i class="bi bi-list-ul text-body-secondary fs-5"></i>
-                        </div>
-                        <div class="dashboard-stat" th:text="${estatisticas.quantidadeItens}">0</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-3">
-                <div class="dashboard-card">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="dashboard-stat-label">Análises</span>
-                            <i class="bi bi-graph-up text-body-secondary fs-5"></i>
-                        </div>
-                        <div class="dashboard-stat" th:text="${estatisticas.quantidadeAnalises}">0</div>
-                    </div>
+            <div class="dashboard-company-card" th:if="${empresaAtiva != null}">
+                <span class="dashboard-company-icon" aria-hidden="true">🏢</span>
+                <div>
+                    <small>Empresa ativa</small>
+                    <strong th:text="${empresaAtiva.nome}">Prisma Empreendimentos</strong>
                 </div>
             </div>
         </div>
 
-        <div class="row g-3 mb-4">
-            <div class="col-md-6 col-lg-3">
-                <div class="dashboard-card">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="dashboard-stat-label">Atenderam</span>
-                            <i class="bi bi-check-circle text-body-secondary fs-5"></i>
-                        </div>
-                        <div class="dashboard-stat dashboard-stat-success" th:text="${estatisticas.quantidadeAnalisesAtenderam}">0</div>
-                    </div>
-                </div>
+        <section class="dashboard-section mb-4">
+            <div class="dashboard-section-header">
+                <h2>Resumo</h2>
             </div>
-            <div class="col-md-6 col-lg-3">
-                <div class="dashboard-card">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="dashboard-stat-label">Não Atenderam</span>
-                            <i class="bi bi-x-circle text-body-secondary fs-5"></i>
-                        </div>
-                        <div class="dashboard-stat dashboard-stat-danger" th:text="${estatisticas.quantidadeAnalisesNaoAtenderam}">0</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-3">
-                <div class="dashboard-card">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="dashboard-stat-label">Cobertura Média</span>
-                            <i class="bi bi-percent text-body-secondary fs-5"></i>
-                        </div>
-                        <div class="dashboard-stat"
-                            th:text="${#numbers.formatDecimal(estatisticas.coberturaMedia / 100, 1, 2) + '%'}">
-                            0%
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Gráficos -->
-        <div class="row g-3 mb-4">
-            <div class="col-lg-4">
-                <div class="dashboard-card">
-                    <div class="card-header">
-                        <h5 class="h6 mb-0">CATs por Área</h5>
-                    </div>
-                    <div class="card-body" style="height: 280px;">
-                        <canvas id="catsPorAreaChart"></canvas>
-                    </div>
+            <div class="row g-3">
+                <div class="col-md-6 col-xl-3">
+                    <article class="dashboard-card metric-card">
+                        <div class="card-body">
+                            <div class="metric-topline">
+                                <span class="dashboard-stat-label">Engenheiros</span>
+                                <i class="bi bi-person-badge"></i>
+                            </div>
+                            <div class="dashboard-stat" th:text="${estatisticas.quantidadeEngenheiros}">0</div>
+                        </div>
+                    </article>
                 </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="dashboard-card">
-                    <div class="card-header">
-                        <h5 class="h6 mb-0">Itens por Área</h5>
-                    </div>
-                    <div class="card-body" style="height: 280px;">
-                        <canvas id="itensPorAreaChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Últimas Análises -->
-        <div class="dashboard-card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="h6 mb-0">Últimas Análises</h5>
-                <a class="btn btn-sm btn-outline-primary" th:href="@{/historico}">
-                    Ver todas
+                <div class="col-md-6 col-xl-3">
+                    <article class="dashboard-card metric-card">
+                        <div class="card-body">
+                            <div class="metric-topline">
+                                <span class="dashboard-stat-label">CATs</span>
+                                <i class="bi bi-file-earmark-text"></i>
+                            </div>
+                            <div class="dashboard-stat" th:text="${estatisticas.quantidadeCats}">0</div>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="col-md-6 col-xl-3">
+                    <article class="dashboard-card metric-card">
+                        <div class="card-body">
+                            <div class="metric-topline">
+                                <span class="dashboard-stat-label">Análises</span>
+                                <i class="bi bi-graph-up"></i>
+                            </div>
+                            <div class="dashboard-stat" th:text="${estatisticas.quantidadeAnalises}">0</div>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="col-md-6 col-xl-3">
+                    <article class="dashboard-card metric-card">
+                        <div class="card-body">
+                            <div class="metric-topline">
+                                <span class="dashboard-stat-label">Cobertura</span>
+                                <i class="bi bi-percent"></i>
+                            </div>
+                            <div class="dashboard-stat"
+                                 th:text="${#numbers.formatDecimal(estatisticas.coberturaMedia, 1, 2) + '%'}">0%</div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="dashboard-section mb-4">
+            <div class="dashboard-section-header">
+                <h2>Ações rápidas</h2>
+            </div>
+
+            <div class="quick-actions">
+                <a class="quick-action" th:href="@{/analises/nova}">
+                    <i class="bi bi-plus-circle"></i>
+                    <span>Nova Análise</span>
+                </a>
+                <a class="quick-action" th:href="@{/engenheiros/novo}">
+                    <i class="bi bi-person-plus"></i>
+                    <span>Cadastrar Engenheiro</span>
+                </a>
+                <a class="quick-action" th:href="@{/cats/nova}">
+                    <i class="bi bi-file-earmark-plus"></i>
+                    <span>Cadastrar CAT</span>
                 </a>
             </div>
-            <div class="card-body p-0">
-                <div th:if="${#lists.isEmpty(ultimasAnalises)}" class="p-4 text-center text-body-secondary">
-                    Nenhuma análise realizada ainda.
-                </div>
-                <div th:unless="${#lists.isEmpty(ultimasAnalises)}">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Área</th>
-                                    <th>Data</th>
-                                    <th>Resultado</th>
-                                    <th>Cobertura</th>
-                                    <th class="text-end">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr th:each="analise : ${ultimasAnalises}">
-                                    <td
-                                        th:text="${analise.area == T(br.com.softwareprisma.licitacao.domain.enums.Area).ELETRICA ? 'Elétrica' : 'Civil'}">
-                                        Área</td>
-                                    <td th:text="${#temporals.format(analise.dataCriacao, 'dd/MM/yyyy HH:mm', 'America/Sao_Paulo')}">
-                                        01/01/2024
-                                    </td>
-                                    <td>
-                                        <span class="badge"
-                                            th:class="${analise.resultado == T(br.com.softwareprisma.licitacao.domain.enums.ResultadoAnalise).ATENDE ? 'bg-success' : 'bg-danger'}"
-                                            th:text="${analise.resultado == T(br.com.softwareprisma.licitacao.domain.enums.ResultadoAnalise).ATENDE ? 'Atendeu' : 'Não Atendeu'}">
-                                            Resultado
-                                        </span>
-                                    </td>
-                                    <td
-                                        th:text="${analise.cobertura != null ? #numbers.formatDecimal(analise.cobertura.multiply(1), 1, 'POINT', 2, 'COMMA') + '%' : '-'}">
-                                        0%</td>
-                                    <td class="text-end">
-                                        <a class="btn btn-sm btn-outline-primary"
-                                            th:href="@{/analises/{id}/resumo(id=${analise.id})}">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+        </section>
+
+        <div class="row g-3 mb-4">
+            <div class="col-xl-8">
+                <section class="dashboard-section h-100">
+                    <div class="dashboard-section-header">
+                        <h2>Atividade recente</h2>
+                        <a class="dashboard-link" th:href="@{/historico}">Ver histórico</a>
                     </div>
 
-                    <!-- Paginação -->
-                    <nav class="d-flex justify-content-between align-items-center p-3 border-top">
-                        <div class="text-body-secondary">
-                            Página <span th:text="${pagina.number + 1}">1</span> de <span
-                                th:text="${pagina.totalPages}">1</span>
+                    <div th:if="${#lists.isEmpty(ultimasAnalises)}" class="empty-state">
+                        Nenhuma análise foi registrada ainda.
+                    </div>
+
+                    <div th:unless="${#lists.isEmpty(ultimasAnalises)}" class="activity-list">
+                        <article class="activity-item" th:each="analise : ${ultimasAnalises}">
+                            <div class="activity-bullet" aria-hidden="true"></div>
+                            <div class="activity-content">
+                                <div class="activity-head">
+                                    <strong th:text="${analise.area == T(br.com.softwareprisma.licitacao.domain.enums.Area).ELETRICA ? 'Análise Elétrica' : 'Análise Civil'}">Análise</strong>
+                                    <span class="badge"
+                                          th:class="${analise.resultado == T(br.com.softwareprisma.licitacao.domain.enums.ResultadoAnalise).ATENDE ? 'bg-success' : 'bg-danger'}"
+                                          th:text="${analise.resultado == T(br.com.softwareprisma.licitacao.domain.enums.ResultadoAnalise).ATENDE ? 'Atendeu' : 'Não Atendeu'}">
+                                        Resultado
+                                    </span>
+                                </div>
+                                <div class="activity-meta">
+                                    <span th:text="${#temporals.format(analise.dataCriacao, 'dd/MM/yyyy HH:mm', 'America/Sao_Paulo')}">01/01/2024</span>
+                                    <span class="activity-separator">•</span>
+                                    <span th:text="${analise.cobertura != null ? #numbers.formatDecimal(analise.cobertura.multiply(1), 1, 'POINT', 2, 'COMMA') + '%' : 'Sem cobertura'}">0%</span>
+                                </div>
+                            </div>
+                            <a class="btn btn-sm btn-outline-primary" th:href="@{/analises/{id}/resumo(id=${analise.id})}">Detalhes</a>
+                        </article>
+                    </div>
+
+                    <nav class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top" th:if="${pagina != null and pagina.totalPages > 1}">
+                        <div class="text-body-secondary small">
+                            Página <span th:text="${pagina.number + 1}">1</span> de <span th:text="${pagina.totalPages}">1</span>
                         </div>
-                        <ul class="pagination mb-0">
+                        <ul class="pagination pagination-sm mb-0">
                             <li class="page-item" th:class="${!pagina.hasPrevious() ? 'disabled' : ''}">
-                                <a class="page-link" th:href="@{/(page=${pagina.number - 1})}"
-                                    th:if="${pagina.hasPrevious()}">Anterior</a>
+                                <a class="page-link" th:href="@{/(page=${pagina.number - 1})}" th:if="${pagina.hasPrevious()}">Anterior</a>
                                 <span class="page-link" th:if="${!pagina.hasPrevious()}">Anterior</span>
                             </li>
                             <li class="page-item" th:class="${!pagina.hasNext() ? 'disabled' : ''}">
-                                <a class="page-link" th:href="@{/(page=${pagina.number + 1})}"
-                                    th:if="${pagina.hasNext()}">Próxima</a>
+                                <a class="page-link" th:href="@{/(page=${pagina.number + 1})}" th:if="${pagina.hasNext()}">Próxima</a>
                                 <span class="page-link" th:if="${!pagina.hasNext()}">Próxima</span>
                             </li>
                         </ul>
                     </nav>
-                </div>
+                </section>
+            </div>
+
+            <div class="col-xl-4">
+                <section class="dashboard-section h-100">
+                    <div class="dashboard-section-header">
+                        <h2>Distribuição</h2>
+                    </div>
+
+                    <div class="chart-stack">
+                        <div class="mini-chart-card">
+                            <div class="mini-chart-header">
+                                <span>CATs por área</span>
+                            </div>
+                            <div class="chart-wrap" style="height: 180px;">
+                                <canvas id="catsPorAreaChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="mini-chart-card">
+                            <div class="mini-chart-header">
+                                <span>Itens por área</span>
+                            </div>
+                            <div class="chart-wrap" style="height: 180px;">
+                                <canvas id="itensPorAreaChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
         </div>
     </main>
