@@ -205,13 +205,15 @@
 
     function selecionarItemRecente(descricao, unidade) {
         // Adicionar a opção ao Tom Select se ainda não existir
-        if (!descricaoSelect.options[descricao]) {
+        const id = `${descricao}|${unidade}`;
+        if (!descricaoSelect.options[id]) {
             descricaoSelect.addOption({
+                id: id,
                 descricao: descricao,
                 unidade: unidade
             });
         }
-        descricaoSelect.setValue(descricao);
+        descricaoSelect.setValue(id);
         document.getElementById('unidade').value = unidade;
         document.getElementById('quantidade').focus();
     }
@@ -223,7 +225,7 @@
         descricaoSelect = new TomSelect('#descricao', {
             create: false,
             maxItems: 1,
-            valueField: 'descricao',
+            valueField: 'id',
             labelField: 'descricao',
             searchField: 'descricao',
             load: async function(query, callback) {
@@ -241,7 +243,12 @@
                 try {
                     const response = await fetch('/api/itens/sugestoes?' + params.toString());
                     const data = await response.json();
-                    callback(data);
+                    // Adicionar ID único combinando descrição e unidade
+                    const dataWithIds = data.map((item, index) => ({
+                        ...item,
+                        id: `${item.descricao}|${item.unidade}`
+                    }));
+                    callback(dataWithIds);
                 } catch (error) {
                     console.error('Erro ao buscar sugestões:', error);
                     callback();
