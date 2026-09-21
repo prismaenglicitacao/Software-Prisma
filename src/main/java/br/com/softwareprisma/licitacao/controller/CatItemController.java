@@ -30,6 +30,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Controller
@@ -152,11 +154,16 @@ public class CatItemController {
         if (resultado.getItensComErro() > 0) {
             mensagem.append(" ").append(resultado.getItensComErro()).append(" item(ns) com erro:");
             for (CatItemLoteResultado.ErroLinha erro : resultado.getErros()) {
-                mensagem.append(" Linha ").append(erro.getNumeroLinha()).append(": ").append(erro.getMotivo()).append(";");
+                mensagem.append(" Linha ").append(erro.getNumeroLinha())
+                        .append(" (\"").append(erro.getConteudoLinha()).append("\"): ")
+                        .append(erro.getMotivo()).append(";");
             }
         }
 
         redirectAttributes.addFlashAttribute("mensagemSucesso", mensagem.toString());
+        if (!resultado.getItensValidos().isEmpty()) {
+            redirectAttributes.addFlashAttribute("itensCadastradosLote", resultado.getItensValidos());
+        }
         return "redirect:/cats/" + catId + "/itens";
     }
 

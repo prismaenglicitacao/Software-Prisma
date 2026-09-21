@@ -33,7 +33,7 @@ public class CatItemLoteParser {
                 resultado.getItensValidos().add(item);
                 resultado.incrementarCadastrados();
             } catch (ParseException e) {
-                resultado.adicionarErro(numeroLinha, e.getMessage());
+                resultado.adicionarErro(numeroLinha, e.getMessage(), linha);
             }
         }
 

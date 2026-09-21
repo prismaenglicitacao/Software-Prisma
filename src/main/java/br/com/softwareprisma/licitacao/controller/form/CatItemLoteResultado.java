@@ -24,8 +24,8 @@ public class CatItemLoteResultado {
         this.itensValidos = new ArrayList<>();
     }
 
-    public void adicionarErro(int numeroLinha, String motivo) {
-        this.erros.add(new ErroLinha(numeroLinha, motivo));
+    public void adicionarErro(int numeroLinha, String motivo, String conteudoLinha) {
+        this.erros.add(new ErroLinha(numeroLinha, motivo, conteudoLinha));
         this.itensComErro++;
     }
 
@@ -42,5 +42,6 @@ public class CatItemLoteResultado {
     public static class ErroLinha {
         private final int numeroLinha;
         private final String motivo;
+        private final String conteudoLinha;
     }
 }
