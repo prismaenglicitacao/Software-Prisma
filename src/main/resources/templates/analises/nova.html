@@ -498,6 +498,8 @@
                         const partes = value.split('|');
                         if (partes.length === 2) {
                             document.getElementById('novaItemUnidade').value = partes[1];
+                            // Atualizar o valor do input de descrição para mostrar apenas a descrição limpa
+                            descricaoInput.value = partes[0];
                         }
                     }
                 },

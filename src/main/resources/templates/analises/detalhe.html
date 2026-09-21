@@ -275,6 +275,8 @@
                 const selectedOption = this.options[value];
                 if (selectedOption && selectedOption.unidade) {
                     document.getElementById('unidade').value = selectedOption.unidade;
+                    // Atualizar o valor do input de descrição para mostrar apenas a descrição limpa
+                    descricaoInput.value = selectedOption.descricao;
                 }
             },
             onDropdownOpen: function() {

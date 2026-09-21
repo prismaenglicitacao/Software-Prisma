@@ -292,6 +292,8 @@
                 const partes = value.split('|');
                 if (partes.length === 2) {
                     document.getElementById('unidade').value = partes[1];
+                    // Atualizar o valor do input de descrição para mostrar apenas a descrição limpa
+                    document.getElementById('descricao').value = partes[0];
                 }
             },
             onDropdownOpen: function() {
