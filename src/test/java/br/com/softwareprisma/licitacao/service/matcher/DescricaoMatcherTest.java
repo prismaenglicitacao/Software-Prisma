@@ -76,4 +76,29 @@ class DescricaoMatcherTest {
     void deveNormalizarUnidades_M2_vs_M2() {
         assertTrue(descricaoMatcher.corresponde("Piso 50m2", "M2", "Piso 50 m2", "M²"));
     }
+
+    @Test
+    void deveNormalizarUnidades_M_MES_vs_M_MES() {
+        assertTrue(descricaoMatcher.corresponde("Serviço X", "M/MÊS", "Serviço X", "M/MÊS"));
+    }
+
+    @Test
+    void deveNormalizarUnidades_PAR_vs_PAR() {
+        assertTrue(descricaoMatcher.corresponde("Item X", "PAR", "Item X", "PAR"));
+    }
+
+    @Test
+    void naoDeveCorresponder_UnidadesDiferentes_M_vs_M_MES() {
+        assertFalse(descricaoMatcher.corresponde("Serviço X", "M", "Serviço X", "M/MÊS"));
+    }
+
+    @Test
+    void naoDeveCorresponder_UnidadesDiferentes_M_vs_PAR() {
+        assertFalse(descricaoMatcher.corresponde("Item X", "M", "Item X", "PAR"));
+    }
+
+    @Test
+    void naoDeveCorresponder_UnidadesDiferentes_M_MES_vs_PAR() {
+        assertFalse(descricaoMatcher.corresponde("Serviço X", "M/MÊS", "Serviço X", "PAR"));
+    }
 }
