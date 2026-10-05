@@ -61,6 +61,15 @@ public class EmpresaAtivaService {
         return empresa;
     }
 
+    @Transactional(readOnly = true)
+    public Empresa obterEmpresaAtivaObrigatoria(HttpSession session, Usuario usuario) {
+        Empresa empresa = getEmpresaAtiva(session, usuario);
+        if (empresa == null) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso negado.");
+        }
+        return empresa;
+    }
+
     public void setEmpresaAtiva(HttpSession session, Empresa empresa) {
         session.setAttribute(SESSION_KEY, empresa.getId());
     }

@@ -30,7 +30,7 @@ public class ItemAutocompleteController {
                                                  @RequestParam(required = false) List<String> itensJaAdicionados,
                                                  HttpSession session,
                                                  @AuthenticationPrincipal Usuario usuario) {
-        Empresa empresa = empresaAtivaService.getEmpresaAtiva(session, usuario);
+        Empresa empresa = empresaAtivaService.obterEmpresaAtivaObrigatoria(session, usuario);
         return itemAutocompleteService.buscarSugestoesAgrupadas(termo, area, itensJaAdicionados, empresa);
     }
 
@@ -38,7 +38,7 @@ public class ItemAutocompleteController {
     public List<ItemSugestaoDTO> buscarRecentes(@RequestParam(required = false) Area area,
                                                 HttpSession session,
                                                 @AuthenticationPrincipal Usuario usuario) {
-        Empresa empresa = empresaAtivaService.getEmpresaAtiva(session, usuario);
+        Empresa empresa = empresaAtivaService.obterEmpresaAtivaObrigatoria(session, usuario);
         return itemAutocompleteService.buscarItensRecentes(area, empresa);
     }
 }

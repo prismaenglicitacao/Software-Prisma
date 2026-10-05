@@ -3,8 +3,11 @@ package br.com.softwareprisma.licitacao.service;
 import br.com.softwareprisma.licitacao.controller.dto.ItemSugestaoDTO;
 import br.com.softwareprisma.licitacao.domain.Cat;
 import br.com.softwareprisma.licitacao.domain.CatItem;
+import br.com.softwareprisma.licitacao.domain.Empresa;
 import br.com.softwareprisma.licitacao.domain.Engenheiro;
+import br.com.softwareprisma.licitacao.domain.AnaliseItem;
 import br.com.softwareprisma.licitacao.domain.enums.Area;
+import br.com.softwareprisma.licitacao.repository.AnaliseItemRepository;
 import br.com.softwareprisma.licitacao.repository.CatItemRepository;
 import br.com.softwareprisma.licitacao.service.matcher.DescricaoMatcher;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,15 +21,20 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @ExtendWith(MockitoExtension.class)
 class ItemAutocompleteServiceTest {
 
     @Mock
     private CatItemRepository catItemRepository;
+
+        @Mock
+        private AnaliseItemRepository analiseItemRepository;
 
     @Mock
     private DescricaoMatcher descricaoMatcher;
@@ -40,9 +48,13 @@ class ItemAutocompleteServiceTest {
     private Engenheiro engenheiro2;
     private Cat cat1;
     private Cat cat2;
+        private Empresa empresa;
 
     @BeforeEach
     void setUp() {
+                empresa = new Empresa();
+                empresa.setId(1L);
+
         engenheiro1 = new Engenheiro();
         engenheiro1.setId(1L);
         engenheiro1.setNome("Engenheiro A");
@@ -87,7 +99,7 @@ class ItemAutocompleteServiceTest {
         String termo = "passeio";
         String chaveNormalizada = "passeio de concreto 1 3 5 com 5 0 cm de espessura e juntas riscadas em quadros de 1 0 x 2 0 m|M2";
         
-        when(catItemRepository.buscarItensPorTermoParaAutocomplete(eq(termo), any()))
+        when(catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(eq(termo), any(), eq(empresa)))
                 .thenReturn(List.of(catItem1, catItem2));
         when(descricaoMatcher.gerarChave(catItem1.getDescricao(), catItem1.getUnidade()))
                 .thenReturn(chaveNormalizada);
@@ -95,7 +107,7 @@ class ItemAutocompleteServiceTest {
                 .thenReturn(chaveNormalizada);
 
         // Act
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, Area.CIVIL, null, null);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, Area.CIVIL, null, empresa);
 
         // Assert
         assertEquals(1, resultado.size(), "Deve retornar apenas uma sugestão agrupada");
@@ -129,7 +141,7 @@ class ItemAutocompleteServiceTest {
         item2.setQuantidade(new BigDecimal("200.00"));
         item2.setCat(cat2);
         
-        when(catItemRepository.buscarItensPorTermoParaAutocomplete(eq(termo), any()))
+        when(catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(eq(termo), any(), eq(empresa)))
                 .thenReturn(List.of(item1, item2));
         when(descricaoMatcher.gerarChave(item1.getDescricao(), item1.getUnidade()))
                 .thenReturn(chave1);
@@ -137,7 +149,7 @@ class ItemAutocompleteServiceTest {
                 .thenReturn(chave2);
 
         // Act
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, Area.CIVIL, null, null);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, Area.CIVIL, null, empresa);
 
         // Assert
         assertEquals(2, resultado.size(), "Deve retornar duas sugestões separadas");
@@ -149,7 +161,7 @@ class ItemAutocompleteServiceTest {
         String termo = "p";
 
         // Act
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, Area.CIVIL, null, null);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, Area.CIVIL, null, empresa);
 
         // Assert
         assertEquals(0, resultado.size());
@@ -158,7 +170,7 @@ class ItemAutocompleteServiceTest {
     @Test
     void buscarSugestoesAgrupadas_TermoNulo_DeveRetornarListaVazia() {
         // Act
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(null, Area.CIVIL, null, null);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(null, Area.CIVIL, null, empresa);
 
         // Assert
         assertEquals(0, resultado.size());
@@ -170,13 +182,13 @@ class ItemAutocompleteServiceTest {
         String termo = "passeio";
         String chaveNormalizada = "chave|M2";
         
-        when(catItemRepository.buscarItensPorTermoParaAutocomplete(termo))
+        when(catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(termo, null, empresa))
                 .thenReturn(List.of(catItem1));
         when(descricaoMatcher.gerarChave(catItem1.getDescricao(), catItem1.getUnidade()))
                 .thenReturn(chaveNormalizada);
 
         // Act
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, null, null, null);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, null, null, empresa);
 
         // Assert
         assertEquals(1, resultado.size());
@@ -188,7 +200,7 @@ class ItemAutocompleteServiceTest {
         String termo = "passeio";
         String chaveNormalizada = "passeio de concreto 1 3 5 com 5 0 cm de espessura e juntas riscadas em quadros de 1 0 x 2 0 m|M2";
         
-        when(catItemRepository.buscarItensPorTermoParaAutocomplete(eq(termo), any()))
+        when(catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(eq(termo), any(), eq(empresa)))
                 .thenReturn(List.of(catItem1, catItem2));
         when(descricaoMatcher.gerarChave(catItem1.getDescricao(), catItem1.getUnidade()))
                 .thenReturn(chaveNormalizada);
@@ -205,7 +217,7 @@ class ItemAutocompleteServiceTest {
         )).thenReturn(chaveNormalizada);
 
         // Act
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, Area.CIVIL, itensJaAdicionados, null);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, Area.CIVIL, itensJaAdicionados, empresa);
 
         // Assert
         assertEquals(0, resultado.size(), "Deve filtrar itens com chave normalizada equivalente");
@@ -217,8 +229,10 @@ class ItemAutocompleteServiceTest {
         String termo = "passeio";
         String chave1 = "passeio tipo a|M2";
         String chave2 = "passeio tipo b|M2";
+        catItem1.setDescricao("PASSEIO TIPO A");
+        catItem2.setDescricao("PASSEIO TIPO B");
         
-        when(catItemRepository.buscarItensPorTermoParaAutocomplete(eq(termo), any()))
+        when(catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(eq(termo), any(), eq(empresa)))
                 .thenReturn(List.of(catItem1, catItem2));
         when(descricaoMatcher.gerarChave(catItem1.getDescricao(), catItem1.getUnidade()))
                 .thenReturn(chave1);
@@ -231,9 +245,69 @@ class ItemAutocompleteServiceTest {
                 .thenReturn("outro item|M2");
 
         // Act
-        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, Area.CIVIL, itensJaAdicionados, null);
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas(termo, Area.CIVIL, itensJaAdicionados, empresa);
 
         // Assert
         assertEquals(2, resultado.size(), "Deve manter itens com chaves diferentes");
     }
+
+        @Test
+        void buscarSugestoesAgrupadas_SemEmpresa_DeveRejeitarSemConsultarRepository() {
+                ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                                () -> itemAutocompleteService.buscarSugestoesAgrupadas("item", Area.CIVIL, null, null));
+
+                assertEquals(403, exception.getStatusCode().value());
+                verifyNoInteractions(catItemRepository, analiseItemRepository);
+        }
+
+        @Test
+        void buscarSugestoesAgrupadas_DeveConsultarSomenteEmpresaInformada() {
+                when(catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa("item", Area.CIVIL, empresa))
+                                .thenReturn(List.of());
+
+                itemAutocompleteService.buscarSugestoesAgrupadas("item", Area.CIVIL, null, empresa);
+
+                verify(catItemRepository).buscarItensPorTermoParaAutocompleteEEmpresa("item", Area.CIVIL, empresa);
+                verify(catItemRepository, never()).buscarItensPorTermoParaAutocomplete(anyString(), any());
+                verify(catItemRepository, never()).buscarItensPorTermoParaAutocomplete(anyString());
+        }
+
+        @Test
+        void buscarItensRecentes_SemEmpresa_DeveRejeitarSemConsultarRepositories() {
+                ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                                () -> itemAutocompleteService.buscarItensRecentes(Area.CIVIL, null));
+
+                assertEquals(403, exception.getStatusCode().value());
+                verifyNoInteractions(catItemRepository, analiseItemRepository);
+        }
+
+        @Test
+        void buscarItensRecentes_DeveConsultarSomenteEmpresaInformada() {
+                when(analiseItemRepository.buscarRecentesPorEmpresa(Area.CIVIL, empresa)).thenReturn(List.of());
+
+                assertEquals(List.of(), itemAutocompleteService.buscarItensRecentes(Area.CIVIL, empresa));
+
+                verify(analiseItemRepository).buscarRecentesPorEmpresa(Area.CIVIL, empresa);
+                verify(analiseItemRepository, never()).buscarRecentes(any());
+                verifyNoInteractions(catItemRepository);
+        }
+
+        @Test
+        void buscarItensRecentes_DeveFiltrarAnalisesECatItemsPelaMesmaEmpresa() {
+                AnaliseItem analiseItem = new AnaliseItem();
+                analiseItem.setDescricao("Item recente");
+                analiseItem.setUnidade("UND");
+                when(analiseItemRepository.buscarRecentesPorEmpresa(Area.CIVIL, empresa))
+                                .thenReturn(List.of(analiseItem));
+                when(descricaoMatcher.gerarChave("Item recente", "UND")).thenReturn("item recente|UND");
+                when(catItemRepository.buscarTodosPorAreaEEmpresa(Area.CIVIL, empresa)).thenReturn(List.of());
+
+                assertEquals(List.of(), itemAutocompleteService.buscarItensRecentes(Area.CIVIL, empresa));
+
+                verify(analiseItemRepository).buscarRecentesPorEmpresa(Area.CIVIL, empresa);
+                verify(catItemRepository).buscarTodosPorAreaEEmpresa(Area.CIVIL, empresa);
+                verify(analiseItemRepository, never()).buscarRecentes(any());
+                verify(catItemRepository, never()).buscarTodosPorArea(any());
+                verify(catItemRepository, never()).buscarTodos();
+        }
 }

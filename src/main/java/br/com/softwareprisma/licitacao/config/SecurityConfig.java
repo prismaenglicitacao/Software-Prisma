@@ -1,6 +1,7 @@
 package br.com.softwareprisma.licitacao.config;
 
 import br.com.softwareprisma.licitacao.repository.UsuarioRepository;
+import br.com.softwareprisma.licitacao.security.LoginAttemptFilter;
 import br.com.softwareprisma.licitacao.security.LoginAttemptService;
 import br.com.softwareprisma.licitacao.security.PostLoginEmpresaHandler;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -26,6 +28,7 @@ public class SecurityConfig {
     private final UsuarioRepository usuarioRepository;
     private final LoginAttemptService loginAttemptService;
     private final PostLoginEmpresaHandler postLoginEmpresaHandler;
+    private final LoginAttemptFilter loginAttemptFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -38,6 +41,7 @@ public class SecurityConfig {
                 .requestMatchers("/empresa-ativa/**").authenticated()
                 .anyRequest().authenticated()
             )
+            .addFilterBefore(loginAttemptFilter, UsernamePasswordAuthenticationFilter.class)
             .formLogin(form -> form
                 .loginPage("/login")
                 .permitAll()

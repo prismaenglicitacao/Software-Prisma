@@ -9,8 +9,10 @@ import br.com.softwareprisma.licitacao.repository.AnaliseItemRepository;
 import br.com.softwareprisma.licitacao.repository.CatItemRepository;
 import br.com.softwareprisma.licitacao.service.matcher.DescricaoMatcher;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -31,18 +33,13 @@ public class ItemAutocompleteService {
     @Transactional(readOnly = true)
     public List<ItemSugestaoDTO> buscarSugestoesAgrupadas(String termo, Area area,
                                                            List<String> itensJaAdicionados, Empresa empresa) {
+        exigirEmpresa(empresa);
         if (termo == null || termo.trim().length() < 2) {
             return List.of();
         }
 
         List<CatItem> itens;
-        if (empresa != null) {
-            itens = catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(termo, area, empresa);
-        } else if (area != null) {
-            itens = catItemRepository.buscarItensPorTermoParaAutocomplete(termo, area);
-        } else {
-            itens = catItemRepository.buscarItensPorTermoParaAutocomplete(termo);
-        }
+        itens = catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(termo, area, empresa);
 
         Set<String> chavesJaAdicionadas = new HashSet<>();
         if (itensJaAdicionados != null) {
@@ -81,9 +78,8 @@ public class ItemAutocompleteService {
 
     @Transactional(readOnly = true)
     public List<ItemSugestaoDTO> buscarItensRecentes(Area area, Empresa empresa) {
-        List<AnaliseItem> analiseItemsRecentes = empresa != null
-                ? analiseItemRepository.buscarRecentesPorEmpresa(area, empresa)
-                : analiseItemRepository.buscarRecentes(area);
+        exigirEmpresa(empresa);
+        List<AnaliseItem> analiseItemsRecentes = analiseItemRepository.buscarRecentesPorEmpresa(area, empresa);
 
         if (analiseItemsRecentes.isEmpty()) return List.of();
 
@@ -93,13 +89,7 @@ public class ItemAutocompleteService {
         }
 
         List<CatItem> todosCatItems;
-        if (empresa != null) {
-            todosCatItems = catItemRepository.buscarTodosPorAreaEEmpresa(area, empresa);
-        } else if (area != null) {
-            todosCatItems = catItemRepository.buscarTodosPorArea(area);
-        } else {
-            todosCatItems = catItemRepository.buscarTodos();
-        }
+        todosCatItems = catItemRepository.buscarTodosPorAreaEEmpresa(area, empresa);
 
         Map<String, GrupoItemSugestao> grupos = new LinkedHashMap<>();
         for (CatItem item : todosCatItems) {
@@ -145,6 +135,12 @@ public class ItemAutocompleteService {
 
         void adicionarQuantidade(BigDecimal quantidade) {
             if (quantidade != null) this.quantidadeTotal = this.quantidadeTotal.add(quantidade);
+        }
+    }
+
+    private void exigirEmpresa(Empresa empresa) {
+        if (empresa == null) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso negado.");
         }
     }
 }

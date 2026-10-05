@@ -13,8 +13,12 @@ public class LoginController {
     public String login(@RequestParam(value = "error", required = false) String error,
                        @RequestParam(value = "logout", required = false) String logout,
                        @RequestParam(value = "expired", required = false) String expired,
+                       @RequestParam(value = "locked", required = false) String locked,
                        HttpSession session,
                        Model model) {
+        if (locked != null) {
+            model.addAttribute("error", "Muitas tentativas de login. Tente novamente mais tarde.");
+        }
         if (error != null) {
             String lockError = (String) session.getAttribute("lockError");
             if (lockError != null) {

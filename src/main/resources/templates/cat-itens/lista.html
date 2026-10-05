@@ -266,7 +266,7 @@
         const descricaoSelect = new TomSelect('#descricao', {
             create: false,
             maxItems: 1,
-            valueField: 'descricao',
+            valueField: 'id',
             labelField: 'descricao',
             searchField: 'descricao',
             load: async function(query, callback) {
@@ -278,7 +278,12 @@
                 try {
                     const response = await fetch('/api/itens/sugestoes?termo=' + encodeURIComponent(query));
                     const data = await response.json();
-                    callback(data);
+                    // Adicionar ID único combinando descrição e unidade
+                    const dataWithIds = data.map((item, index) => ({
+                        ...item,
+                        id: `${item.descricao}|${item.unidade}`
+                    }));
+                    callback(dataWithIds);
                 } catch (error) {
                     console.error('Erro ao buscar sugestões:', error);
                     callback();
@@ -302,9 +307,12 @@
                 }
             },
             onChange: function(value) {
-                const selectedOption = this.options[value];
-                if (selectedOption && selectedOption.unidade) {
-                    document.getElementById('unidade').value = selectedOption.unidade;
+                // O valor agora é "descricao|unidade"
+                const partes = value.split('|');
+                if (partes.length === 2) {
+                    document.getElementById('unidade').value = partes[1];
+                    // Atualizar o valor do input de descrição para mostrar apenas a descrição limpa
+                    document.getElementById('descricao').value = partes[0];
                 }
             },
             onDropdownOpen: function() {

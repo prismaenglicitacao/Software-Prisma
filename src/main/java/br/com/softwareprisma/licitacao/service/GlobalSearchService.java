@@ -27,6 +27,14 @@ public class GlobalSearchService {
 
     @Transactional(readOnly = true)
     public GlobalSearchDTO pesquisar(String termo, Empresa empresa) {
+                if (empresa == null) {
+                        throw new org.springframework.web.server.ResponseStatusException(
+                                        org.springframework.http.HttpStatus.FORBIDDEN, "Acesso negado.");
+                }
+                return pesquisarInterno(termo, empresa);
+        }
+
+        private GlobalSearchDTO pesquisarInterno(String termo, Empresa empresa) {
         if (termo == null || termo.trim().isEmpty()) {
             return new GlobalSearchDTO(List.of(), List.of(), List.of(), false);
         }
@@ -60,7 +68,7 @@ public class GlobalSearchService {
      */
     @Transactional(readOnly = true)
     public GlobalSearchDTO pesquisarGlobalAdmin(String termo) {
-        return pesquisar(termo, null);
+                return pesquisarInterno(termo, null);
     }
 
     private String normalizarTermo(String termo) {

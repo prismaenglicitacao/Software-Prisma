@@ -23,7 +23,7 @@ public class GlobalSearchController {
     public GlobalSearchDTO pesquisar(@RequestParam String q,
                                      HttpSession session,
                                      @AuthenticationPrincipal Usuario usuario) {
-        Empresa empresa = empresaAtivaService.getEmpresaAtiva(session, usuario);
+        Empresa empresa = empresaAtivaService.obterEmpresaAtivaObrigatoria(session, usuario);
         return globalSearchService.pesquisar(q, empresa);
     }
 }
