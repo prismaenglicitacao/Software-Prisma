@@ -126,90 +126,128 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        let html = '';
-
         // Engenheiros
         if (data.engenheiros.length > 0) {
-            html += `
-                <div class="mb-4">
-                    <h6 class="text-uppercase text-muted mb-3 small fw-bold">
-                        👤 Engenheiros
-                    </h6>
-            `;
+            const engenheirosDiv = document.createElement('div');
+            engenheirosDiv.className = 'mb-4';
+            
+            const engenheirosTitle = document.createElement('h6');
+            engenheirosTitle.className = 'text-uppercase text-muted mb-3 small fw-bold';
+            engenheirosTitle.textContent = '👤 Engenheiros';
+            engenheirosDiv.appendChild(engenheirosTitle);
+            
             data.engenheiros.forEach(eng => {
-                html += `
-                    <div class="search-result-item"
-                         data-type="engenheiro"
-                         data-id="${eng.id}"
-                         onclick="window.location.href='/engenheiros/${eng.id}'">
-                        <div class="fw-bold">${eng.nome}</div>
-                        <div class="text-muted small">
-                            Área: ${eng.area || 'N/A'} • ${eng.totalCats} CAT(s) cadastrada(s)
-                        </div>
-                    </div>
-                `;
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'search-result-item';
+                itemDiv.dataset.type = 'engenheiro';
+                itemDiv.dataset.id = eng.id;
+                itemDiv.onclick = function() {
+                    window.location.href = '/engenheiros/' + eng.id;
+                };
+                
+                const nomeDiv = document.createElement('div');
+                nomeDiv.className = 'fw-bold';
+                nomeDiv.textContent = eng.nome;
+                itemDiv.appendChild(nomeDiv);
+                
+                const detalhesDiv = document.createElement('div');
+                detalhesDiv.className = 'text-muted small';
+                detalhesDiv.textContent = 'Área: ' + (eng.area || 'N/A') + ' • ' + eng.totalCats + ' CAT(s) cadastrada(s)';
+                itemDiv.appendChild(detalhesDiv);
+                
+                engenheirosDiv.appendChild(itemDiv);
             });
-            html += '</div>';
+            
+            searchResults.appendChild(engenheirosDiv);
         }
 
         // CATs
         if (data.cats.length > 0) {
-            html += `
-                <div class="mb-4">
-                    <h6 class="text-uppercase text-muted mb-3 small fw-bold">
-                        📁 CATs
-                    </h6>
-            `;
+            const catsDiv = document.createElement('div');
+            catsDiv.className = 'mb-4';
+            
+            const catsTitle = document.createElement('h6');
+            catsTitle.className = 'text-uppercase text-muted mb-3 small fw-bold';
+            catsTitle.textContent = '📁 CATs';
+            catsDiv.appendChild(catsTitle);
+            
             data.cats.forEach(cat => {
-                html += `
-                    <div class="search-result-item"
-                         data-type="cat"
-                         data-id="${cat.id}"
-                         onclick="window.location.href='/cats/${cat.id}'">
-                        <div class="fw-bold">${cat.nome}</div>
-                        <div class="text-muted small">
-                            Engenheiro: ${cat.engenheiroNome} • ${cat.totalItens} item(ns)
-                        </div>
-                    </div>
-                `;
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'search-result-item';
+                itemDiv.dataset.type = 'cat';
+                itemDiv.dataset.id = cat.id;
+                itemDiv.onclick = function() {
+                    window.location.href = '/cats/' + cat.id;
+                };
+                
+                const nomeDiv = document.createElement('div');
+                nomeDiv.className = 'fw-bold';
+                nomeDiv.textContent = cat.nome;
+                itemDiv.appendChild(nomeDiv);
+                
+                const detalhesDiv = document.createElement('div');
+                detalhesDiv.className = 'text-muted small';
+                detalhesDiv.textContent = 'Engenheiro: ' + cat.engenheiroNome + ' • ' + cat.totalItens + ' item(ns)';
+                itemDiv.appendChild(detalhesDiv);
+                
+                catsDiv.appendChild(itemDiv);
             });
-            html += '</div>';
+            
+            searchResults.appendChild(catsDiv);
         }
 
         // Itens
         if (data.itens.length > 0) {
-            html += `
-                <div class="mb-4">
-                    <h6 class="text-uppercase text-muted mb-3 small fw-bold">
-                        📄 Itens
-                    </h6>
-            `;
+            const itensDiv = document.createElement('div');
+            itensDiv.className = 'mb-4';
+            
+            const itensTitle = document.createElement('h6');
+            itensTitle.className = 'text-uppercase text-muted mb-3 small fw-bold';
+            itensTitle.textContent = '📄 Itens';
+            itensDiv.appendChild(itensTitle);
+            
             data.itens.forEach(item => {
-                html += `
-                    <div class="search-result-item"
-                         data-type="item"
-                         data-id="${item.id}"
-                         onclick="window.location.href='/cats/${item.catId}/itens'">
-                        <div class="fw-bold">${item.descricao}</div>
-                        <div class="text-muted small">
-                            CAT: ${item.catNome}<br>
-                            Engenheiro: ${item.engenheiroNome} • Área: ${item.area || 'N/A'}
-                        </div>
-                    </div>
-                `;
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'search-result-item';
+                itemDiv.dataset.type = 'item';
+                itemDiv.dataset.id = item.id;
+                itemDiv.onclick = function() {
+                    window.location.href = '/cats/' + item.catId + '/itens';
+                };
+                
+                const descricaoDiv = document.createElement('div');
+                descricaoDiv.className = 'fw-bold';
+                descricaoDiv.textContent = item.descricao;
+                itemDiv.appendChild(descricaoDiv);
+                
+                const detalhesDiv = document.createElement('div');
+                detalhesDiv.className = 'text-muted small';
+                
+                const catSpan = document.createElement('span');
+                catSpan.textContent = 'CAT: ' + item.catNome;
+                detalhesDiv.appendChild(catSpan);
+                
+                const br = document.createElement('br');
+                detalhesDiv.appendChild(br);
+                
+                const engenheiroSpan = document.createElement('span');
+                engenheiroSpan.textContent = 'Engenheiro: ' + item.engenheiroNome + ' • Área: ' + (item.area || 'N/A');
+                detalhesDiv.appendChild(engenheiroSpan);
+                
+                itemDiv.appendChild(detalhesDiv);
+                
+                itensDiv.appendChild(itemDiv);
             });
-            html += '</div>';
+            
+            searchResults.appendChild(itensDiv);
         }
 
         if (data.temMaisResultados) {
-            html += `
-                <div class="text-center text-muted small py-2">
-                    Exibindo os primeiros resultados...
-                </div>
-            `;
+            const maisDiv = document.createElement('div');
+            maisDiv.className = 'text-center text-muted small py-2';
+            maisDiv.textContent = 'Exibindo os primeiros resultados...';
+            searchResults.appendChild(maisDiv);
         }
-
-        searchResults.innerHTML = html;
 
         // Armazenar referências para navegação por teclado
         const items = searchResults.querySelectorAll('.search-result-item');

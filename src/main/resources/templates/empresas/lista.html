@@ -61,7 +61,7 @@
                                 <form th:if="${empresa.ativo}"
                                       th:action="@{/empresas/{id}/desativar(id=${empresa.id})}"
                                       method="post"
-                                      onsubmit="return confirm('Deseja desativar esta empresa?');">
+                                      data-confirm-message="Deseja desativar esta empresa?">
                                     <button type="submit" class="btn btn-sm btn-outline-warning" title="Desativar">
                                         <i class="bi bi-pause-circle"></i>
                                     </button>

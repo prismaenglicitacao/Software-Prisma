@@ -110,7 +110,7 @@
                                                     <i class="bi bi-pencil"></i>
                                                 </a>
                                                 <form th:action="@{/cats/{id}/excluir(id=${cat.id})}" method="post"
-                                                      onsubmit="return confirm('Deseja realmente excluir esta CAT?');">
+                                                    data-confirm-message="Deseja realmente excluir esta CAT?">
                                                     <button type="submit" class="btn btn-sm btn-outline-danger" title="Excluir">
                                                         <i class="bi bi-trash"></i>
                                                     </button>

@@ -68,4 +68,8 @@ public interface UsuarioEmpresaRepository extends JpaRepository<UsuarioEmpresa, 
               List<UsuarioEmpresa> findByEmpresaComUsuario(Empresa empresa);
 
     void deleteByUsuarioAndEmpresa(Usuario usuario, Empresa empresa);
+
+    boolean existsByConcedidoPor(br.com.softwareprisma.licitacao.domain.Usuario usuario);
+
+    void deleteByUsuario(br.com.softwareprisma.licitacao.domain.Usuario usuario);
 }

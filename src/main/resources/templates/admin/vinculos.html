@@ -73,8 +73,8 @@
                             </form>
                         </td>
                         <td class="text-end">
-                            <form th:action="@{/admin/vinculos/revogar}" method="post"
-                                  onsubmit="return confirm('Revogar acesso de ' + this.dataset.nome + '?')"
+                                <form th:action="@{/admin/vinculos/revogar}" method="post"
+                                    class="js-confirm-revocation"
                                   th:data-nome="${ue.usuario.nome}">
                                 <input type="hidden" name="usuarioId" th:value="${ue.usuario.id}">
                                 <input type="hidden" name="empresaId" th:value="${empresa.id}">
@@ -95,9 +95,8 @@
 
             <!-- Conceder acesso -->
             <div class="p-3 border-top bg-body-secondary bg-opacity-25">
-                <form th:action="@{/admin/vinculos/conceder}" method="post"
-                      class="d-flex gap-2 align-items-end flex-wrap"
-                      onsubmit="return validarSelecao(this)">
+                    <form th:action="@{/admin/vinculos/conceder}" method="post"
+                        class="d-flex gap-2 align-items-end flex-wrap js-validate-user-selection">
                     <input type="hidden" name="empresaId" th:value="${empresa.id}">
                     <div class="flex-grow-1" style="min-width: 200px;">
                         <label class="form-label small mb-1 fw-semibold">
@@ -131,15 +130,6 @@
 </main>
 
 <script th:replace="~{fragments/layout-admin :: scripts-admin}"></script>
-<script>
-function validarSelecao(form) {
-    const select = form.querySelector('select[name="usuarioId"]');
-    if (!select.value) {
-        alert('Selecione um usuário antes de vincular.');
-        return false;
-    }
-    return true;
-}
-</script>
+<script th:src="@{/js/admin-vinculos.js}"></script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 package br.com.softwareprisma.licitacao.service;
 
 import br.com.softwareprisma.licitacao.domain.Usuario;
+import br.com.softwareprisma.licitacao.repository.AnaliseRepository;
+import br.com.softwareprisma.licitacao.repository.UsuarioEmpresaRepository;
 import br.com.softwareprisma.licitacao.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,6 +17,8 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AnaliseRepository analiseRepository;
+    private final UsuarioEmpresaRepository usuarioEmpresaRepository;
 
     public List<Usuario> listarTodos() {
         return usuarioRepository.findAll();
@@ -97,6 +101,20 @@ public class UsuarioService {
             }
         }
         
+        // Verificar se possui análises
+        if (analiseRepository.existsByUsuarioCriador(usuario)) {
+            throw new IllegalArgumentException("Usuário possui análises e não pode ser excluído");
+        }
+        
+        // Verificar se concedeu acessos
+        if (usuarioEmpresaRepository.existsByConcedidoPor(usuario)) {
+            throw new IllegalArgumentException("Usuário concedeu acessos a outros usuários e não pode ser excluído");
+        }
+        
+        // Remover vínculos UsuarioEmpresa pertencentes ao usuário
+        usuarioEmpresaRepository.deleteByUsuario(usuario);
+        
+        // Excluir usuário
         usuarioRepository.delete(usuario);
     }
 

@@ -51,8 +51,8 @@
                                    title="Editar">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <form th:action="@{/engenheiros/{id}/excluir(id=${engenheiro.id})}" method="post"
-                                      onsubmit="return confirm('Deseja realmente excluir este engenheiro?');">
+                                  <form th:action="@{/engenheiros/{id}/excluir(id=${engenheiro.id})}" method="post"
+                                      data-confirm-message="Deseja realmente excluir este engenheiro?">
                                     <button type="submit" class="btn btn-sm btn-outline-danger" title="Excluir">
                                         <i class="bi bi-trash"></i>
                                     </button>

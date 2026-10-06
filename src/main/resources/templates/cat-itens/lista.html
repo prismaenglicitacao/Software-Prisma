@@ -5,7 +5,9 @@
 <nav th:replace="~{fragments/layout :: topo}"></nav>
 <div th:replace="~{fragments/layout :: modal}"></div>
 
-<main class="container pb-5">
+<main class="container pb-5"
+    th:data-mostrar-modal-lote="${mostrarModalLote}"
+    th:data-modo-edicao="${modoEdicao}">
     <div class="d-flex justify-content-between align-items-start mb-4">
         <div>
             <h1 class="h3 mb-1" th:text="'Itens da CAT: ' + ${cat.nome}">Itens da CAT</h1>
@@ -166,11 +168,6 @@
         </div>
     </div>
 
-    <script th:if="${mostrarModalLote}">
-        const modalLote = new bootstrap.Modal(document.getElementById('modalCadastroLote'));
-        modalLote.show();
-    </script>
-
     <div class="card shadow-sm">
         <div class="card-header bg-white">
             <form th:action="@{/cats/{catId}/itens(catId=${cat.id})}" method="get" class="d-flex gap-2">
@@ -209,9 +206,9 @@
                                    th:href="@{/cats/{catId}/itens/{itemId}/editar(catId=${cat.id}, itemId=${item.id}, page=${paginaAtual}, q=${q})}">
                                     Editar
                                 </a>
-                                <form th:action="@{/cats/{catId}/itens/{itemId}/excluir(catId=${cat.id}, itemId=${item.id})}"
+                                  <form th:action="@{/cats/{catId}/itens/{itemId}/excluir(catId=${cat.id}, itemId=${item.id})}"
                                       method="post"
-                                      onsubmit="return confirm('Deseja realmente excluir este item?');">
+                                      data-confirm-message="Deseja realmente excluir este item?">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
                                 </form>
                             </div>
@@ -260,73 +257,6 @@
 </main>
 
 <script th:replace="~{fragments/layout :: scripts}"></script>
-<script th:if="${!modoEdicao}">
-    // Inicializar Tom Select para autocomplete apenas no modo de cadastro
-    document.addEventListener('DOMContentLoaded', function() {
-        const descricaoSelect = new TomSelect('#descricao', {
-            create: false,
-            maxItems: 1,
-            valueField: 'id',
-            labelField: 'descricao',
-            searchField: 'descricao',
-            load: async function(query, callback) {
-                if (query.length < 2) {
-                    callback();
-                    return;
-                }
-
-                try {
-                    const response = await fetch('/api/itens/sugestoes?termo=' + encodeURIComponent(query));
-                    const data = await response.json();
-                    // Adicionar ID único combinando descrição e unidade
-                    const dataWithIds = data.map((item, index) => ({
-                        ...item,
-                        id: `${item.descricao}|${item.unidade}`
-                    }));
-                    callback(dataWithIds);
-                } catch (error) {
-                    console.error('Erro ao buscar sugestões:', error);
-                    callback();
-                }
-            },
-            render: {
-                option: function(item, escape) {
-                    let html = '<div class="py-2">';
-                    html += '<div class="fw-semibold">' + escape(item.descricao) + '</div>';
-                    html += '<div class="text-body-secondary small">';
-                    html += escape(item.unidade);
-                    if (item.quantidadeDisponivel != null) {
-                        html += ' • Qtd: ' + escape(item.quantidadeDisponivel);
-                    }
-                    html += '</div>';
-                    html += '</div>';
-                    return html;
-                },
-                item: function(item, escape) {
-                    return '<div>' + escape(item.descricao) + '</div>';
-                }
-            },
-            onChange: function(value) {
-                // O valor agora é "descricao|unidade"
-                const partes = value.split('|');
-                if (partes.length === 2) {
-                    document.getElementById('unidade').value = partes[1];
-                    // Atualizar o valor do input de descrição para mostrar apenas a descrição limpa
-                    document.getElementById('descricao').value = partes[0];
-                }
-            },
-            onDropdownOpen: function() {
-                const dropdown = this.dropdown_content;
-                const resultsCount = this.options.length;
-                if (resultsCount > 0) {
-                    const countDiv = document.createElement('div');
-                    countDiv.className = 'px-3 py-2 text-body-secondary small border-bottom';
-                    countDiv.textContent = `${resultsCount} item(s) encontrado(s)`;
-                    dropdown.insertBefore(countDiv, dropdown.firstChild);
-                }
-            }
-        });
-    });
-</script>
+<script th:src="@{/js/cat-itens.js}"></script>
 </body>
 </html>

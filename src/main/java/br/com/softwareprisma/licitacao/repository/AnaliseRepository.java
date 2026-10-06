@@ -112,4 +112,6 @@ public interface AnaliseRepository extends JpaRepository<Analise, Long> {
               and a.empresa = :empresa
             """)
     List<Analise> buscarComItensPorIdsEEmpresa(@Param("ids") List<Long> ids, @Param("empresa") Empresa empresa);
+
+    boolean existsByUsuarioCriador(br.com.softwareprisma.licitacao.domain.Usuario usuario);
 }

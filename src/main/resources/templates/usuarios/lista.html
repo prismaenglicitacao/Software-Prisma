@@ -59,13 +59,13 @@
                             <div class="prisma-actions-group">
                                 <a class="btn btn-sm btn-outline-primary"
                                    th:href="@{/usuarios/{id}/editar(id=${usuario.id})}">Editar</a>
-                                <form th:action="@{/usuarios/{id}/alternar-ativo(id=${usuario.id})}" method="post"
-                                      onsubmit="return confirm('Deseja realmente alterar o status deste usuário?');">
+                                  <form th:action="@{/usuarios/{id}/alternar-ativo(id=${usuario.id})}" method="post"
+                                      data-confirm-message="Deseja realmente alterar o status deste usuário?">
                                     <button type="submit" class="btn btn-sm btn-outline-warning"
                                             th:text="${usuario.ativo ? 'Desativar' : 'Ativar'}">Alterar</button>
                                 </form>
-                                <form th:action="@{/usuarios/{id}/excluir(id=${usuario.id})}" method="post"
-                                      onsubmit="return confirm('Deseja realmente excluir este usuário?');">
+                                  <form th:action="@{/usuarios/{id}/excluir(id=${usuario.id})}" method="post"
+                                      data-confirm-message="Deseja realmente excluir este usuário?">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
                                 </form>
                             </div>

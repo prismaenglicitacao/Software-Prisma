@@ -126,6 +126,16 @@
                                     </div>
                                 </div>
                             </div>
+                            <template id="empresa-option-template">
+                                <option th:each="empresa : ${empresas}"
+                                        th:value="${empresa.id}"
+                                        th:text="${empresa.nome}"></option>
+                            </template>
+                            <template id="perfil-option-template">
+                                <option th:each="perfil : ${perfis}"
+                                        th:value="${perfil}"
+                                        th:text="${perfil == T(br.com.softwareprisma.licitacao.domain.enums.PerfilEmpresa).ADMIN_EMPRESA ? 'Administrador da empresa' : 'Usuário'}"></option>
+                            </template>
                             <button type="button" id="adicionar-vinculo" class="btn btn-outline-primary btn-sm mt-2">+ Adicionar empresa</button>
                             <div class="text-danger small mt-1" th:if="${#fields.hasErrors('vinculos')}" th:errors="*{vinculos}"></div>
                         </div>
@@ -164,26 +174,6 @@
 
 <script th:replace="~{fragments/layout-admin :: scripts-admin}"></script>
 <script th:replace="~{fragments/password-toggle :: password-toggle}"></script>
-<script th:if="${usuarioForm != null}" th:inline="javascript">
-const empresas = /*[[${empresas}]]*/ [];
-const perfis = /*[[${perfis}]]*/ [];
-document.getElementById('adicionar-vinculo').addEventListener('click', () => {
-    const index = document.querySelectorAll('.vinculo-row').length;
-    const row = document.createElement('div');
-    row.className = 'row g-2 mb-2 vinculo-row';
-    row.innerHTML = `<div class="col-md-6"><select class="form-select empresa-select" name="vinculos[${index}].empresaId" required><option value="">Selecione uma empresa</option>${empresas.map(e => `<option value="${e.id}">${e.nome}</option>`).join('')}</select></div><div class="col-md-4"><select class="form-select" name="vinculos[${index}].perfil" required>${perfis.map(p => `<option value="${p}">${p === 'ADMIN_EMPRESA' ? 'Administrador da empresa' : 'Usuário'}</option>`).join('')}</select></div><div class="col-md-2"><button type="button" class="btn btn-outline-danger w-100 remover-vinculo">Remover</button></div>`;
-    document.getElementById('vinculos').appendChild(row);
-});
-document.getElementById('vinculos').addEventListener('click', event => {
-    if (event.target.classList.contains('remover-vinculo')) event.target.closest('.vinculo-row').remove();
-});
-document.querySelector('form').addEventListener('submit', event => {
-    const selecionadas = [...document.querySelectorAll('.empresa-select')].map(select => select.value);
-    if (new Set(selecionadas).size !== selecionadas.length) {
-        event.preventDefault();
-        alert('Não é permitido repetir uma empresa.');
-    }
-});
-</script>
+<script th:if="${usuarioForm != null}" th:src="@{/js/usuario-formulario.js}"></script>
 </body>
 </html>
