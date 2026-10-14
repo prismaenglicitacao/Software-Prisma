@@ -101,4 +101,26 @@ class DescricaoMatcherTest {
     void naoDeveCorresponder_UnidadesDiferentes_M_MES_vs_PAR() {
         assertFalse(descricaoMatcher.corresponde("Serviço X", "M/MÊS", "Serviço X", "PAR"));
     }
+
+    @Test
+    void deveCorresponder_DescricoesComDiferencaDePontuacao_CasoProducaoTuboCorrugado() {
+        String descricaoA = "FORNECIMENTO E ASSENTAMENTO DE TUBO CORRUGADO EM PEAD MODELO N12-WT PARA DRENAGEM, COM DIÂMETRO DE 600 MM, TIGRE OU SIMILAR, INCLUINDO PASTA LUBRIFICANTE E TRANSPORTE DOS TUBOS COM CARREGO E DESCARREGO NA OBRA (POSTO OBRA GRANDE RECIFE)";
+        String descricaoB = "FORNECIMENTO E ASSENTAMENTO DE TUBO CORRUGADO EM PEAD MODELO N12-WT PARA DRENAGEM, COM DIÂMETRO DE 600 MM, TIGRE OU SIMILAR, INCLUINDO PASTA LUBRIFICANTE E TRANSPORTE DOS TUBOS COM CARREGO E DESCARREGO NA OBRA. (POSTO OBRA GRANDE RECIFE).";
+
+        assertTrue(descricaoMatcher.corresponde(descricaoA, "M", descricaoB, "M"),
+            "Descrições com diferença de pontuação devem corresponder");
+    }
+
+    @Test
+    void deveProduzirMesmaChave_DescricoesComDiferencaDePontuacao() {
+        String descricaoA = "FORNECIMENTO E ASSENTAMENTO DE TUBO CORRUGADO EM PEAD MODELO N12-WT PARA DRENAGEM, COM DIÂMETRO DE 600 MM, TIGRE OU SIMILAR, INCLUINDO PASTA LUBRIFICANTE E TRANSPORTE DOS TUBOS COM CARREGO E DESCARREGO NA OBRA (POSTO OBRA GRANDE RECIFE)";
+        String descricaoB = "FORNECIMENTO E ASSENTAMENTO DE TUBO CORRUGADO EM PEAD MODELO N12-WT PARA DRENAGEM, COM DIÂMETRO DE 600 MM, TIGRE OU SIMILAR, INCLUINDO PASTA LUBRIFICANTE E TRANSPORTE DOS TUBOS COM CARREGO E DESCARREGO NA OBRA. (POSTO OBRA GRANDE RECIFE).";
+
+        String chaveA = descricaoMatcher.gerarChave(descricaoA, "M");
+        String chaveB = descricaoMatcher.gerarChave(descricaoB, "M");
+
+        assertEquals(chaveA, chaveB, "Chaves devem ser idênticas");
+        System.out.println("Chave A: " + chaveA);
+        System.out.println("Chave B: " + chaveB);
+    }
 }

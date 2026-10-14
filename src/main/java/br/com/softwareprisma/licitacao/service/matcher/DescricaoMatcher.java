@@ -46,8 +46,9 @@ public class DescricaoMatcher {
         }
 
         // textos devem ser praticamente idênticos (igualdade de texto normalizado)
-        String desc1Normalizada = normalizarTextoConservador(descricao1);
-        String desc2Normalizada = normalizarTextoConservador(descricao2);
+        // Usa TextoNormalizer para alinhar com gerarChave() e permitir diferenças de pontuação
+        String desc1Normalizada = textoNormalizer.normalizar(descricao1);
+        String desc2Normalizada = textoNormalizer.normalizar(descricao2);
         
         if (!desc1Normalizada.equals(desc2Normalizada)) {
             return false;
@@ -75,7 +76,7 @@ public class DescricaoMatcher {
         // Normalização conservadora: apenas diferenças superficiais
         texto = java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD);
         texto = texto.replaceAll("\\p{M}", ""); // Remove acentos
-        texto = texto.toLowerCase(); // Ignora maiúsculas/minúsculas
+        texto = texto.toLowerCase(); // Ignora maiúsculas/minúsculos
         texto = texto.replaceAll("\\s+", " ").trim(); // Remove espaços duplicados
 
         return texto;
