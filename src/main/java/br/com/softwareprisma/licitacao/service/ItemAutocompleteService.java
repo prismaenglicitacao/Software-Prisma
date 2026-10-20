@@ -38,8 +38,12 @@ public class ItemAutocompleteService {
             return List.of();
         }
 
-        List<CatItem> itens;
-        itens = catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(termo, area, empresa);
+        if (termo.replaceAll("[^\\p{L}\\p{N}]", "").length() < 2) {
+            return List.of();
+        }
+
+        List<CatItem> itens = catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(
+                termo, area == null ? null : area.name(), empresa.getId());
 
         Set<String> chavesJaAdicionadas = new HashSet<>();
         if (itensJaAdicionados != null) {
@@ -53,6 +57,7 @@ public class ItemAutocompleteService {
 
         Map<String, GrupoItemSugestao> grupos = new LinkedHashMap<>();
         for (CatItem item : itens) {
+            if (!descricaoMatcher.contemTermoNormalizado(item.getDescricao(), termo)) continue;
             String chave = descricaoMatcher.gerarChave(item.getDescricao(), item.getUnidade());
             if (chavesJaAdicionadas.contains(chave)) continue;
             grupos.computeIfAbsent(chave, k -> new GrupoItemSugestao(item.getDescricao(), item.getUnidade()))

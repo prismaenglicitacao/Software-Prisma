@@ -123,4 +123,28 @@ class DescricaoMatcherTest {
         System.out.println("Chave A: " + chaveA);
         System.out.println("Chave B: " + chaveB);
     }
+
+    @Test
+    void deveProduzirMesmaChave_CasoPEAD_0_60_M() {
+        String descricaoA = "ASSENTAMENTO DE TUBOS PEAD 0,60M DE DIAMETRO, INCLUSIVE O FORNECIMENTO DOS MESMOS E TRANSPORTE.";
+        String descricaoB = "ASSENTAMENTO DE TUBOS PEAD 0,60 M DE DIÂMETRO, INCLUSIVE O FORNECIMENTO DOS MESMOS E TRANSPORTE";
+
+        String chaveA = descricaoMatcher.gerarChave(descricaoA, "M");
+        String chaveB = descricaoMatcher.gerarChave(descricaoB, "M");
+
+        assertEquals(chaveA, chaveB);
+        assertTrue(descricaoMatcher.corresponde(descricaoA, "M", descricaoB, "M"));
+    }
+
+    @Test
+    void deveProduzirMesmaChave_CasoTuboCorrugado() {
+        String descricaoA = "FORNECIMENTO E ASSENTAMENTO DE TUBO CORRUGADO EM PEAD MODELO N12-WT PARA DRENAGEM, COM DIÂMETRO DE 600 MM, TIGRE OU SIMILAR, INCLUINDO PASTA LUBRIFICANTE E TRANSPORTE DOS TUBOS COM CARREGO E DESCARREGO NA OBRA (POSTO OBRA GRANDE RECIFE)";
+        String descricaoB = "FORNECIMENTO E ASSENTAMENTO DE TUBO CORRUGADO EM PEAD MODELO N12-WT PARA DRENAGEM, COM DIÂMETRO DE 600 MM, TIGRE OU SIMILAR, INCLUINDO PASTA LUBRIFICANTE E TRANSPORTE DOS TUBOS COM CARREGO E DESCARREGO NA OBRA. (POSTO OBRA GRANDE RECIFE).";
+
+        String chaveA = descricaoMatcher.gerarChave(descricaoA, "M");
+        String chaveB = descricaoMatcher.gerarChave(descricaoB, "M");
+
+        assertEquals(chaveA, chaveB);
+        assertTrue(descricaoMatcher.corresponde(descricaoA, "M", descricaoB, "M"));
+    }
 }

@@ -29,6 +29,12 @@ public class DescricaoMatcher {
 
     }
 
+    public boolean contemTermoNormalizado(String descricao, String termo) {
+        String termoNormalizado = textoNormalizer.normalizar(termo);
+        return !termoNormalizado.isEmpty()
+                && textoNormalizer.normalizar(descricao).contains(termoNormalizado);
+    }
+
     public boolean corresponde(String a, String b) {
         return corresponde(a, "", b, "");
     }

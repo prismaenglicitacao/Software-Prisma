@@ -54,6 +54,7 @@ class ItemAutocompleteServiceTest {
     void setUp() {
                 empresa = new Empresa();
                 empresa.setId(1L);
+                lenient().when(descricaoMatcher.contemTermoNormalizado(anyString(), anyString())).thenReturn(true);
 
         engenheiro1 = new Engenheiro();
         engenheiro1.setId(1L);
@@ -99,7 +100,8 @@ class ItemAutocompleteServiceTest {
         String termo = "passeio";
         String chaveNormalizada = "passeio de concreto 1 3 5 com 5 0 cm de espessura e juntas riscadas em quadros de 1 0 x 2 0 m|M2";
         
-        when(catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(eq(termo), any(), eq(empresa)))
+        when(catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(
+                eq(termo), eq(Area.CIVIL.name()), eq(empresa.getId())))
                 .thenReturn(List.of(catItem1, catItem2));
         when(descricaoMatcher.gerarChave(catItem1.getDescricao(), catItem1.getUnidade()))
                 .thenReturn(chaveNormalizada);
@@ -141,7 +143,8 @@ class ItemAutocompleteServiceTest {
         item2.setQuantidade(new BigDecimal("200.00"));
         item2.setCat(cat2);
         
-        when(catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(eq(termo), any(), eq(empresa)))
+        when(catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(
+                eq(termo), eq(Area.CIVIL.name()), eq(empresa.getId())))
                 .thenReturn(List.of(item1, item2));
         when(descricaoMatcher.gerarChave(item1.getDescricao(), item1.getUnidade()))
                 .thenReturn(chave1);
@@ -182,7 +185,7 @@ class ItemAutocompleteServiceTest {
         String termo = "passeio";
         String chaveNormalizada = "chave|M2";
         
-        when(catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(termo, null, empresa))
+        when(catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(termo, null, empresa.getId()))
                 .thenReturn(List.of(catItem1));
         when(descricaoMatcher.gerarChave(catItem1.getDescricao(), catItem1.getUnidade()))
                 .thenReturn(chaveNormalizada);
@@ -200,7 +203,8 @@ class ItemAutocompleteServiceTest {
         String termo = "passeio";
         String chaveNormalizada = "passeio de concreto 1 3 5 com 5 0 cm de espessura e juntas riscadas em quadros de 1 0 x 2 0 m|M2";
         
-        when(catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(eq(termo), any(), eq(empresa)))
+        when(catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(
+                eq(termo), eq(Area.CIVIL.name()), eq(empresa.getId())))
                 .thenReturn(List.of(catItem1, catItem2));
         when(descricaoMatcher.gerarChave(catItem1.getDescricao(), catItem1.getUnidade()))
                 .thenReturn(chaveNormalizada);
@@ -232,7 +236,8 @@ class ItemAutocompleteServiceTest {
         catItem1.setDescricao("PASSEIO TIPO A");
         catItem2.setDescricao("PASSEIO TIPO B");
         
-        when(catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(eq(termo), any(), eq(empresa)))
+        when(catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(
+                eq(termo), eq(Area.CIVIL.name()), eq(empresa.getId())))
                 .thenReturn(List.of(catItem1, catItem2));
         when(descricaoMatcher.gerarChave(catItem1.getDescricao(), catItem1.getUnidade()))
                 .thenReturn(chave1);
@@ -262,12 +267,14 @@ class ItemAutocompleteServiceTest {
 
         @Test
         void buscarSugestoesAgrupadas_DeveConsultarSomenteEmpresaInformada() {
-                when(catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa("item", Area.CIVIL, empresa))
+                when(catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(
+                                "item", Area.CIVIL.name(), empresa.getId()))
                                 .thenReturn(List.of());
 
                 itemAutocompleteService.buscarSugestoesAgrupadas("item", Area.CIVIL, null, empresa);
 
-                verify(catItemRepository).buscarItensPorTermoParaAutocompleteEEmpresa("item", Area.CIVIL, empresa);
+                verify(catItemRepository).buscarItensPorTermoParaAutocompleteEEmpresa(
+                                "item", Area.CIVIL.name(), empresa.getId());
                 verify(catItemRepository, never()).buscarItensPorTermoParaAutocomplete(anyString(), any());
                 verify(catItemRepository, never()).buscarItensPorTermoParaAutocomplete(anyString());
         }
@@ -309,5 +316,91 @@ class ItemAutocompleteServiceTest {
                 verify(analiseItemRepository, never()).buscarRecentes(any());
                 verify(catItemRepository, never()).buscarTodosPorArea(any());
                 verify(catItemRepository, never()).buscarTodos();
+        }
+
+        @Test
+        void diagnosticarCasoTuboCorrugado_DuasDescricoesComPontuacaoDiferente() {
+                String descricaoA = "FORNECIMENTO E ASSENTAMENTO DE TUBO CORRUGADO EM PEAD MODELO N12-WT PARA DRENAGEM, COM DIÂMETRO DE 600 MM, TIGRE OU SIMILAR, INCLUINDO PASTA LUBRIFICANTE E TRANSPORTE DOS TUBOS COM CARREGO E DESCARREGO NA OBRA (POSTO OBRA GRANDE RECIFE)";
+                String descricaoB = "FORNECIMENTO E ASSENTAMENTO DE TUBO CORRUGADO EM PEAD MODELO N12-WT PARA DRENAGEM, COM DIÂMETRO DE 600 MM, TIGRE OU SIMILAR, INCLUINDO PASTA LUBRIFICANTE E TRANSPORTE DOS TUBOS COM CARREGO E DESCARREGO NA OBRA. (POSTO OBRA GRANDE RECIFE).";
+
+                CatItem item1 = new CatItem();
+                item1.setId(1L);
+                item1.setDescricao(descricaoA);
+                item1.setUnidade("M");
+                item1.setQuantidade(new BigDecimal("24.00"));
+                item1.setCat(cat1);
+
+                CatItem item2 = new CatItem();
+                item2.setId(2L);
+                item2.setDescricao(descricaoB);
+                item2.setUnidade("M");
+                item2.setQuantidade(new BigDecimal("24.00"));
+                item2.setCat(cat2);
+
+                String chaveEsperada = "fornecimento e assentamento de tubo corrugado em pead modelo n12 wt para drenagem com diametro de600mm tigre ou similar incluindo pasta lubrificante e transporte dos tubos com carrego e descarrego na obra posto obra grande recife|m";
+
+                when(catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(
+                                eq("tubo"), eq(Area.CIVIL.name()), eq(empresa.getId())))
+                        .thenReturn(List.of(item1, item2));
+                when(descricaoMatcher.gerarChave(descricaoA, "M")).thenReturn(chaveEsperada);
+                when(descricaoMatcher.gerarChave(descricaoB, "M")).thenReturn(chaveEsperada);
+
+                List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("tubo", Area.CIVIL, null, empresa);
+
+                System.out.println("=== DIAGNÓSTICO CASO TUBO CORRUGADO (AUTOCOMPLETE) ===");
+                System.out.println("Número de sugestões: " + resultado.size());
+                if (!resultado.isEmpty()) {
+                        ItemSugestaoDTO sugestao = resultado.get(0);
+                        System.out.println("Descrição: " + sugestao.descricao().substring(0, Math.min(80, sugestao.descricao().length())) + "...");
+                        System.out.println("Unidade: " + sugestao.unidade());
+                        System.out.println("Quantidade: " + sugestao.quantidadeDisponivel());
+                        System.out.println("Esperado: 1 sugestão com 48.00 M");
+                }
+
+                assertEquals(1, resultado.size(), "Deve agrupar as duas descrições em uma sugestão");
+                assertEquals(new BigDecimal("48.00"), resultado.get(0).quantidadeDisponivel());
+        }
+
+        @Test
+        void diagnosticarCasoPEAD_0_60_M_DuasDescricoesComAcentoEEspaco() {
+                String descricaoA = "ASSENTAMENTO DE TUBOS PEAD 0,60M DE DIAMETRO, INCLUSIVE O FORNECIMENTO DOS MESMOS E TRANSPORTE.";
+                String descricaoB = "ASSENTAMENTO DE TUBOS PEAD 0,60 M DE DIÂMETRO, INCLUSIVE O FORNECIMENTO DOS MESMOS E TRANSPORTE";
+
+                CatItem item1 = new CatItem();
+                item1.setId(1L);
+                item1.setDescricao(descricaoA);
+                item1.setUnidade("M");
+                item1.setQuantidade(new BigDecimal("50.00"));
+                item1.setCat(cat1);
+
+                CatItem item2 = new CatItem();
+                item2.setId(2L);
+                item2.setDescricao(descricaoB);
+                item2.setUnidade("M");
+                item2.setQuantidade(new BigDecimal("68.00"));
+                item2.setCat(cat2);
+
+                String chaveEsperada = "assentamento de tubos pead0 60m de diametro inclusive o fornecimento dos mesmos e transporte|m";
+
+                when(catItemRepository.buscarItensPorTermoParaAutocompleteEEmpresa(
+                                eq("pead"), eq(Area.CIVIL.name()), eq(empresa.getId())))
+                        .thenReturn(List.of(item1, item2));
+                when(descricaoMatcher.gerarChave(descricaoA, "M")).thenReturn(chaveEsperada);
+                when(descricaoMatcher.gerarChave(descricaoB, "M")).thenReturn(chaveEsperada);
+
+                List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("pead", Area.CIVIL, null, empresa);
+
+                System.out.println("=== DIAGNÓSTICO CASO PEAD 0,60 M (AUTOCOMPLETE) ===");
+                System.out.println("Número de sugestões: " + resultado.size());
+                if (!resultado.isEmpty()) {
+                        ItemSugestaoDTO sugestao = resultado.get(0);
+                        System.out.println("Descrição: " + sugestao.descricao());
+                        System.out.println("Unidade: " + sugestao.unidade());
+                        System.out.println("Quantidade: " + sugestao.quantidadeDisponivel());
+                        System.out.println("Esperado: 1 sugestão com 118.00 M");
+                }
+
+                assertEquals(1, resultado.size(), "Deve agrupar as duas descrições em uma sugestão");
+                assertEquals(new BigDecimal("118.00"), resultado.get(0).quantidadeDisponivel());
         }
 }

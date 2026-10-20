@@ -208,19 +208,29 @@ List<ItemSearchProjection> pesquisarPorDescricaoEEmpresa(
             """)
     List<CatItem> buscarTodos();
 
-    @Query("""
-            select i
-            from CatItem i
-            join fetch i.cat c
-            join fetch c.engenheiro e
-            where e.empresa = :empresa
-              and (:area is null or e.area = :area)
-              and lower(i.descricao) like lower(concat('%', :termo, '%'))
+    @Query(value = """
+            select i.*
+            from cat_item i
+            join cat c on c.id = i.cat_id
+            join engenheiro e on e.id = c.engenheiro_id
+            where e.empresa_id = :empresaId
+              and (cast(:area as varchar) is null or e.area = :area)
+              and regexp_replace(
+                    translate(lower(normalize(i.descricao, NFD)), '²³', '23'),
+                    '[^a-z0-9]',
+                    '',
+                    'g'
+                  ) like '%' || regexp_replace(
+                    translate(lower(normalize(:termo, NFD)), '²³', '23'),
+                    '[^a-z0-9]',
+                    '',
+                    'g'
+                  ) || '%'
             order by i.descricao
-            """)
+            """, nativeQuery = true)
     List<CatItem> buscarItensPorTermoParaAutocompleteEEmpresa(@Param("termo") String termo,
-                                                               @Param("area") br.com.softwareprisma.licitacao.domain.enums.Area area,
-                                                               @Param("empresa") Empresa empresa);
+                                                               @Param("area") String area,
+                                                               @Param("empresaId") Long empresaId);
 
     @Query("""
             select i
