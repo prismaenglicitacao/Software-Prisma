@@ -28,6 +28,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @SpringBootTest
 class ItemAutocompleteServiceIntegrationTest {
@@ -1163,5 +1164,280 @@ class ItemAutocompleteServiceIntegrationTest {
 
         // Assert
         assertEquals(100, resultado.size(), "Deve limitar a 100 resultados");
+    }
+
+    @Test
+    void forense_CenarioA_UnicoRegistroCHP_DeveRetornarQuantidadeExata() {
+        // Arrange - Cenário A: um único registro CHP
+        String descricao = "CAMINHAO PESADO";
+        CatItem item = new CatItem();
+        item.setDescricao(descricao);
+        item.setUnidade("CHP");
+        item.setQuantidade(new BigDecimal("16500.00"));
+        item.setCat(cat1);
+        item = catItemRepository.save(item);
+
+        // Act
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("caminhao", Area.CIVIL, null, empresa);
+
+        // Assert
+        assertEquals(1, resultado.size(), "Deve retornar 1 sugestão");
+        assertEquals(descricao, resultado.get(0).descricao());
+        assertEquals("CHP", resultado.get(0).unidade());
+        assertEquals(new BigDecimal("16500.00"), resultado.get(0).quantidadeDisponivel(),
+                "Quantidade deve ser exatamente 16500.00");
+    }
+
+    @Test
+    void forense_CenarioB_UnicoRegistroCHI_DeveRetornarQuantidadeExata() {
+        // Arrange - Cenário B: um único registro CHI
+        String descricao = "CAMINHAO LEVE";
+        CatItem item = new CatItem();
+        item.setDescricao(descricao);
+        item.setUnidade("CHI");
+        item.setQuantidade(new BigDecimal("2933.00"));
+        item.setCat(cat1);
+        item = catItemRepository.save(item);
+
+        // Act
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("caminhao", Area.CIVIL, null, empresa);
+
+        // Assert
+        assertEquals(1, resultado.size(), "Deve retornar 1 sugestão");
+        assertEquals(descricao, resultado.get(0).descricao());
+        assertEquals("CHI", resultado.get(0).unidade());
+        assertEquals(new BigDecimal("2933.00"), resultado.get(0).quantidadeDisponivel(),
+                "Quantidade deve ser exatamente 2933.00");
+    }
+
+    @Test
+    void forense_CenarioC_RegistrosEquivalentes_DeveSomarUmaVezCada() {
+        // Arrange - Cenário C: dois CatItems com mesma chave normalizada
+        String descricao1 = "TUBO PEAD 0,60 M";
+        String descricao2 = "TUBO PEAD 0,60M"; // Espaço diferente, mas normalização igual
+
+        CatItem item1 = new CatItem();
+        item1.setDescricao(descricao1);
+        item1.setUnidade("M");
+        item1.setQuantidade(new BigDecimal("100.00"));
+        item1.setCat(cat1);
+        item1 = catItemRepository.save(item1);
+
+        CatItem item2 = new CatItem();
+        item2.setDescricao(descricao2);
+        item2.setUnidade("M");
+        item2.setQuantidade(new BigDecimal("50.00"));
+        item2.setCat(cat2);
+        item2 = catItemRepository.save(item2);
+
+        // Act
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("tubo", Area.CIVIL, null, empresa);
+
+        // Assert
+        assertEquals(1, resultado.size(), "Deve agrupar em 1 sugestão");
+        assertEquals(new BigDecimal("150.00"), resultado.get(0).quantidadeDisponivel(),
+                "Quantidade deve ser soma de 100.00 + 50.00 = 150.00");
+    }
+
+    @Test
+    void forense_CenarioD_UnidadesDiferentes_NaoDevemSerAgrupadas() {
+        // Arrange - Cenário D: mesma descrição, unidades diferentes
+        String descricao = "CAMINHAO";
+
+        CatItem item1 = new CatItem();
+        item1.setDescricao(descricao);
+        item1.setUnidade("CHP");
+        item1.setQuantidade(new BigDecimal("16500.00"));
+        item1.setCat(cat1);
+        item1 = catItemRepository.save(item1);
+
+        CatItem item2 = new CatItem();
+        item2.setDescricao(descricao);
+        item2.setUnidade("CHI");
+        item2.setQuantidade(new BigDecimal("2933.00"));
+        item2.setCat(cat2);
+        item2 = catItemRepository.save(item2);
+
+        // Act
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("caminhao", Area.CIVIL, null, empresa);
+
+        // Assert
+        assertEquals(2, resultado.size(), "Deve retornar 2 sugestões (unidades diferentes)");
+        
+        boolean temCHP = false;
+        boolean temCHI = false;
+        for (ItemSugestaoDTO dto : resultado) {
+            if (dto.unidade().equals("CHP")) {
+                temCHP = true;
+                assertEquals(new BigDecimal("16500.00"), dto.quantidadeDisponivel(),
+                        "CHP deve ter quantidade 16500.00");
+            }
+            if (dto.unidade().equals("CHI")) {
+                temCHI = true;
+                assertEquals(new BigDecimal("2933.00"), dto.quantidadeDisponivel(),
+                        "CHI deve ter quantidade 2933.00");
+            }
+        }
+        assertTrue(temCHP, "Deve ter sugestão CHP");
+        assertTrue(temCHI, "Deve ter sugestão CHI");
+    }
+
+    @Test
+    void coerencia_AutocompleteAgrupa_MatchingSoma_ValoresTecnicosIguais() {
+        // Arrange - Dois CatItems com mesma descrição, unidade e valores técnicos
+        String descricao1 = "CAMINHAO BASCULANTE 10 M³ CHP";
+        String descricao2 = "CAMINHÃO BASCULANTE 10 M3 CHP"; // Acentuação e M³ vs M³
+
+        CatItem item1 = new CatItem();
+        item1.setDescricao(descricao1);
+        item1.setUnidade("CHP");
+        item1.setQuantidade(new BigDecimal("16500.00"));
+        item1.setCat(cat1);
+        item1 = catItemRepository.save(item1);
+
+        CatItem item2 = new CatItem();
+        item2.setDescricao(descricao2);
+        item2.setUnidade("CHP");
+        item2.setQuantidade(new BigDecimal("41569.81"));
+        item2.setCat(cat2);
+        item2 = catItemRepository.save(item2);
+
+        // Act - Autocomplete deve agrupar
+        List<ItemSugestaoDTO> resultadoAutocomplete = itemAutocompleteService.buscarSugestoesAgrupadas("caminhao", Area.CIVIL, null, empresa);
+
+        // Assert - Autocomplete agrupa corretamente
+        assertEquals(1, resultadoAutocomplete.size(), "Autocomplete deve agrupar descrições equivalentes");
+        assertEquals(new BigDecimal("58069.81"), resultadoAutocomplete.get(0).quantidadeDisponivel(),
+                "Quantidade deve ser soma de 16500 + 41569.81");
+
+        // Act - Matching deve considerar equivalentes (após correção dos extractors)
+        boolean corresponde = descricaoMatcher.corresponde(descricao1, "CHP", descricao2, "CHP");
+
+        // Assert - Matching deve considerar equivalentes
+        assertTrue(corresponde, "Matching deve considerar equivalentes quando valores técnicos são iguais (após correção dos extractors)");
+    }
+
+    @Test
+    void coerencia_AutocompleteAgrupa_MatchingNaoSoma_ValoresTecnicosDiferentes() {
+        // Arrange - Dois CatItems com mesma descrição normalizada mas valores técnicos diferentes
+        String descricao1 = "CAMINHAO BASCULANTE 10 M³ CHP";
+        String descricao2 = "CAMINHAO BASCULANTE 15 M³ CHP"; // 10 vs 15 M³
+
+        CatItem item1 = new CatItem();
+        item1.setDescricao(descricao1);
+        item1.setUnidade("CHP");
+        item1.setQuantidade(new BigDecimal("16500.00"));
+        item1.setCat(cat1);
+        item1 = catItemRepository.save(item1);
+
+        CatItem item2 = new CatItem();
+        item2.setDescricao(descricao2);
+        item2.setUnidade("CHP");
+        item2.setQuantidade(new BigDecimal("41569.81"));
+        item2.setCat(cat2);
+        item2 = catItemRepository.save(item2);
+
+        // Act - Autocomplete pode agrupar (depende da normalização)
+        List<ItemSugestaoDTO> resultadoAutocomplete = itemAutocompleteService.buscarSugestoesAgrupadas("caminhao", Area.CIVIL, null, empresa);
+
+        // Act - Matching NÃO deve considerar equivalentes
+        boolean corresponde = descricaoMatcher.corresponde(descricao1, "CHP", descricao2, "CHP");
+
+        // Assert - Matching deve rejeitar por valores técnicos diferentes
+        assertFalse(corresponde, "Matching deve rejeitar quando valores técnicos são diferentes");
+
+        // Se o autocomplete agrupou, isso é um problema
+        if (resultadoAutocomplete.size() == 1) {
+            // DIVERGÊNCIA: Autocomplete agrupou mas matching não considera equivalentes
+            assertFalse(true, "DIVERGÊNCIA CRÍTICA: Autocomplete agrupou itens com valores técnicos diferentes (10m³ vs 15m³), mas matching não os considera equivalentes. Quantidade exibida: " + resultadoAutocomplete.get(0).quantidadeDisponivel());
+        }
+    }
+
+    @Test
+    void coerencia_AtributosQualitativos_Diferentes_NaoDevemSerAgrupados() {
+        // Arrange - Dois CatItems com atributos qualitativos diferentes
+        String descricao1 = "CONCRETO FCK25 SIMPLES";
+        String descricao2 = "CONCRETO FCK25 ARMADO"; // simples vs armado
+
+        CatItem item1 = new CatItem();
+        item1.setDescricao(descricao1);
+        item1.setUnidade("M³");
+        item1.setQuantidade(new BigDecimal("100.00"));
+        item1.setCat(cat1);
+        item1 = catItemRepository.save(item1);
+
+        CatItem item2 = new CatItem();
+        item2.setDescricao(descricao2);
+        item2.setUnidade("M³");
+        item2.setQuantidade(new BigDecimal("200.00"));
+        item2.setCat(cat2);
+        item2 = catItemRepository.save(item2);
+
+        // Act - Matching NÃO deve considerar equivalentes
+        boolean corresponde = descricaoMatcher.corresponde(descricao1, "M³", descricao2, "M³");
+
+        // Assert - Matching deve rejeitar por atributos qualitativos diferentes
+        assertFalse(corresponde, "Matching deve rejeitar quando atributos qualitativos são diferentes");
+    }
+
+    @Test
+    void coerencia_Producao_CatItems1473e2357_DevemSerEquivalentes() {
+        // Arrange - Simular cenário de produção com caminhão basculante 10 m³
+        String descricao1 = "CAMINHAO BASCULANTE 10 M³ CHP";
+        String descricao2 = "CAMINHAO BASCULANTE 10 M3 CHP"; // M³ vs M3
+
+        CatItem item1 = new CatItem();
+        item1.setDescricao(descricao1);
+        item1.setUnidade("CHP");
+        item1.setQuantidade(new BigDecimal("16500.00"));
+        item1.setCat(cat1);
+        item1 = catItemRepository.save(item1);
+
+        CatItem item2 = new CatItem();
+        item2.setDescricao(descricao2);
+        item2.setUnidade("CHP");
+        item2.setQuantidade(new BigDecimal("41569.81"));
+        item2.setCat(cat2);
+        item2 = catItemRepository.save(item2);
+
+        // Act - Verificar correspondência
+        boolean corresponde = descricaoMatcher.corresponde(descricao1, "CHP", descricao2, "CHP");
+
+        // Assert - Devem ser equivalentes
+        assertTrue(corresponde, "CatItems 1473 e 2357 devem ser equivalentes (10m³ vs 10m3)");
+
+        // Act - Autocomplete deve agrupar
+        List<ItemSugestaoDTO> resultado = itemAutocompleteService.buscarSugestoesAgrupadas("caminhao", Area.CIVIL, null, empresa);
+
+        // Assert - Quantidade deve ser 58069.81
+        assertEquals(1, resultado.size(), "Deve agrupar em 1 sugestão");
+        assertEquals(new BigDecimal("58069.81"), resultado.get(0).quantidadeDisponivel(),
+                "Quantidade deve ser 58069.81 (16500 + 41569.81)");
+    }
+
+    @Test
+    void coerencia_Diagnosticar_FalhaMatching_CamposDiferentes() {
+        // Arrange - Teste específico para diagnosticar qual campo está causando falha
+        String descricao1 = "CAMINHAO BASCULANTE 10 M³ CHP";
+        String descricao2 = "CAMINHÃO BASCULANTE 10 M3 CHP";
+
+        // Testar apenas normalização de texto
+        String chave1 = descricaoMatcher.gerarChave(descricao1, "CHP");
+        String chave2 = descricaoMatcher.gerarChave(descricao2, "CHP");
+        System.out.println("DIAGNÓSTICO DETALHADO - Chave 1: " + chave1);
+        System.out.println("DIAGNÓSTICO DETALHADO - Chave 2: " + chave2);
+        System.out.println("DIAGNÓSTICO DETALHADO - Chaves iguais: " + chave1.equals(chave2));
+
+        // Testar matching completo
+        boolean corresponde = descricaoMatcher.corresponde(descricao1, "CHP", descricao2, "CHP");
+        System.out.println("DIAGNÓSTICO DETALHADO - corresponde: " + corresponde);
+
+        // Se chaves são iguais mas matching falha, o problema está em valores técnicos ou atributos
+        if (chave1.equals(chave2) && !corresponde) {
+            System.out.println("DIAGNÓSTICO DETALHADO - PROVÁVEL CAUSA: ValorTecnicoExtractor ou AtributoQualitativoExtractor está rejeitando");
+            System.out.println("DIAGNÓSTICO DETALHADO - Descrição 1 contém: 10 M³ (³ é caractere especial)");
+            System.out.println("DIAGNÓSTICO DETALHADO - Descrição 2 contém: 10 M3 (3 é caractere normal)");
+            System.out.println("DIAGNÓSTICO DETALHADO - TextoNormalizer converte ³ para 3, mas ValorTecnicoExtractor pode não fazer a mesma conversão");
+        }
     }
 }

@@ -71,6 +71,9 @@ public class ValorTecnicoExtractor {
 
         descricao = descricao.toLowerCase();
 
+        // Alinhar com TextoNormalizer: converter ³ para 3 e ² para 2
+        descricao = descricao.replace("³", "3").replace("²", "2");
+
         for (Pattern pattern : PADROES) {
 
             Matcher matcher = pattern.matcher(descricao);
